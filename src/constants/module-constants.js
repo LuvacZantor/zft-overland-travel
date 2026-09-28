@@ -1,22 +1,31 @@
-// src/constants/module-constants.js
+export const MODULE_ID = "zft-overland-travel";
+export const MODULE_VERSION = "0.2.0";
 
-export const MODULE_ID = "zantors-overland-travel";
+export const SETTINGS = Object.freeze({
+  EXPEDITION_STATE: "expeditionState",
+  DEBUG: "debug"
+});
 
-export const MODULE_VERSION = "0.1.6";
+export const EVENTS = Object.freeze({
+  ENCOUNTER: "encounter",
+  COMPLICATION: "complication",
+  DISCOVERY: "discovery",
+  QUIET: "quiet"
+});
 
-export const ZOT = {
-  FLAGS: {
-    TRAVEL_STATE: "travelState",
-    THREAT_STATE: "threatState",
-    REGION_STATE: "regionState"
-  },
+export const MOMENTUM = Object.freeze({
+  FAVORED: "favored",
+  PREPARED: "prepared",
+  NEUTRAL: "neutral",
+  RISKY: "risky",
+  DETERIORATING: "deteriorating"
+});
 
-  EVENTS: {
-    ENCOUNTER: "encounter",
-    DISCOVERY: "discovery",
-    COMPLICATION: "complication",
-    QUIET: "quiet"
-  },
+export const THREAT = Object.freeze({
+  NONE: "none",
+  DISTANT: "distant",
+  CLOSING: "closing",
+  IMMEDIATE: "immediate"
+});
 
-  DEBUG: true
-};
+export const LOG_PREFIX = "[ZFT][ZOT]";

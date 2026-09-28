@@ -1,1 +1,101 @@
-# LuvacZantor-zantors-overland-travel
+# Zantor's Overland Travel
+
+Foundry VTT module implementing Zantor's hex-based overland travel and independent encounter-generation framework.
+
+## Version
+
+`0.2.0` alpha foundation.
+
+## Canonical terminology
+
+- Momentum: `Favored → Prepared → Neutral → Risky → Deteriorating`
+- Region Danger: `Safe → Frontier → Wild → Hostile → Cataclysmic`
+- Encounter Severity: `Minor → Standard → Dangerous → Deadly`
+- Threat: `None → Distant → Closing → Immediate`
+
+Immediate Threat triggers an Encounter.
+
+## Implemented
+
+- Persistent world-level expedition state
+- Terrain Base DC and Region Danger modifiers
+- Six travel roles
+- Role-check outcome grading and party tally
+- Travel Quality and Momentum shifting
+- Initial event roll and Momentum event shifting
+- Quiet Travel: Recover, Prepare, Regroup
+- Persistent Threat track
+- Encounter severity, Template, Creature Category, Behavior / Intent, and Situation State generation
+- Independent Encounter Engine
+- GM scene-control button and DialogV2 control panel
+- Public module API
+
+## Deliberately incomplete
+
+The supplied design specifies terrain-specific Discovery Tables and category-specific Complication prompt tables, but the actual table entries supplied so far are incomplete. The engines are present and return an explicit unavailable result rather than inventing content.
+
+The design also states that Region Danger and Travel Outcome may affect the final Event result, but no complete event-shift rules for those two factors were supplied. Version 0.2.0 therefore applies the documented Momentum event shift only.
+
+## Public API
+
+Available after the `ready` hook:
+
+```js
+game.zftOverlandTravel
+```
+
+Main services:
+
+```js
+game.zftOverlandTravel.state
+game.zftOverlandTravel.travel
+game.zftOverlandTravel.roles
+game.zftOverlandTravel.momentum
+game.zftOverlandTravel.events
+game.zftOverlandTravel.encounter
+game.zftOverlandTravel.severity
+game.zftOverlandTravel.complication
+game.zftOverlandTravel.discovery
+game.zftOverlandTravel.quietTravel
+game.zftOverlandTravel.threat
+game.zftOverlandTravel.panel
+```
+
+### Example: begin a Forest hex
+
+```js
+await game.zftOverlandTravel.travel.beginHex({
+  terrainId: "forest",
+  regionDanger: "wild"
+});
+```
+
+### Example: resolve role-check totals
+
+```js
+await game.zftOverlandTravel.travel.resolveHex({
+  rolls: [
+    { role: "guide", total: 18 },
+    { role: "scout", total: 14 },
+    { role: "lookout", total: 21 }
+  ]
+});
+```
+
+### Example: independent encounter
+
+```js
+game.zftOverlandTravel.encounter.generate({
+  environment: "forest",
+  regionDanger: "wild",
+  partyLevel: 8
+});
+```
+
+## Installation note
+
+The module folder name must be exactly `zft-overland-travel`. That must match the module `id` in `module.json`.
+
+## Development
+
+The repository follows ZFT semantic versioning and logging conventions. `main` remains the stable branch; major work should be developed and tested in feature branches before merging.

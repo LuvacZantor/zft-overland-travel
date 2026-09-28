@@ -1,8 +1,8 @@
 {
-  "id": "zantors-overland-travel",
+  "id": "zft-overland-travel",
   "title": "Zantor's Overland Travel",
-  "description": "A modular overland travel, encounter generation, and expedition framework for Foundry VTT.",
-  "version": "0.1.0",
+  "description": "A modular overland travel, expedition-state, discovery, complication, threat, and encounter framework for Foundry VTT.",
+  "version": "0.2.0",
   "authors": [
     {
       "name": "Zantor"
@@ -10,7 +10,7 @@
   ],
   "compatibility": {
     "minimum": "13",
-    "verified": "13.347"
+    "verified": "14"
   },
   "relationships": {
     "systems": [
@@ -28,7 +28,7 @@
     "src/main.js"
   ],
   "styles": [
-    "src/styles/zantors-overland-travel.css"
+    "src/styles/zft-overland-travel.css"
   ],
   "languages": [
     {
@@ -37,52 +37,10 @@
       "path": "lang/en.json"
     }
   ],
-  "packs": [
-    {
-      "name": "discoveries",
-      "label": "Discoveries",
-      "path": "packs/discoveries",
-      "type": "JournalEntry",
-      "ownership": {
-        "PLAYER": "OBSERVER",
-        "ASSISTANT": "OWNER"
-      }
-    },
-    {
-      "name": "encounters",
-      "label": "Encounters",
-      "path": "packs/encounters",
-      "type": "JournalEntry",
-      "ownership": {
-        "PLAYER": "OBSERVER",
-        "ASSISTANT": "OWNER"
-      }
-    },
-    {
-      "name": "regions",
-      "label": "Regions",
-      "path": "packs/regions",
-      "type": "JournalEntry",
-      "ownership": {
-        "PLAYER": "OBSERVER",
-        "ASSISTANT": "OWNER"
-      }
-    },
-    {
-      "name": "landmarks",
-      "label": "Landmarks",
-      "path": "packs/landmarks",
-      "type": "JournalEntry",
-      "ownership": {
-        "PLAYER": "OBSERVER",
-        "ASSISTANT": "OWNER"
-      }
-    }
-  ],
   "socket": false,
-  "manifest": "",
+  "url": "https://github.com/LuvacZantor/zft-overland-travel",
+  "manifest": "https://raw.githubusercontent.com/LuvacZantor/zft-overland-travel/main/module.json",
   "download": "",
-  "url": "",
   "license": "LICENSE",
   "readme": "README.md"
 }
