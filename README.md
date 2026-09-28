@@ -4,7 +4,7 @@ Foundry VTT module implementing Zantor's hex-based overland travel and independe
 
 ## Version
 
-`0.2.0` alpha foundation.
+`0.2.1` alpha foundation.
 
 ## Canonical terminology
 
@@ -28,13 +28,14 @@ Immediate Threat triggers an Encounter.
 - Encounter severity, Template, Creature Category, Behavior / Intent, and Situation State generation
 - Independent Encounter Engine
 - GM scene-control button and DialogV2 control panel
+- Gold/amber Overland Travel scene-control icon
 - Public module API
 
 ## Deliberately incomplete
 
 The supplied design specifies terrain-specific Discovery Tables and category-specific Complication prompt tables, but the actual table entries supplied so far are incomplete. The engines are present and return an explicit unavailable result rather than inventing content.
 
-The design also states that Region Danger and Travel Outcome may affect the final Event result, but no complete event-shift rules for those two factors were supplied. Version 0.2.0 therefore applies the documented Momentum event shift only.
+The design also states that Region Danger and Travel Outcome may affect the final Event result, but no complete event-shift rules for those two factors were supplied. Version 0.2.1 therefore applies the documented Momentum event shift only.
 
 ## Public API
 
@@ -59,37 +60,6 @@ game.zftOverlandTravel.discovery
 game.zftOverlandTravel.quietTravel
 game.zftOverlandTravel.threat
 game.zftOverlandTravel.panel
-```
-
-### Example: begin a Forest hex
-
-```js
-await game.zftOverlandTravel.travel.beginHex({
-  terrainId: "forest",
-  regionDanger: "wild"
-});
-```
-
-### Example: resolve role-check totals
-
-```js
-await game.zftOverlandTravel.travel.resolveHex({
-  rolls: [
-    { role: "guide", total: 18 },
-    { role: "scout", total: 14 },
-    { role: "lookout", total: 21 }
-  ]
-});
-```
-
-### Example: independent encounter
-
-```js
-game.zftOverlandTravel.encounter.generate({
-  environment: "forest",
-  regionDanger: "wild",
-  partyLevel: 8
-});
 ```
 
 ## Installation note
