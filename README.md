@@ -4,7 +4,7 @@ Foundry VTT module implementing Zantor's hex-based overland travel and independe
 
 ## Version
 
-`0.3.0` alpha foundation.
+`0.3.1` alpha foundation.
 
 ## Canonical terminology
 
@@ -35,7 +35,7 @@ Immediate Threat triggers an Encounter.
 
 The supplied design specifies terrain-specific Discovery Tables and category-specific Complication prompt tables, but the actual table entries supplied so far are incomplete. The engines are present and return an explicit unavailable result rather than inventing content.
 
-The design also states that Region Danger and Travel Outcome may affect the final Event result, but no complete event-shift rules for those two factors were supplied. Version 0.3.0 therefore applies the documented Momentum event shift only.
+The design also states that Region Danger and Travel Outcome may affect the final Event result, but no complete event-shift rules for those two factors were supplied. Version 0.3.1 therefore applies the documented Momentum event shift only.
 
 ## Public API
 
@@ -88,3 +88,9 @@ To force a rules refresh from the browser console:
 ```js
 await game.zftOverlandTravel.rules.refresh();
 ```
+
+
+### 0.3.1
+
+- Fixes invalid literal escape sequences introduced in the 0.3.0 module wiring.
+- Restores the Rules API, automatic rules-compendium initialization, and Rules control-panel action.

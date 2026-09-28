@@ -11,7 +11,8 @@ import { ComplicationEngine } from "./engines/complication/ComplicationEngine.js
 import { DiscoveryEngine } from "./engines/discovery/DiscoveryEngine.js";
 import { QuietTravelEngine } from "./engines/quiet-travel/QuietTravelEngine.js";
 import { ThreatEngine } from "./engines/threat/ThreatEngine.js";
-import { TravelPanel } from "./ui/TravelPanel.js";\nimport { RulesCompendium } from "./docs/RulesCompendium.js";
+import { TravelPanel } from "./ui/TravelPanel.js";
+import { RulesCompendium } from "./docs/RulesCompendium.js";
 
 console.log(`${LOG_PREFIX} 🛠️ v${MODULE_VERSION} | Loading ${MODULE_ID}`);
 
@@ -40,10 +41,19 @@ Hooks.once("ready", async () => {
     quietTravel: QuietTravelEngine,
     threat: ThreatEngine,
     panel: TravelPanel,
+    rules: RulesCompendium,
     data: { terrain: TERRAIN, regionDanger: REGION_DANGER, roles: TRAVEL_ROLES }
   };
 
   game.zftOverlandTravel = module.api;
+
+  if (game.user?.isGM) {
+    try {
+      await RulesCompendium.ensure();
+    } catch (error) {
+      console.error(`${LOG_PREFIX} ❌ v${MODULE_VERSION} | Failed to prepare rules compendium`, error);
+    }
+  }
 
   if (game.settings.get(MODULE_ID, SETTINGS.DEBUG)) {
     console.log(`${LOG_PREFIX} 🔍 v${MODULE_VERSION} | Debug mode enabled`, ExpeditionState.get());
