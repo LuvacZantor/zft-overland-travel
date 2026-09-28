@@ -50,3 +50,18 @@
 .zft-zot-card p:last-child {
   margin-bottom: 0;
 }
+
+/* ZFT Overland Travel scene-control icon */
+#scene-controls [data-tool="zftOverlandTravel"] {
+  color: #ffc266 !important;
+}
+
+#scene-controls [data-tool="zftOverlandTravel"] i {
+  color: inherit !important;
+}
+
+#scene-controls [data-tool="zftOverlandTravel"]:hover,
+#scene-controls [data-tool="zftOverlandTravel"].active,
+#scene-controls [data-tool="zftOverlandTravel"][aria-pressed="true"] {
+  color: #ffd27f !important;
+}
