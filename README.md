@@ -4,7 +4,7 @@ Foundry VTT module implementing Zantor's hex-based overland travel and independe
 
 ## Version
 
-`0.2.1` alpha foundation.
+`0.3.0` alpha foundation.
 
 ## Canonical terminology
 
@@ -35,7 +35,7 @@ Immediate Threat triggers an Encounter.
 
 The supplied design specifies terrain-specific Discovery Tables and category-specific Complication prompt tables, but the actual table entries supplied so far are incomplete. The engines are present and return an explicit unavailable result rather than inventing content.
 
-The design also states that Region Danger and Travel Outcome may affect the final Event result, but no complete event-shift rules for those two factors were supplied. Version 0.2.1 therefore applies the documented Momentum event shift only.
+The design also states that Region Danger and Travel Outcome may affect the final Event result, but no complete event-shift rules for those two factors were supplied. Version 0.3.0 therefore applies the documented Momentum event shift only.
 
 ## Public API
 
@@ -69,3 +69,22 @@ The module folder name must be exactly `zft-overland-travel`. That must match th
 ## Development
 
 The repository follows ZFT semantic versioning and logging conventions. `main` remains the stable branch; major work should be developed and tested in feature branches before merging.
+
+
+## Rules documentation
+
+The authoritative human-readable rules are stored in the module under `src/docs/` as normalized HTML. On GM load, the module creates or updates a locked world compendium named `Zantor's Overland Travel Rules`.
+
+The generated Journal contains these pages:
+
+- Overland Travel Procedure
+- Travel Events
+- Encounter Engine
+
+Only the terminology decisions already established for this project are normalized in those sources. Missing Discovery and Complication table entries are identified as missing rather than invented.
+
+To force a rules refresh from the browser console:
+
+```js
+await game.zftOverlandTravel.rules.refresh();
+```

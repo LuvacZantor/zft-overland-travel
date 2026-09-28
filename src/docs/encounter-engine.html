@@ -1,0 +1,1843 @@
+        <h2><span style="color:rgb(255,194,102);">Encounter Engine</span></h2>
+<p>The Encounter Engine is a system used to generate and define encounters across different environments.</p>
+<p>It determines the nature, scale, and context of an encounter by combining environmental factors, severity, creature type, and situational elements.</p>
+<p>Encounters produced by this system represent immediate situations that require response, including conflict, interaction, or avoidance.</p>
+<p>The Encounter Engine can be used independently or integrated into other systems, such as Overland Travel.</p>
+
+<hr>
+
+
+
+
+<h2><span style="color:rgb(255,194,102);">Encounter Definition</span></h2>
+<p>An Encounter is defined by the interaction of the following elements:</p>
+<ul>
+  <li><p>Environment</p></li>
+  <li><p>Severity</p></li>
+  <li><p>Encounter Template</p></li>
+  <li><p>Creature Category</p></li>
+  <li><p>Behavior / Intent</p></li>
+  <li><p>Situation State</p></li>
+</ul>
+
+
+
+
+<h2><span style="color:rgb(255,194,102);">Procedure Checklist</span></h2>
+<p>Follow these steps when generating an Encounter:</p>
+<ol>
+  <li><p>Determine Environment</p></li>
+  <li><p>Determine Severity</p></li>
+  <li><p>Determine Encounter Template</p></li>
+  <li><p>Determine Creature Category</p></li>
+  <li><p>Determine Behavior / Intent</p></li>
+  <li><p>Establish Situation State</p></li>
+  <li><p>Resolve Encounter</p></li>
+</ol>
+
+<hr>
+
+
+
+
+<h2><span style="color:rgb(255,194,102);">Environment Types</span></h2>
+<p>Environment defines the physical and contextual space in which an encounter occurs.</p>
+<p>It establishes the boundaries of what can reasonably exist, shaping available creatures, behaviors, and situations.</p>
+<p>Environment is the primary constraint on encounter generation.</p>
+
+<hr>
+
+
+
+
+<h3><span style="color:rgb(255,194,102);">Environment List</span></h3>
+<p>The following Environment Types are used by the Encounter Engine:</p>
+<ul>
+  <li><p>Roadways</p></li>
+  <li><p>Settled Lands</p></li>
+  <li><p>Plains</p></li>
+  <li><p>Coast</p></li>
+  <li><p>Riverlands</p></li>
+  <li><p>Forest</p></li>
+  <li><p>Hills</p></li>
+  <li><p>Swamp</p></li>
+  <li><p>Desert</p></li>
+  <li><p>Mountains</p></li>
+  <li><p>Arctic</p></li>
+  <li><p>Blighted Lands</p></li>
+  <li><p>Underground</p></li>
+  <li><p>Fey-Touched</p></li>
+</ul>
+
+<hr>
+
+
+
+
+<h3><span style="color:rgb(255,194,102);">Environment Function</span></h3>
+<p>Environment determines:</p>
+<ul>
+  <li><p>What creatures or factions are appropriate</p></li>
+  <li><p>What natural features or hazards are present</p></li>
+  <li><p>What types of encounters are more or less likely</p></li>
+</ul>
+<p>All other encounter elements must be consistent with the selected Environment.</p>
+
+<hr>
+
+
+
+
+<h3><span style="color:rgb(255,194,102);">Severity Determination</span></h3>
+<p>Severity may be determined randomly or assigned based on context.</p>
+<p>When rolled randomly, roll 1d20:</p>
+
+<div style="max-width:100%;">
+  <table style="width:auto;max-width:100%;border-collapse:collapse;">
+    <tbody>
+      <tr>
+        <th style="text-align:left;padding:8px 12px;border:1px solid rgb(70,75,85);background-color:rgb(0,0,0);color:rgb(255,194,102);white-space:nowrap;"><p>d20</p></th>
+        <th style="text-align:left;padding:8px 12px;border:1px solid rgb(70,75,85);background-color:rgb(0,0,0);color:rgb(255,194,102);white-space:nowrap;"><p>Severity</p></th>
+      </tr>
+      <tr>
+        <td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:nowrap;"><p>1–7</p></td>
+        <td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:nowrap;"><p>Minor</p></td>
+      </tr>
+      <tr>
+        <td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:nowrap;"><p>8–14</p></td>
+        <td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:nowrap;"><p>Standard</p></td>
+      </tr>
+      <tr>
+        <td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:nowrap;"><p>15–18</p></td>
+        <td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:nowrap;"><p>Dangerous</p></td>
+      </tr>
+      <tr>
+        <td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:nowrap;"><p>19–20</p></td>
+        <td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:nowrap;"><p>Deadly</p></td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<p>
+  Minor: 35%<br>
+  Standard: 35%<br>
+  Dangerous: 20%<br>
+  Deadly: 10%
+</p>
+
+<hr>
+
+
+
+
+<h3><span style="color:rgb(255,194,102);">Severity Modifiers</span></h3>
+<p>After rolling for Severity, apply any relevant contextual modifiers before determining the final result.</p>
+<p>These modifiers represent the danger, instability, or control of the area where the encounter occurs. They may be used by the Encounter Engine directly or supplied by another system, such as Overland Travel.</p>
+
+<div style="max-width:100%;">
+  <table style="width:auto;max-width:100%;border-collapse:collapse;">
+    <tbody>
+      <tr>
+        <th style="text-align:left;padding:8px 12px;border:1px solid rgb(70,75,85);background-color:rgb(0,0,0);color:rgb(255,194,102);white-space:nowrap;"><p>Context / Region State</p></th>
+        <th style="text-align:left;padding:8px 12px;border:1px solid rgb(70,75,85);background-color:rgb(0,0,0);color:rgb(255,194,102);white-space:nowrap;"><p>Modifier</p></th>
+        <th style="text-align:left;padding:8px 12px;border:1px solid rgb(70,75,85);background-color:rgb(0,0,0);color:rgb(255,194,102);white-space:normal;"><p>Description</p></th>
+      </tr>
+      <tr>
+        <td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:nowrap;"><p>Safe</p></td>
+        <td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:nowrap;"><p>−2</p></td>
+        <td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:normal;"><p>Stable, controlled, low-risk area</p></td>
+      </tr>
+      <tr>
+        <td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:nowrap;"><p>Frontier</p></td>
+        <td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:nowrap;"><p>+0</p></td>
+        <td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:normal;"><p>Uncertain or lightly settled area with some danger</p></td>
+      </tr>
+      <tr>
+        <td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:nowrap;"><p>Wild</p></td>
+        <td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:nowrap;"><p>+2</p></td>
+        <td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:normal;"><p>Untamed, unpredictable, or difficult to control</p></td>
+      </tr>
+      <tr>
+        <td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:nowrap;"><p>Hostile</p></td>
+        <td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:nowrap;"><p>+4</p></td>
+        <td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:normal;"><p>Active threats are present in the area</p></td>
+      </tr>
+      <tr>
+        <td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:nowrap;"><p>Cataclysmic</p></td>
+        <td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:nowrap;"><p>+6</p></td>
+        <td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:normal;"><p>The area is collapsing, cursed, war-torn, corrupted, or supernaturally unstable</p></td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<p>After applying modifiers, clamp the final result between 1 and 20.</p>
+<p><strong>Example:</strong> A roll of 13 in a Hostile region gains a +4 modifier, for a final result of 17. The encounter is Dangerous.</p>
+
+<hr>
+
+
+
+
+<h3><span style="color:rgb(255,194,102);">Severity Function</span></h3>
+<p>Severity determines how strong the encounter’s primary threats are and how those threats are structured.</p>
+<p>It does not determine the encounter’s Template, Creature Category, Behavior / Intent, or Situation State.</p>
+<p>Higher Severity encounters generally involve stronger threats, more dangerous enemy structures, or both.</p>
+
+<hr>
+
+
+
+
+<h3><span style="color:rgb(255,194,102);">Severity Output</span></h3>
+
+<p>Severity determines two encounter elements:</p>
+
+<ul>
+  <li><p><strong>Creature Strength:</strong> How strong the primary threats are compared to the party’s Average Party Level.</p></li>
+  <li><p><strong>Enemy Structure:</strong> How the encounter is built, such as a lone threat, weak group, leader with support, or boss with minions.</p></li>
+</ul>
+
+<div style="max-width:100%;">
+  <table style="width:auto;max-width:100%;border-collapse:collapse;">
+    <tbody>
+      <tr>
+        <th style="text-align:left;padding:8px 12px;border:1px solid rgb(70,75,85);background-color:rgb(0,0,0);color:rgb(255,194,102);white-space:nowrap;">
+          <p>Severity</p>
+        </th>
+        <th style="text-align:left;padding:8px 12px;border:1px solid rgb(70,75,85);background-color:rgb(0,0,0);color:rgb(255,194,102);white-space:normal;">
+          <p>Creature Strength</p>
+        </th>
+        <th style="text-align:left;padding:8px 12px;border:1px solid rgb(70,75,85);background-color:rgb(0,0,0);color:rgb(255,194,102);white-space:normal;">
+          <p>Enemy Structure</p>
+        </th>
+      </tr>
+
+      <tr>
+        <td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:nowrap;">
+          <p>Minor</p>
+        </td>
+        <td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:normal;">
+          <p>Main threats CR 2–4 below Average Party Level</p>
+        </td>
+        <td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:normal;">
+          <p>Lone weak threat or small weak group</p>
+        </td>
+      </tr>
+
+      <tr>
+        <td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:nowrap;">
+          <p>Standard</p>
+        </td>
+        <td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:normal;">
+          <p>Main threats near Average Party Level, CR −1 to +1</p>
+        </td>
+        <td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:normal;">
+          <p>One main threat, balanced group, or weak group with leader</p>
+        </td>
+      </tr>
+
+      <tr>
+        <td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:nowrap;">
+          <p>Dangerous</p>
+        </td>
+        <td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:normal;">
+          <p>Main threats CR 2–4 above Average Party Level</p>
+        </td>
+        <td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:normal;">
+          <p>Elite threat with support, strong group, or multiple coordinated threats</p>
+        </td>
+      </tr>
+
+      <tr>
+        <td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:nowrap;">
+          <p>Deadly</p>
+        </td>
+        <td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:normal;">
+          <p>Main threats CR 5+ above Average Party Level or multiple major threats</p>
+        </td>
+        <td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:normal;">
+          <p>Boss with support, overwhelming force, or stacked threats</p>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+
+<p><strong>Average Party Level:</strong> The average level of all player characters in the party.</p>
+
+
+
+<p><strong>Creature Strength:</strong> Refers to the encounter’s primary threats, not every creature present. Weaker support creatures may be added if they fit the Enemy Structure.</p>
+
+
+
+<p><strong>Enemy Structure:</strong> Describes how threats are organized within the encounter, including lone enemies, groups, leaders with support, or layered hostile forces.</p>
+
+
+<hr> 
+
+
+
+
+<h3><span style="color:rgb(255,194,102);">Severity Constraints</span></h3>
+<p>Severity must remain consistent with the Environment and overall context.</p>
+<p>If a result conflicts with the established setting, it should be adjusted to fit the situation.</p>
+
+<hr>
+
+
+
+
+<h2><span style="color:rgb(255,194,102);">Encounter Template</span></h2>
+
+<p>Encounter Template defines the basic situation or structure of the encounter.</p>
+<p>It answers what is happening when the party comes into contact with the encountered presence.</p>
+<p>The Template provides the narrative framework for the encounter and helps shape Creature Category, Behavior / Intent, and Situation State.</p>
+
+<hr>
+
+
+
+
+<h3><span style="color:rgb(255,194,102);">Template Determination</span></h3>
+
+<p>Roll 1d8 to determine the Encounter Template, or choose one that best fits the situation.</p>
+
+<div style="max-width:100%;">
+  <table style="width:auto;max-width:100%;border-collapse:collapse;">
+    <tbody>
+      <tr>
+        <th style="text-align:left;padding:8px 12px;border:1px solid rgb(70,75,85);background-color:rgb(0,0,0);color:rgb(255,194,102);white-space:nowrap;"><p>d8</p></th>
+        <th style="text-align:left;padding:8px 12px;border:1px solid rgb(70,75,85);background-color:rgb(0,0,0);color:rgb(255,194,102);white-space:nowrap;"><p>Encounter Template</p></th>
+        <th style="text-align:left;padding:8px 12px;border:1px solid rgb(70,75,85);background-color:rgb(0,0,0);color:rgb(255,194,102);white-space:normal;"><p>Definition</p></th>
+      </tr>
+
+      <tr>
+        <td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:nowrap;"><p>1</p></td>
+        <td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:nowrap;"><p>Predation (Conflict)</p></td>
+        <td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:normal;">
+          <p>A creature or group is hunting, stalking, feeding, or preparing to attack.</p>
+        </td>
+      </tr>
+
+      <tr>
+        <td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:nowrap;"><p>2</p></td>
+        <td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:nowrap;"><p>Territorial Defense (Conflict)</p></td>
+        <td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:normal;">
+          <p>A creature or faction protects its territory, nest, resources, route, or claimed domain.</p>
+        </td>
+      </tr>
+
+      <tr>
+        <td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:nowrap;"><p>3</p></td>
+        <td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:nowrap;"><p>Guarded Site (Conflict)</p></td>
+        <td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:normal;">
+          <p>A location, object, passage, or individual is being guarded, defended, or restricted.</p>
+        </td>
+      </tr>
+
+      <tr>
+        <td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:nowrap;"><p>4</p></td>
+        <td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:nowrap;"><p>Patrol or Watch (Social)</p></td>
+        <td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:normal;">
+          <p>An organized group is observing, scouting, inspecting, monitoring, or enforcing control within the area.</p>
+        </td>
+      </tr>
+
+      <tr>
+        <td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:nowrap;"><p>5</p></td>
+        <td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:nowrap;"><p>Traveler or Caravan (Social)</p></td>
+        <td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:normal;">
+          <p>A moving individual, group, or convoy crosses paths with the party while traveling.</p>
+        </td>
+      </tr>
+
+      <tr>
+        <td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:nowrap;"><p>6</p></td>
+        <td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:nowrap;"><p>Hunter and Prey (Dynamic)</p></td>
+        <td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:normal;">
+          <p>One creature, group, or force is actively pursuing, escaping, tracking, or attacking another when the party arrives.</p>
+        </td>
+      </tr>
+
+      <tr>
+        <td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:nowrap;"><p>7</p></td>
+        <td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:nowrap;"><p>Lingering Threat (Dynamic)</p></td>
+        <td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:normal;">
+          <p>The primary danger has already passed, but evidence, hazards, corruption, survivors, or secondary effects remain.</p>
+        </td>
+      </tr>
+
+      <tr>
+        <td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:nowrap;"><p>8</p></td>
+        <td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:nowrap;"><p>Strange Presence (Weird)</p></td>
+        <td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:normal;">
+          <p>An unusual, supernatural, magical, alien, or inexplicable phenomenon is present in the area.</p>
+        </td>
+      </tr>
+
+    </tbody>
+  </table>
+</div>
+
+<hr>
+
+
+
+
+<h3><span style="color:rgb(255,194,102);">Template Function</span></h3>
+
+<p>The Encounter Template determines the structure and context of the encounter.</p>
+<p>It does not determine the encounter’s danger by itself. Severity handles danger, while the Template defines the situation.</p>
+
+<p>The Template influences:</p>
+<ul>
+  <li><p>Behavior / Intent</p></li>
+  <li><p>Situation State</p></li>
+  <li><p>appropriate Creature Categories</p></li>
+  <li><p>the encounter’s starting context</p></li>
+</ul>
+
+<hr>
+
+
+
+
+<h3><span style="color:rgb(255,194,102);">Template Usage</span></h3>
+
+<p>After determining the Encounter Template, use it to guide the selection of Creature Category, Behavior / Intent, and Situation State.</p>
+<p>If a Template result conflicts with the Environment, Severity, or established context, adjust it to fit the situation.</p>
+<p>The Template may be chosen instead of rolled if a specific type of encounter is desired.</p>
+
+
+
+<h3><span style="color:rgb(255,194,102);">Template Resolution</span></h3>
+
+<p>After determining the Encounter Template, use the matching template entry to define its required elements, first signs, engine bias, player-facing decision, and Severity scaling.</p>
+
+<hr>
+
+
+
+
+<h4><span style="color:rgb(255,194,102);">Predation</span></h4>
+<p>A creature or group is hunting, stalking, feeding, or preparing to attack.</p>
+
+<div style="max-width:100%;">
+  <table style="width:auto;max-width:100%;border-collapse:collapse;">
+    <tbody>
+      <tr>
+        <th style="text-align:left;padding:8px 12px;border:1px solid rgb(70,75,85);background-color:rgb(0,0,0);color:rgb(255,194,102);white-space:nowrap;"><p>Element</p></th>
+        <th style="text-align:left;padding:8px 12px;border:1px solid rgb(70,75,85);background-color:rgb(0,0,0);color:rgb(255,194,102);white-space:nowrap;"><p>Function</p></th>
+      </tr>
+      <tr>
+        <td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:nowrap;"><p>Required Elements</p></td>
+        <td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:normal;"><p>Predator, prey, and evidence of hunting or feeding.</p></td>
+      </tr>
+      <tr>
+        <td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:nowrap;"><p>First Sign</p></td>
+        <td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:normal;"><p>Tracks, blood, a carcass, unnatural silence, movement in cover, alarmed animals, or a distant cry.</p></td>
+      </tr>
+      <tr>
+        <td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:nowrap;"><p>Engine Bias</p></td>
+        <td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:normal;">
+          <p><strong>Creature Categories:</strong><br>Beast, Monstrosity, Undead, Aberration</p>
+          <p><strong>Behavior / Intent:</strong><br>Hostile, Wary, Hidden, Desperate</p>
+          <p><strong>Situation States:</strong><br>Unaware, Alert, Nearby, Close, Developing, Immediate</p>
+        </td>
+      </tr>
+      <tr>
+        <td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:nowrap;"><p>Player Decision</p></td>
+        <td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:normal;"><p>Avoid, interrupt, rescue, bait, track, confront, fight, or flee.</p></td>
+      </tr>
+      <tr>
+        <td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:nowrap;"><p>Severity Scaling</p></td>
+        <td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:normal;">
+          <p>Minor = signs of a predator or weak threat.<br>
+          Standard = active predator nearby.<br>
+          Dangerous = hidden, advantaged, or coordinated predator.<br>
+          Deadly = ambush, apex predator, or prey already trapped.</p>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<hr>
+
+
+
+<h4><span style="color:rgb(255,194,102);">Territorial Defense</span></h4>
+<p>A creature or faction protects its territory, nest, resources, route, or claimed domain.</p>
+
+<div style="max-width:100%;">
+  <table style="width:auto;max-width:100%;border-collapse:collapse;">
+    <tbody>
+      <tr>
+        <th style="text-align:left;padding:8px 12px;border:1px solid rgb(70,75,85);background-color:rgb(0,0,0);color:rgb(255,194,102);white-space:nowrap;"><p>Element</p></th>
+        <th style="text-align:left;padding:8px 12px;border:1px solid rgb(70,75,85);background-color:rgb(0,0,0);color:rgb(255,194,102);white-space:nowrap;"><p>Function</p></th>
+      </tr>
+      <tr>
+        <td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:nowrap;"><p>Required Elements</p></td>
+        <td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:normal;"><p>Defender, claimed area, and a boundary or protected resource.</p></td>
+      </tr>
+      <tr>
+        <td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:nowrap;"><p>First Sign</p></td>
+        <td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:normal;"><p>Warning calls, territorial markings, barricades, bones, claw marks, posted signs, sentries, or aggressive displays.</p></td>
+      </tr>
+      <tr>
+        <td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:nowrap;"><p>Engine Bias</p></td>
+        <td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:normal;">
+          <p><strong>Creature Categories:</strong><br>Beast, Humanoid, Monstrosity, Undead, Magical</p>
+          <p><strong>Behavior / Intent:</strong><br>Wary, Hostile, Hidden, Desperate</p>
+          <p><strong>Situation States:</strong><br>Alert, Nearby, Close, Developing, Immediate</p>
+        </td>
+      </tr>
+      <tr>
+        <td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:nowrap;"><p>Player Decision</p></td>
+        <td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:normal;"><p>Withdraw, negotiate, trespass, bypass, challenge, calm, distract, or fight.</p></td>
+      </tr>
+      <tr>
+        <td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:nowrap;"><p>Severity Scaling</p></td>
+        <td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:normal;">
+          <p>Minor = warning signs or defensive posturing.<br>
+          Standard = direct confrontation.<br>
+          Dangerous = defenders have terrain advantage or reinforcements.<br>
+          Deadly = fortified territory, overwhelming defenders, or no safe retreat.</p>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<hr>
+
+
+
+
+<h4><span style="color:rgb(255,194,102);">Guarded Site</span></h4>
+<p>A location, object, passage, or individual is being guarded, defended, or restricted.</p>
+
+<div style="max-width:100%;">
+  <table style="width:auto;max-width:100%;border-collapse:collapse;">
+    <tbody>
+      <tr>
+        <th style="text-align:left;padding:8px 12px;border:1px solid rgb(70,75,85);background-color:rgb(0,0,0);color:rgb(255,194,102);white-space:nowrap;"><p>Element</p></th>
+        <th style="text-align:left;padding:8px 12px;border:1px solid rgb(70,75,85);background-color:rgb(0,0,0);color:rgb(255,194,102);white-space:nowrap;"><p>Function</p></th>
+      </tr>
+      <tr>
+        <td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:nowrap;"><p>Required Elements</p></td>
+        <td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:normal;"><p>Guard, protected site or target, and a reason access is restricted.</p></td>
+      </tr>
+      <tr>
+        <td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:nowrap;"><p>First Sign</p></td>
+        <td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:normal;"><p>A checkpoint, watchfire, barricade, locked gate, ward, patrol route, stationed guards, or signs of recent trespassers.</p></td>
+      </tr>
+      <tr>
+        <td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:nowrap;"><p>Engine Bias</p></td>
+        <td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:normal;">
+          <p><strong>Creature Categories:</strong><br>Humanoid, Undead, Magical, Monstrosity, Aberration</p>
+          <p><strong>Behavior / Intent:</strong><br>Wary, Hostile, Engaged, Hidden</p>
+          <p><strong>Situation States:</strong><br>Alert, Distant, Nearby, Developing, Immediate</p>
+        </td>
+      </tr>
+      <tr>
+        <td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:nowrap;"><p>Player Decision</p></td>
+        <td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:normal;"><p>Negotiate, sneak, deceive, force entry, turn back, investigate, bribe, or attack.</p></td>
+      </tr>
+      <tr>
+        <td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:nowrap;"><p>Severity Scaling</p></td>
+        <td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:normal;">
+          <p>Minor = lightly guarded or easy to bypass.<br>
+          Standard = guarded with clear resistance.<br>
+          Dangerous = layered defenses, traps, or strong occupants.<br>
+          Deadly = critical site, elite guards, magical defenses, or severe consequences for failure.</p>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<hr>
+
+
+
+
+<h4><span style="color:rgb(255,194,102);">Patrol or Watch</span></h4>
+<p>An organized group is observing, scouting, inspecting, monitoring, or enforcing control within the area.</p>
+
+<div style="max-width:100%;">
+  <table style="width:auto;max-width:100%;border-collapse:collapse;">
+    <tbody>
+      <tr>
+        <th style="text-align:left;padding:8px 12px;border:1px solid rgb(70,75,85);background-color:rgb(0,0,0);color:rgb(255,194,102);white-space:nowrap;"><p>Element</p></th>
+        <th style="text-align:left;padding:8px 12px;border:1px solid rgb(70,75,85);background-color:rgb(0,0,0);color:rgb(255,194,102);white-space:normal;"><p>Function</p></th>
+      </tr>
+      <tr>
+        <td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:nowrap;"><p>Required Elements</p></td>
+        <td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:normal;"><p>Watchers, route or observation point, and a purpose for monitoring the area.</p></td>
+      </tr>
+      <tr>
+        <td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:nowrap;"><p>First Sign</p></td>
+        <td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:normal;"><p>Footsteps, torchlight, voices, signal horns, tracks, mounted riders, scouts, distant silhouettes, or signs of inspection.</p></td>
+      </tr>
+      <tr>
+        <td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:nowrap;"><p>Engine Bias</p></td>
+        <td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:normal;">
+          <p><strong>Creature Categories:</strong><br>Humanoid, Beast, Undead, Magical</p>
+          <p><strong>Behavior / Intent:</strong><br>Wary, Engaged, Hostile, Hidden</p>
+          <p><strong>Situation States:</strong><br>Alert, Distant, Nearby, Developing, Immediate</p>
+        </td>
+      </tr>
+      <tr>
+        <td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:nowrap;"><p>Player Decision</p></td>
+        <td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:normal;"><p>Hide, parley, mislead, observe, avoid, ambush, report, or submit to questioning.</p></td>
+      </tr>
+      <tr>
+        <td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:nowrap;"><p>Severity Scaling</p></td>
+        <td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:normal;">
+          <p>Minor = small or distracted patrol.<br>
+          Standard = alert patrol with authority.<br>
+          Dangerous = disciplined patrol with support or tracking ability.<br>
+          Deadly = elite patrol, alarm network, or encounter that can summon overwhelming force.</p>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<hr>
+
+
+
+<h4><span style="color:rgb(255,194,102);">Traveler or Caravan</span></h4>
+<p>A moving individual, group, or convoy crosses paths with the party while traveling.</p>
+
+<div style="max-width:100%;">
+  <table style="width:auto;max-width:100%;border-collapse:collapse;">
+    <tbody>
+      <tr>
+        <th style="text-align:left;padding:8px 12px;border:1px solid rgb(70,75,85);background-color:rgb(0,0,0);color:rgb(255,194,102);white-space:nowrap;"><p>Element</p></th>
+        <th style="text-align:left;padding:8px 12px;border:1px solid rgb(70,75,85);background-color:rgb(0,0,0);color:rgb(255,194,102);white-space:normal;"><p>Function</p></th>
+      </tr>
+      <tr>
+        <td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:nowrap;"><p>Required Elements</p></td>
+        <td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:normal;"><p>Traveler or convoy, destination or route, and a reason for being on the move.</p></td>
+      </tr>
+      <tr>
+        <td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:nowrap;"><p>First Sign</p></td>
+        <td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:normal;"><p>Wagon tracks, camp smoke, bells, lanterns, pack animals, songs, arguing voices, dust clouds, or figures on the road.</p></td>
+      </tr>
+      <tr>
+        <td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:nowrap;"><p>Engine Bias</p></td>
+        <td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:normal;">
+          <p><strong>Creature Categories:</strong><br>Humanoid, Beast, Magical, Undead</p>
+          <p><strong>Behavior / Intent:</strong><br>Passive, Wary, Engaged, Hostile, Desperate</p>
+          <p><strong>Situation States:</strong><br>Distant, Nearby, Developing, Immediate</p>
+        </td>
+      </tr>
+      <tr>
+        <td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:nowrap;"><p>Player Decision</p></td>
+        <td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:normal;"><p>Trade, question, aid, ignore, escort, rob, warn, follow, or investigate.</p></td>
+      </tr>
+      <tr>
+        <td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:nowrap;"><p>Severity Scaling</p></td>
+        <td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:normal;">
+          <p>Minor = harmless traveler or small complication.<br>
+          Standard = useful interaction with a meaningful choice.<br>
+          Dangerous = traveler brings danger, pursuit, disease, contraband, or urgent trouble.<br>
+          Deadly = caravan is bait, under attack, cursed, hunted, or carrying catastrophic cargo.</p>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<hr>
+
+
+
+
+<h4><span style="color:rgb(255,194,102);">Hunter and Prey</span></h4>
+<p>One creature, group, or force is actively pursuing, escaping, tracking, or attacking another when the party arrives.</p>
+
+<div style="max-width:100%;">
+  <table style="width:auto;max-width:100%;border-collapse:collapse;">
+    <tbody>
+      <tr>
+        <th style="text-align:left;padding:8px 12px;border:1px solid rgb(70,75,85);background-color:rgb(0,0,0);color:rgb(255,194,102);white-space:nowrap;"><p>Element</p></th>
+        <th style="text-align:left;padding:8px 12px;border:1px solid rgb(70,75,85);background-color:rgb(0,0,0);color:rgb(255,194,102);white-space:normal;"><p>Function</p></th>
+      </tr>
+      <tr>
+        <td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:nowrap;"><p>Required Elements</p></td>
+        <td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:normal;"><p>Hunter, prey, and an active chase, pursuit, trap, or confrontation.</p></td>
+      </tr>
+      <tr>
+        <td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:nowrap;"><p>First Sign</p></td>
+        <td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:normal;"><p>Crashing movement, fleeing figures, pursuit calls, fresh tracks, arrows in trees, blood trails, broken brush, or a visible chase.</p></td>
+      </tr>
+      <tr>
+        <td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:nowrap;"><p>Engine Bias</p></td>
+        <td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:normal;">
+          <p><strong>Creature Categories:</strong><br>Beast, Humanoid, Monstrosity, Undead, Aberration</p>
+          <p><strong>Behavior / Intent:</strong><br>Hostile, Wary, Engaged, Hidden, Desperate</p>
+          <p><strong>Situation States:</strong><br>Nearby, Close, Developing, Immediate</p>
+        </td>
+      </tr>
+      <tr>
+        <td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:nowrap;"><p>Player Decision</p></td>
+        <td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:normal;"><p>Choose a side, intervene, hide, follow, rescue, exploit the distraction, negotiate, or let events unfold.</p></td>
+      </tr>
+      <tr>
+        <td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:nowrap;"><p>Severity Scaling</p></td>
+        <td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:normal;">
+          <p>Minor = low-stakes chase or weak participants.<br>
+          Standard = active conflict with risk.<br>
+          Dangerous = both sides are dangerous or terrain complicates intervention.<br>
+          Deadly = party enters a lethal pursuit, trap, massacre, or battle between powerful forces.</p>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<hr>
+
+
+
+
+<h4><span style="color:rgb(255,194,102);">Lingering Threat</span></h4>
+<p>The primary danger has already passed, but evidence, hazards, corruption, survivors, or secondary effects remain.</p>
+
+<div style="max-width:100%;">
+  <table style="width:auto;max-width:100%;border-collapse:collapse;">
+    <tbody>
+      <tr>
+        <th style="text-align:left;padding:8px 12px;border:1px solid rgb(70,75,85);background-color:rgb(0,0,0);color:rgb(255,194,102);white-space:nowrap;"><p>Element</p></th>
+        <th style="text-align:left;padding:8px 12px;border:1px solid rgb(70,75,85);background-color:rgb(0,0,0);color:rgb(255,194,102);white-space:normal;"><p>Function</p></th>
+      </tr>
+      <tr>
+        <td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:nowrap;"><p>Required Elements</p></td>
+        <td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:normal;"><p>Past danger, remaining evidence, and an unresolved consequence.</p></td>
+      </tr>
+      <tr>
+        <td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:nowrap;"><p>First Sign</p></td>
+        <td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:normal;"><p>Corpses, ruins, broken weapons, scorched ground, abandoned supplies, strange residue, dying survivors, silence, or lingering magic.</p></td>
+      </tr>
+      <tr>
+        <td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:nowrap;"><p>Engine Bias</p></td>
+        <td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:normal;">
+          <p><strong>Creature Categories:</strong><br>Undead, Magical, Aberration, Monstrosity, Humanoid</p>
+          <p><strong>Behavior / Intent:</strong><br>Passive, Wary, Hostile, Hidden, Desperate</p>
+          <p><strong>Situation States:</strong><br>Distant, Nearby, Developing, Aftermath</p>
+        </td>
+      </tr>
+      <tr>
+        <td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:nowrap;"><p>Player Decision</p></td>
+        <td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:normal;"><p>Investigate, avoid, salvage, heal survivors, follow clues, cleanse the area, prepare for return danger, or leave quickly.</p></td>
+      </tr>
+      <tr>
+        <td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:nowrap;"><p>Severity Scaling</p></td>
+        <td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:normal;">
+          <p>Minor = clues or harmless remnants.<br>
+          Standard = hazard, survivor, or unresolved threat.<br>
+          Dangerous = corruption, traps, disease, cursed remains, or returning danger.<br>
+          Deadly = active spread, catastrophic aftermath, hidden killer, or threat about to re-emerge.</p>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<hr>
+
+
+
+
+<h4><span style="color:rgb(255,194,102);">Strange Presence</span></h4>
+<p>An unusual, supernatural, magical, alien, or inexplicable phenomenon is present in the area.</p>
+
+<div style="max-width:100%;">
+  <table style="width:auto;max-width:100%;border-collapse:collapse;">
+    <tbody>
+      <tr>
+        <th style="text-align:left;padding:8px 12px;border:1px solid rgb(70,75,85);background-color:rgb(0,0,0);color:rgb(255,194,102);white-space:nowrap;"><p>Element</p></th>
+        <th style="text-align:left;padding:8px 12px;border:1px solid rgb(70,75,85);background-color:rgb(0,0,0);color:rgb(255,194,102);white-space:normal;"><p>Function</p></th>
+      </tr>
+      <tr>
+        <td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:nowrap;"><p>Required Elements</p></td>
+        <td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:normal;"><p>Strange presence, observable effect, and uncertainty about its nature or intent.</p></td>
+      </tr>
+      <tr>
+        <td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:nowrap;"><p>First Sign</p></td>
+        <td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:normal;"><p>Impossible sounds, unnatural lights, repeated symbols, floating objects, altered animals, warped terrain, whispers, visions, or a figure that does not behave normally.</p></td>
+      </tr>
+      <tr>
+        <td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:nowrap;"><p>Engine Bias</p></td>
+        <td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:normal;">
+          <p><strong>Creature Categories:</strong><br>Magical, Aberration, Undead, Monstrosity, Humanoid</p>
+          <p><strong>Behavior / Intent:</strong><br>Passive, Wary, Engaged, Hostile, Hidden, Desperate</p>
+          <p><strong>Situation States:</strong><br>Distant, Nearby, Developing, Immediate, Aftermath</p>
+        </td>
+      </tr>
+      <tr>
+        <td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:nowrap;"><p>Player Decision</p></td>
+        <td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:normal;"><p>Investigate, communicate, avoid, contain, destroy, follow, bargain, experiment, or flee.</p></td>
+      </tr>
+      <tr>
+        <td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:nowrap;"><p>Severity Scaling</p></td>
+        <td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:normal;">
+          <p>Minor = odd but mostly harmless phenomenon.<br>
+          Standard = meaningful mystery or magical complication.<br>
+          Dangerous = reality-warping effect, hostile entity, or escalating anomaly.<br>
+          Deadly = catastrophic magic, alien intelligence, possession, planar breach, or irreversible consequence.</p>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<hr>
+
+
+
+
+<h3><span style="color:rgb(255,194,102);">Template Conflict Rule</span></h3>
+
+<p>If a Template Resolution conflicts with the Environment, Severity, Creature Category, or established story context, keep the Template’s core function but change the details.</p>
+<p>The purpose of the Template should remain intact, even if the specific creature, evidence, behavior, or situation must be adjusted.</p>
+<p><strong>Example:</strong> Predation in Settled Lands might represent criminals stalking travelers instead of a wild beast hunting prey.</p>
+
+<hr>
+
+
+
+
+
+
+<h2><span style="color:rgb(255,194,102);">Creature Category</span></h2>
+<p>Creature Category defines the nature of the entity or entities involved in the encounter.</p>
+<p>It identifies what kind of force is present, independent of specific stat blocks or named creatures.</p>
+<p>Creature Category works with Environment, Severity, and Encounter Template to determine what form the encounter takes.</p>
+
+<hr>
+
+
+
+
+<h3><span style="color:rgb(255,194,102);">Creature Category Determination</span></h3>
+
+<p>Creature Category may be determined randomly or selected based on the Environment, Template, or established context.</p>
+<p>When rolled randomly, roll 1d6:</p>
+
+<div style="max-width:100%;">
+  <table style="width:auto;max-width:100%;border-collapse:collapse;">
+    <tbody>
+      <tr>
+        <th style="text-align:left;padding:8px 12px;border:1px solid rgb(70,75,85);background-color:rgb(0,0,0);color:rgb(255,194,102);white-space:nowrap;">
+          <p>d6</p>
+        </th>
+        <th style="text-align:left;padding:8px 12px;border:1px solid rgb(70,75,85);background-color:rgb(0,0,0);color:rgb(255,194,102);white-space:nowrap;">
+          <p>Creature Category</p>
+        </th>
+      </tr>
+
+      <tr>
+        <td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:nowrap;">
+          <p>1</p>
+        </td>
+        <td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:nowrap;">
+          <p>Beast</p>
+        </td>
+      </tr>
+
+      <tr>
+        <td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:nowrap;">
+          <p>2</p>
+        </td>
+        <td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:nowrap;">
+          <p>Humanoid</p>
+        </td>
+      </tr>
+
+      <tr>
+        <td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:nowrap;">
+          <p>3</p>
+        </td>
+        <td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:nowrap;">
+          <p>Monstrosity</p>
+        </td>
+      </tr>
+
+      <tr>
+        <td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:nowrap;">
+          <p>4</p>
+        </td>
+        <td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:nowrap;">
+          <p>Undead</p>
+        </td>
+      </tr>
+
+      <tr>
+        <td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:nowrap;">
+          <p>5</p>
+        </td>
+        <td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:nowrap;">
+          <p>Magical</p>
+        </td>
+      </tr>
+
+      <tr>
+        <td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:nowrap;">
+          <p>6</p>
+        </td>
+        <td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:nowrap;">
+          <p>Aberration</p>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+
+<p><strong>Environment Priority:</strong> Environment always takes priority over random determination. If a Creature Category does not fit the Environment or established context, reroll or select an appropriate result.</p>
+
+
+<hr>
+
+
+
+
+<h3><span style="color:rgb(255,194,102);">Creature Categories &amp; Definitions</span></h3>
+
+<p>The Encounter Engine uses the following Creature Categories:</p>
+
+<div style="max-width:100%;">
+  <table style="width:auto;max-width:100%;border-collapse:collapse;">
+    <tbody>
+      <tr>
+        <th style="text-align:left;padding:8px 12px;border:1px solid rgb(70,75,85);background-color:rgb(0,0,0);color:rgb(255,194,102);white-space:nowrap;"><p>Creature Category</p></th>
+        <th style="text-align:left;padding:8px 12px;border:1px solid rgb(70,75,85);background-color:rgb(0,0,0);color:rgb(255,194,102);white-space:normal;"><p>Definition</p></th>
+      </tr>
+      <tr>
+        <td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:nowrap;"><p>Beast</p></td>
+        <td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:normal;"><p>Natural animals and non-magical wildlife.</p></td>
+      </tr>
+      <tr>
+        <td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:nowrap;"><p>Humanoid</p></td>
+        <td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:normal;"><p>Intelligent peoples, factions, travelers, soldiers, bandits, cultists, settlement groups, and organized forces.</p></td>
+      </tr>
+      <tr>
+        <td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:nowrap;"><p>Monstrosity</p></td>
+        <td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:normal;"><p>Unnatural creatures that do not fit cleanly into ordinary natural categories.</p></td>
+      </tr>
+      <tr>
+        <td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:nowrap;"><p>Undead</p></td>
+        <td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:normal;"><p>Creatures, spirits, corpses, or remnants animated by death, necromancy, curses, or lingering will.</p></td>
+      </tr>
+      <tr>
+        <td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:nowrap;"><p>Magical</p></td>
+        <td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:normal;"><p>Creatures or entities formed, changed, summoned, constructed, or sustained by magical forces.</p></td>
+      </tr>
+      <tr>
+        <td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:nowrap;"><p>Aberration</p></td>
+        <td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:normal;"><p>Alien, invasive, warped, or reality-defying entities that do not belong to the natural order.</p></td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<hr>
+
+
+
+
+<h3><span style="color:rgb(255,194,102);">Creature Category Resolution</span></h3>
+
+<p>After determining Creature Category, use the matching entry to guide which Templates fit best, what role the creature fills, which Environments support it, and how it should be used in the encounter.</p>
+
+<hr>
+
+
+
+
+<h4><span style="color:rgb(255,194,102);">Beast</span></h4>
+
+<div style="max-width:100%;">
+  <table style="width:auto;max-width:100%;border-collapse:collapse;">
+    <tbody>
+      <tr>
+        <th style="text-align:left;padding:8px 12px;border:1px solid rgb(70,75,85);background-color:rgb(0,0,0);color:rgb(255,194,102);white-space:nowrap;"><p>Element</p></th>
+        <th style="text-align:left;padding:8px 12px;border:1px solid rgb(70,75,85);background-color:rgb(0,0,0);color:rgb(255,194,102);white-space:normal;"><p>Function</p></th>
+      </tr>
+      <tr>
+        <td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:nowrap;"><p>Best Templates</p></td>
+        <td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:normal;"><p>Predation, Territorial Defense, Hunter and Prey, Traveler or Caravan.</p></td>
+      </tr>
+      <tr>
+        <td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:nowrap;"><p>Creature Role</p></td>
+        <td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:normal;"><p>Natural animal, pack, herd, scavenger, mount, or territorial wildlife.</p></td>
+      </tr>
+      <tr>
+        <td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:nowrap;"><p>Environment Fit</p></td>
+        <td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:normal;"><p>Plains, Forest, Hills, Swamp, Mountains, Arctic, Coast, Riverlands.</p></td>
+      </tr>
+      <tr>
+        <td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:nowrap;"><p>Encounter Use</p></td>
+        <td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:normal;"><p>Use when the encounter should feel natural, instinctive, environmental, or survival-based.</p></td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<hr>
+
+
+
+
+<h4><span style="color:rgb(255,194,102);">Humanoid</span></h4>
+
+<div style="max-width:100%;">
+  <table style="width:auto;max-width:100%;border-collapse:collapse;">
+    <tbody>
+      <tr>
+        <th style="text-align:left;padding:8px 12px;border:1px solid rgb(70,75,85);background-color:rgb(0,0,0);color:rgb(255,194,102);white-space:nowrap;"><p>Element</p></th>
+        <th style="text-align:left;padding:8px 12px;border:1px solid rgb(70,75,85);background-color:rgb(0,0,0);color:rgb(255,194,102);white-space:normal;"><p>Function</p></th>
+      </tr>
+      <tr>
+        <td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:nowrap;"><p>Best Templates</p></td>
+        <td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:normal;"><p>Guarded Site, Patrol or Watch, Traveler or Caravan, Hunter and Prey.</p></td>
+      </tr>
+      <tr>
+        <td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:nowrap;"><p>Creature Role</p></td>
+        <td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:normal;"><p>Person, faction, traveler, soldier, bandit, cultist, scout, settlement group, or organized force.</p></td>
+      </tr>
+      <tr>
+        <td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:nowrap;"><p>Environment Fit</p></td>
+        <td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:normal;"><p>Roadways, Settled Lands, Plains, Coast, Riverlands, Forest, Hills, Desert, Mountains, Underground.</p></td>
+      </tr>
+      <tr>
+        <td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:nowrap;"><p>Encounter Use</p></td>
+        <td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:normal;"><p>Use when the encounter should involve motives, communication, factions, trade, law, crime, war, or social choice.</p></td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<hr>
+
+
+
+
+<h4><span style="color:rgb(255,194,102);">Monstrosity</span></h4>
+
+<div style="max-width:100%;">
+  <table style="width:auto;max-width:100%;border-collapse:collapse;">
+    <tbody>
+      <tr>
+        <th style="text-align:left;padding:8px 12px;border:1px solid rgb(70,75,85);background-color:rgb(0,0,0);color:rgb(255,194,102);white-space:nowrap;"><p>Element</p></th>
+        <th style="text-align:left;padding:8px 12px;border:1px solid rgb(70,75,85);background-color:rgb(0,0,0);color:rgb(255,194,102);white-space:normal;"><p>Function</p></th>
+      </tr>
+      <tr>
+        <td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:nowrap;"><p>Best Templates</p></td>
+        <td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:normal;"><p>Predation, Territorial Defense, Guarded Site, Hunter and Prey.</p></td>
+      </tr>
+      <tr>
+        <td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:nowrap;"><p>Creature Role</p></td>
+        <td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:normal;"><p>Unnatural predator, hybrid creature, lair threat, warped beast, or dangerous anomaly.</p></td>
+      </tr>
+      <tr>
+        <td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:nowrap;"><p>Environment Fit</p></td>
+        <td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:normal;"><p>Forest, Hills, Swamp, Desert, Mountains, Arctic, Blighted Lands, Underground.</p></td>
+      </tr>
+      <tr>
+        <td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:nowrap;"><p>Encounter Use</p></td>
+        <td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:normal;"><p>Use when the encounter should feel dangerous, unnatural, predatory, or larger than ordinary wildlife.</p></td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<hr>
+
+
+
+
+<h4><span style="color:rgb(255,194,102);">Undead</span></h4>
+
+<div style="max-width:100%;">
+  <table style="width:auto;max-width:100%;border-collapse:collapse;">
+    <tbody>
+      <tr>
+        <th style="text-align:left;padding:8px 12px;border:1px solid rgb(70,75,85);background-color:rgb(0,0,0);color:rgb(255,194,102);white-space:nowrap;"><p>Element</p></th>
+        <th style="text-align:left;padding:8px 12px;border:1px solid rgb(70,75,85);background-color:rgb(0,0,0);color:rgb(255,194,102);white-space:normal;"><p>Function</p></th>
+      </tr>
+      <tr>
+        <td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:nowrap;"><p>Best Templates</p></td>
+        <td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:normal;"><p>Lingering Threat, Guarded Site, Predation, Strange Presence.</p></td>
+      </tr>
+      <tr>
+        <td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:nowrap;"><p>Creature Role</p></td>
+        <td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:normal;"><p>Corpse, spirit, revenant, haunt, necromantic servant, cursed remnant, or restless dead.</p></td>
+      </tr>
+      <tr>
+        <td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:nowrap;"><p>Environment Fit</p></td>
+        <td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:normal;"><p>Settled Lands, Blighted Lands, Underground, Swamp, Forest, Mountains, Fey-Touched.</p></td>
+      </tr>
+      <tr>
+        <td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:nowrap;"><p>Encounter Use</p></td>
+        <td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:normal;"><p>Use when the encounter should involve death, curses, hauntings, corruption, unfinished business, or necromancy.</p></td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<hr>
+
+
+
+
+<h4><span style="color:rgb(255,194,102);">Magical</span></h4>
+
+<div style="max-width:100%;">
+  <table style="width:auto;max-width:100%;border-collapse:collapse;">
+    <tbody>
+      <tr>
+        <th style="text-align:left;padding:8px 12px;border:1px solid rgb(70,75,85);background-color:rgb(0,0,0);color:rgb(255,194,102);white-space:nowrap;"><p>Element</p></th>
+        <th style="text-align:left;padding:8px 12px;border:1px solid rgb(70,75,85);background-color:rgb(0,0,0);color:rgb(255,194,102);white-space:normal;"><p>Function</p></th>
+      </tr>
+      <tr>
+        <td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:nowrap;"><p>Best Templates</p></td>
+        <td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:normal;"><p>Strange Presence, Guarded Site, Territorial Defense, Traveler or Caravan.</p></td>
+      </tr>
+      <tr>
+        <td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:nowrap;"><p>Creature Role</p></td>
+        <td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:normal;"><p>Fey, elemental, construct, summoned being, enchanted creature, magical guardian, or living spell-like force.</p></td>
+      </tr>
+      <tr>
+        <td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:nowrap;"><p>Environment Fit</p></td>
+        <td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:normal;"><p>Fey-Touched, Blighted Lands, Underground, Forest, Mountains, Coast, Riverlands, Desert.</p></td>
+      </tr>
+      <tr>
+        <td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:nowrap;"><p>Encounter Use</p></td>
+        <td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:normal;"><p>Use when the encounter should involve magic, enchantment, planar influence, constructed purpose, or supernatural rules.</p></td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<hr>
+
+
+
+
+<h4><span style="color:rgb(255,194,102);">Aberration</span></h4>
+
+<div style="max-width:100%;">
+  <table style="width:auto;max-width:100%;border-collapse:collapse;">
+    <tbody>
+      <tr>
+        <th style="text-align:left;padding:8px 12px;border:1px solid rgb(70,75,85);background-color:rgb(0,0,0);color:rgb(255,194,102);white-space:nowrap;"><p>Element</p></th>
+        <th style="text-align:left;padding:8px 12px;border:1px solid rgb(70,75,85);background-color:rgb(0,0,0);color:rgb(255,194,102);white-space:normal;"><p>Function</p></th>
+      </tr>
+      <tr>
+        <td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:nowrap;"><p>Best Templates</p></td>
+        <td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:normal;"><p>Strange Presence, Predation, Lingering Threat, Hunter and Prey.</p></td>
+      </tr>
+      <tr>
+        <td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:nowrap;"><p>Creature Role</p></td>
+        <td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:normal;"><p>Alien creature, warped mind, invasive entity, unnatural intelligence, parasite, or reality-defying organism.</p></td>
+      </tr>
+      <tr>
+        <td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:nowrap;"><p>Environment Fit</p></td>
+        <td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:normal;"><p>Blighted Lands, Underground, Fey-Touched, Swamp, Mountains, Coast, Settled Lands.</p></td>
+      </tr>
+      <tr>
+        <td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:nowrap;"><p>Encounter Use</p></td>
+        <td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:normal;"><p>Use when the encounter should feel alien, invasive, incomprehensible, psychic, body-horror, or reality-warping.</p></td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<hr>
+
+
+
+
+<h3><span style="color:rgb(255,194,102);">Category Function</span></h3>
+<p>Creature Category determines:</p>
+<ul>
+  <li><p>The general nature and origin of the encounter</p></li>
+  <li><p>The role the encountered force plays in the selected Template</p></li>
+  <li><p>Which Environments are most appropriate for the encounter</p></li>
+  <li><p>How the encounter should feel at the table</p></li>
+</ul>
+
+<hr>
+
+
+
+
+<h3><span style="color:rgb(255,194,102);">Category Constraints</span></h3>
+<p>Creature Category must remain consistent with:</p>
+<ul>
+  <li><p>the selected Environment</p></li>
+  <li><p>the determined Severity</p></li>
+  <li><p>the chosen Encounter Template</p></li>
+</ul>
+<p>If a Creature Category conflicts with these elements, adjust the creature role while preserving the selected Template’s core function.</p>
+<p><strong>Example:</strong> If Predation is rolled in Settled Lands with Humanoid as the Creature Category, the predator might be a gang, cult, or corrupt guard detail rather than a wild animal.</p>
+
+<hr>
+
+
+
+
+<h2><span style="color:rgb(255,194,102);">Behavior / Intent</span></h2>
+
+<p>Behavior / Intent defines how the encountered creatures or forces are acting when the party encounters them.</p>
+<p>It does not determine what the creatures are. Creature Category handles that. Behavior / Intent determines their current posture, motive, or reaction.</p>
+
+<hr>
+
+
+
+
+<h3><span style="color:rgb(255,194,102);">Behavior / Intent Determination</span></h3>
+
+<p>Behavior / Intent may be determined randomly or selected based on the Encounter Template, Creature Category, or established context.</p>
+<p>When rolled randomly, roll 1d6:</p>
+
+<div style="max-width:100%;">
+  <table style="width:auto;max-width:100%;border-collapse:collapse;">
+    <tbody>
+      <tr>
+        <th style="text-align:left;padding:8px 12px;border:1px solid rgb(70,75,85);background-color:rgb(0,0,0);color:rgb(255,194,102);white-space:nowrap;"><p>d6</p></th>
+        <th style="text-align:left;padding:8px 12px;border:1px solid rgb(70,75,85);background-color:rgb(0,0,0);color:rgb(255,194,102);white-space:nowrap;"><p>Behavior / Intent</p></th>
+        <th style="text-align:left;padding:8px 12px;border:1px solid rgb(70,75,85);background-color:rgb(0,0,0);color:rgb(255,194,102);white-space:normal;"><p>Meaning</p></th>
+      </tr>
+
+      <tr>
+        <td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:nowrap;"><p>1</p></td>
+        <td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:nowrap;"><p>Passive</p></td>
+        <td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:normal;"><p>The encounter is not immediately threatening and may ignore, observe, pass by, or continue its current activity.</p></td>
+      </tr>
+
+      <tr>
+        <td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:nowrap;"><p>2</p></td>
+        <td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:nowrap;"><p>Wary</p></td>
+        <td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:normal;"><p>The encounter is cautious, suspicious, defensive, or uncertain about the party.</p></td>
+      </tr>
+
+      <tr>
+        <td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:nowrap;"><p>3</p></td>
+        <td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:nowrap;"><p>Hostile</p></td>
+        <td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:normal;"><p>The encounter is aggressive, threatening, hunting, attacking, or likely to become violent.</p></td>
+      </tr>
+
+      <tr>
+        <td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:nowrap;"><p>4</p></td>
+        <td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:nowrap;"><p>Engaged</p></td>
+        <td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:normal;"><p>The encounter is focused on another task, target, ritual, conflict, journey, negotiation, or objective.</p></td>
+      </tr>
+
+      <tr>
+        <td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:nowrap;"><p>5</p></td>
+        <td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:nowrap;"><p>Desperate</p></td>
+        <td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:normal;"><p>The encounter is injured, fleeing, starving, trapped, hunted, panicked, or acting under pressure.</p></td>
+      </tr>
+
+      <tr>
+        <td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:nowrap;"><p>6</p></td>
+        <td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:nowrap;"><p>Hidden</p></td>
+        <td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:normal;"><p>The encounter is concealed, stalking, watching, ambushing, hiding, or not immediately obvious.</p></td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+
+<p><strong>Template Priority:</strong> Encounter Template may override Behavior / Intent if the result conflicts with the situation. For example, Predation usually favors Wary, Hostile, Engaged, or Hidden behavior.</p>
+
+
+<hr>
+
+
+
+
+<h3><span style="color:rgb(255,194,102);">Behavior Resolution</span></h3>
+
+<p>After determining Behavior, use the matching entry to decide how the encounter initially presents itself, what actions the entity is likely to take, and what may cause the encounter to escalate.</p>
+
+<hr>
+
+
+
+
+<h4><span style="color:rgb(255,194,102);">Passive</span></h4>
+
+<div style="max-width:100%;">
+  <table style="width:auto;max-width:100%;border-collapse:collapse;">
+    <tbody>
+      <tr>
+        <th style="text-align:left;padding:8px 12px;border:1px solid rgb(70,75,85);background-color:rgb(0,0,0);color:rgb(255,194,102);white-space:nowrap;"><p>Element</p></th>
+        <th style="text-align:left;padding:8px 12px;border:1px solid rgb(70,75,85);background-color:rgb(0,0,0);color:rgb(255,194,102);white-space:normal;"><p>Function</p></th>
+      </tr>
+      <tr>
+        <td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:nowrap;"><p>Best Templates</p></td>
+        <td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:normal;"><p>Traveler or Caravan, Lingering Threat, Strange Presence, Hunter and Prey.</p></td>
+      </tr>
+      <tr>
+        <td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:nowrap;"><p>Typical Actions</p></td>
+        <td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:normal;"><p>Ignore the party, continue traveling, graze, scavenge, rest, observe from a distance, flee slowly, or continue an existing task.</p></td>
+      </tr>
+      <tr>
+        <td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:nowrap;"><p>Escalation Trigger</p></td>
+        <td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:normal;"><p>Threatening movement, attack, pursuit, intrusion, theft, loud disturbance, or interference with its current activity.</p></td>
+      </tr>
+      <tr>
+        <td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:nowrap;"><p>Interaction Style</p></td>
+        <td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:normal;"><p>Avoidance, indifference, observation, or incidental contact. The encounter may be bypassed unless the party chooses to engage.</p></td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<hr>
+
+
+
+
+<h4><span style="color:rgb(255,194,102);">Wary</span></h4>
+
+<div style="max-width:100%;">
+  <table style="width:auto;max-width:100%;border-collapse:collapse;">
+    <tbody>
+      <tr>
+        <th style="text-align:left;padding:8px 12px;border:1px solid rgb(70,75,85);background-color:rgb(0,0,0);color:rgb(255,194,102);white-space:nowrap;"><p>Element</p></th>
+        <th style="text-align:left;padding:8px 12px;border:1px solid rgb(70,75,85);background-color:rgb(0,0,0);color:rgb(255,194,102);white-space:normal;"><p>Function</p></th>
+      </tr>
+      <tr>
+        <td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:nowrap;"><p>Best Templates</p></td>
+        <td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:normal;"><p>Territorial Defense, Guarded Site, Patrol or Watch, Traveler or Caravan.</p></td>
+      </tr>
+      <tr>
+        <td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:nowrap;"><p>Typical Actions</p></td>
+        <td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:normal;"><p>Watch the party, issue warnings, hold position, circle at a distance, question intentions, shadow movement, display strength, or prepare to retreat or attack.</p></td>
+      </tr>
+      <tr>
+        <td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:nowrap;"><p>Escalation Trigger</p></td>
+        <td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:normal;"><p>Trespass, sudden movement, ignored warning, visible weapons, failed deception, approaching protected space, or perceived threat.</p></td>
+      </tr>
+      <tr>
+        <td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:nowrap;"><p>Interaction Style</p></td>
+        <td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:normal;"><p>Cautious interaction. The encounter begins tense but can shift toward negotiation, avoidance, pursuit, or combat.</p></td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<hr>
+
+
+
+
+<h4><span style="color:rgb(255,194,102);">Hostile</span></h4>
+
+<div style="max-width:100%;">
+  <table style="width:auto;max-width:100%;border-collapse:collapse;">
+    <tbody>
+      <tr>
+        <th style="text-align:left;padding:8px 12px;border:1px solid rgb(70,75,85);background-color:rgb(0,0,0);color:rgb(255,194,102);white-space:nowrap;"><p>Element</p></th>
+        <th style="text-align:left;padding:8px 12px;border:1px solid rgb(70,75,85);background-color:rgb(0,0,0);color:rgb(255,194,102);white-space:normal;"><p>Function</p></th>
+      </tr>
+      <tr>
+        <td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:nowrap;"><p>Best Templates</p></td>
+        <td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:normal;"><p>Predation, Territorial Defense, Guarded Site, Hunter and Prey.</p></td>
+      </tr>
+      <tr>
+        <td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:nowrap;"><p>Typical Actions</p></td>
+        <td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:normal;"><p>Attack, ambush, pursue, threaten, intimidate, block movement, call reinforcements, stalk, surround, or attempt to drive the party away.</p></td>
+      </tr>
+      <tr>
+        <td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:nowrap;"><p>Escalation Trigger</p></td>
+        <td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:normal;"><p>The party’s presence alone may trigger escalation. Delay, resistance, refusal, weakness, intrusion, or pursuit may intensify the threat.</p></td>
+      </tr>
+      <tr>
+        <td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:nowrap;"><p>Interaction Style</p></td>
+        <td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:normal;"><p>Aggressive pressure. The encounter begins dangerous and usually requires retreat, force, intimidation, deception, or fast negotiation to avoid conflict.</p></td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<hr>
+
+
+
+
+<h4><span style="color:rgb(255,194,102);">Engaged</span></h4>
+
+<div style="max-width:100%;">
+  <table style="width:auto;max-width:100%;border-collapse:collapse;">
+    <tbody>
+      <tr>
+        <th style="text-align:left;padding:8px 12px;border:1px solid rgb(70,75,85);background-color:rgb(0,0,0);color:rgb(255,194,102);white-space:nowrap;"><p>Element</p></th>
+        <th style="text-align:left;padding:8px 12px;border:1px solid rgb(70,75,85);background-color:rgb(0,0,0);color:rgb(255,194,102);white-space:normal;"><p>Function</p></th>
+      </tr>
+      <tr>
+        <td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:nowrap;"><p>Best Templates</p></td>
+        <td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:normal;"><p>Traveler or Caravan, Patrol or Watch, Strange Presence, Guarded Site.</p></td>
+      </tr>
+      <tr>
+        <td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:nowrap;"><p>Typical Actions</p></td>
+        <td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:normal;"><p>Speak, question, warn, negotiate, bargain, request aid, offer trade, explain terms, issue demands, invite approach, or reveal information.</p></td>
+      </tr>
+      <tr>
+        <td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:nowrap;"><p>Escalation Trigger</p></td>
+        <td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:normal;"><p>Insult, betrayal, refusal, fear, misunderstanding, broken agreement, violence, theft, or discovery of hidden motives.</p></td>
+      </tr>
+      <tr>
+        <td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:nowrap;"><p>Interaction Style</p></td>
+        <td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:normal;"><p>Active interaction. The encounter begins with communication or obvious invitation to respond, but may shift toward cooperation, complication, or conflict.</p></td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<hr>
+
+
+
+<h4><span style="color:rgb(255,194,102);">Desperate</span></h4>
+
+<div style="max-width:100%;">
+  <table style="width:auto;max-width:100%;border-collapse:collapse;">
+    <tbody>
+      <tr>
+        <th style="text-align:left;padding:8px 12px;border:1px solid rgb(70,75,85);background-color:rgb(0,0,0);color:rgb(255,194,102);white-space:nowrap;"><p>Element</p></th>
+        <th style="text-align:left;padding:8px 12px;border:1px solid rgb(70,75,85);background-color:rgb(0,0,0);color:rgb(255,194,102);white-space:normal;"><p>Function</p></th>
+      </tr>
+      <tr>
+        <td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:nowrap;"><p>Best Templates</p></td>
+        <td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:normal;"><p>Hunter and Prey, Traveler or Caravan, Lingering Threat, Strange Presence.</p></td>
+      </tr>
+      <tr>
+        <td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:nowrap;"><p>Typical Actions</p></td>
+        <td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:normal;"><p>Flee, beg, bargain, hide, lash out, seek aid, protect something, abandon something, surrender, or take reckless action.</p></td>
+      </tr>
+      <tr>
+        <td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:nowrap;"><p>Escalation Trigger</p></td>
+        <td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:normal;"><p>Cornering, pursuit, refusal of aid, sudden movement, threats, visible weapons, loss of hope, or harm to whatever it is protecting.</p></td>
+      </tr>
+      <tr>
+        <td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:nowrap;"><p>Interaction Style</p></td>
+        <td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:normal;"><p>Unstable pressure. The encounter begins under stress and may shift quickly toward conflict, surrender, flight, negotiation, or collapse.</p></td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<hr>
+
+
+
+
+<h4><span style="color:rgb(255,194,102);">Hidden</span></h4>
+
+<div style="max-width:100%;">
+  <table style="width:auto;max-width:100%;border-collapse:collapse;">
+    <tbody>
+      <tr>
+        <th style="text-align:left;padding:8px 12px;border:1px solid rgb(70,75,85);background-color:rgb(0,0,0);color:rgb(255,194,102);white-space:nowrap;"><p>Element</p></th>
+        <th style="text-align:left;padding:8px 12px;border:1px solid rgb(70,75,85);background-color:rgb(0,0,0);color:rgb(255,194,102);white-space:normal;"><p>Function</p></th>
+      </tr>
+      <tr>
+        <td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:nowrap;"><p>Best Templates</p></td>
+        <td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:normal;"><p>Predation, Guarded Site, Patrol or Watch, Strange Presence.</p></td>
+      </tr>
+      <tr>
+        <td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:nowrap;"><p>Typical Actions</p></td>
+        <td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:normal;"><p>Watch, stalk, hide, wait, ambush, reposition, signal allies, conceal evidence, avoid detection, or manipulate events from cover.</p></td>
+      </tr>
+      <tr>
+        <td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:nowrap;"><p>Escalation Trigger</p></td>
+        <td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:normal;"><p>Discovery, failed stealth, direct approach, separation of the party, intrusion into protected space, or an opening for ambush.</p></td>
+      </tr>
+      <tr>
+        <td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:nowrap;"><p>Interaction Style</p></td>
+        <td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:normal;"><p>Concealed tension. The encounter begins indirectly through signs, sounds, tracks, missing details, watched movement, or sudden reveal.</p></td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<hr>
+
+
+
+
+<h3><span style="color:rgb(255,194,102);">Behavior Function</span></h3>
+<p>Behavior determines:</p>
+<ul>
+  <li><p>The initial attitude of the entity toward the party</p></li>
+  <li><p>How the entity is likely to act before the party intervenes</p></li>
+  <li><p>How quickly the encounter may escalate</p></li>
+  <li><p>The likely form of interaction, such as conflict, avoidance, negotiation, pursuit, observation, or cooperation</p></li>
+</ul>
+
+<hr>
+
+
+
+
+<h3><span style="color:rgb(255,194,102);">Behavior Constraints</span></h3>
+<p>Behavior must remain consistent with:</p>
+<ul>
+  <li><p>the Encounter Template</p></li>
+  <li><p>the Creature Category</p></li>
+  <li><p>the selected Environment</p></li>
+  <li><p>the overall context</p></li>
+</ul>
+<p>If a Behavior conflicts with these elements, preserve the encounter’s core function and adjust the visible conduct of the entity.</p>
+<p><strong>Example:</strong> A Hostile Traveler or Caravan might not attack immediately, but may threaten the party, refuse passage, attempt extortion, or lure them into danger.</p>
+
+<hr>
+
+
+
+
+
+<h2><span style="color:rgb(255,194,102);">Situation State</span></h2>
+
+<p>Situation State defines the encounter’s starting condition when the party becomes aware of it.</p>
+<p>It determines distance, awareness, timing, and how much opportunity the party has to respond before the encounter fully unfolds.</p>
+
+<hr>
+
+
+
+
+<h3><span style="color:rgb(255,194,102);">Situation State Determination</span></h3>
+
+<p>Situation State may be determined randomly or selected based on the Encounter Template, Behavior / Intent, Environment, or established context.</p>
+<p>When rolled randomly, roll 1d8:</p>
+
+<div style="max-width:100%;">
+  <table style="width:auto;max-width:100%;border-collapse:collapse;">
+    <tbody>
+      <tr>
+        <th style="text-align:left;padding:8px 12px;border:1px solid rgb(70,75,85);background-color:rgb(0,0,0);color:rgb(255,194,102);white-space:nowrap;"><p>d8</p></th>
+        <th style="text-align:left;padding:8px 12px;border:1px solid rgb(70,75,85);background-color:rgb(0,0,0);color:rgb(255,194,102);white-space:nowrap;"><p>Situation State</p></th>
+        <th style="text-align:left;padding:8px 12px;border:1px solid rgb(70,75,85);background-color:rgb(0,0,0);color:rgb(255,194,102);white-space:normal;"><p>Meaning</p></th>
+      </tr>
+
+      <tr>
+        <td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:nowrap;"><p>1</p></td>
+        <td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:nowrap;"><p>Unaware</p></td>
+        <td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:normal;"><p>The encounter has not noticed the party. The party may observe, avoid, approach, prepare, or act first.</p></td>
+      </tr>
+
+      <tr>
+        <td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:nowrap;"><p>2</p></td>
+        <td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:nowrap;"><p>Alert</p></td>
+        <td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:normal;"><p>The encounter is aware that something may be nearby, but has not fully identified the party.</p></td>
+      </tr>
+
+      <tr>
+        <td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:nowrap;"><p>3</p></td>
+        <td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:nowrap;"><p>Distant</p></td>
+        <td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:normal;"><p>The encounter is visible, audible, or detectable at a distance. The party has time to decide how to approach.</p></td>
+      </tr>
+
+      <tr>
+        <td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:nowrap;"><p>4</p></td>
+        <td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:nowrap;"><p>Nearby</p></td>
+        <td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:normal;"><p>The encounter is close enough to matter soon, but immediate contact has not yet occurred.</p></td>
+      </tr>
+
+      <tr>
+        <td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:nowrap;"><p>5</p></td>
+        <td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:nowrap;"><p>Close</p></td>
+        <td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:normal;"><p>The encounter is close enough for interaction, confrontation, or quick escalation.</p></td>
+      </tr>
+
+      <tr>
+        <td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:nowrap;"><p>6</p></td>
+        <td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:nowrap;"><p>Immediate</p></td>
+        <td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:normal;"><p>The encounter begins in direct contact, active danger, conversation, pursuit, ambush, or combat range.</p></td>
+      </tr>
+
+      <tr>
+        <td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:nowrap;"><p>7</p></td>
+        <td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:nowrap;"><p>Developing</p></td>
+        <td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:normal;"><p>The encounter is already in motion and will change if the party does not intervene.</p></td>
+      </tr>
+
+      <tr>
+        <td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:nowrap;"><p>8</p></td>
+        <td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:nowrap;"><p>Aftermath</p></td>
+        <td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:normal;"><p>The main event has already happened, leaving evidence, survivors, hazards, tracks, or consequences behind.</p></td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+
+<p><strong>Template Priority:</strong> Encounter Template may override Situation State if the result conflicts with the encounter’s structure. For example, Lingering Threat often favors Aftermath, Distant, Nearby, or Developing.</p>
+
+
+<hr>
+
+
+
+
+<h3><span style="color:rgb(255,194,102);">Situation State Function</span></h3>
+
+<p>Situation State determines:</p>
+<ul>
+  <li><p>Whether the encounter is aware of the party</p></li>
+  <li><p>How close the encounter is when first noticed</p></li>
+  <li><p>How much time the party has to react</p></li>
+  <li><p>Whether the situation is static, active, or already resolved</p></li>
+</ul>
+
+<hr>
+
+
+
+
+<h3><span style="color:rgb(255,194,102);">Situation State Constraints</span></h3>
+
+<p>Situation State must remain consistent with the Encounter Template, Behavior / Intent, Environment, and established context.</p>
+<p>If a result conflicts with the encounter, keep the State’s function but adjust the details.</p>
+
+
+<p><strong>Example:</strong> A Hidden predator with an Immediate Situation State might begin as an ambush, while a Hidden predator with a Distant Situation State might be seen only through tracks, movement, or signs of stalking.</p>
+
+
+<hr>
+
+
+
+
+<h2><span style="color:rgb(255,194,102);">Encounter Resolution</span></h2>
+
+<p>Encounter Resolution determines how an encounter enters play, how the characters may respond, and what consequences follow from their choices.</p>
+<p>Resolution does not require a specific outcome. An encounter may end through combat, negotiation, avoidance, investigation, retreat, or another player-declared action.</p>
+
+<hr>
+
+
+
+
+<h3><span style="color:rgb(255,194,102);">Resolution Function</span></h3>
+
+<p>Resolution determines:</p>
+<ul>
+  <li><p>How the encounter is presented to the players</p></li>
+  <li><p>What immediate choices are available</p></li>
+  <li><p>How the situation changes during play</p></li>
+  <li><p>What consequences follow after the encounter ends</p></li>
+</ul>
+
+<p>The DM uses the generated Encounter elements to frame the situation, then resolves the party’s actions using the normal rules of play.</p>
+
+<hr>
+
+
+
+
+<h3><span style="color:rgb(255,194,102);">Resolution Procedure</span></h3>
+
+<p>Follow these steps when resolving an Encounter:</p>
+
+<ol>
+  <li><p>Frame the Situation</p></li>
+  <li><p>Present the Immediate Choice</p></li>
+  <li><p>Determine Pressure or Escalation</p></li>
+  <li><p>Resolve Player Actions</p></li>
+  <li><p>Apply Consequences</p></li>
+</ol>
+
+<hr>
+
+
+
+
+<h3><span style="color:rgb(255,194,102);">Frame the Situation</span></h3>
+
+<p>Describe what the characters perceive first.</p>
+<p>The opening description should establish the encounter’s visible danger, opportunity, or uncertainty without revealing hidden information.</p>
+
+<ul>
+  <li><p>What do the characters see, hear, smell, or feel?</p></li>
+  <li><p>What is happening right now?</p></li>
+  <li><p>Who or what appears to be involved?</p></li>
+  <li><p>What detail suggests that action may be required?</p></li>
+</ul>
+
+<hr>
+
+
+
+
+<h3><span style="color:rgb(255,194,102);">Present the Immediate Choice</span></h3>
+
+<p>Every encounter should present at least one meaningful decision.</p>
+<p>The party may choose to engage, avoid, observe, negotiate, intervene, flee, or attempt another course of action.</p>
+
+<div style="max-width:100%;">
+  <table style="width:auto;max-width:100%;border-collapse:collapse;">
+    <tbody>
+      <tr>
+        <th style="text-align:left;padding:8px 12px;border:1px solid rgb(70,75,85);background-color:rgb(0,0,0);color:rgb(255,194,102);white-space:nowrap;"><p>Player Approach</p></th>
+        <th style="text-align:left;padding:8px 12px;border:1px solid rgb(70,75,85);background-color:rgb(0,0,0);color:rgb(255,194,102);white-space:normal;"><p>Resolution Focus</p></th>
+      </tr>
+      <tr>
+        <td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:nowrap;"><p>Fight</p></td>
+        <td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:normal;"><p>Combat, tactics, terrain, and survival</p></td>
+      </tr>
+      <tr>
+        <td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:nowrap;"><p>Negotiate</p></td>
+        <td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:normal;"><p>Attitude, leverage, intent, and concessions</p></td>
+      </tr>
+      <tr>
+        <td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:nowrap;"><p>Avoid</p></td>
+        <td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:normal;"><p>Stealth, route choice, timing, and risk</p></td>
+      </tr>
+      <tr>
+        <td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:nowrap;"><p>Observe</p></td>
+        <td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:normal;"><p>Clues, behavior, weaknesses, and hidden details</p></td>
+      </tr>
+      <tr>
+        <td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:nowrap;"><p>Intervene</p></td>
+        <td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:normal;"><p>Rescue, disruption, protection, or redirection</p></td>
+      </tr>
+      <tr>
+        <td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:nowrap;"><p>Retreat</p></td>
+        <td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:normal;"><p>Escape, pursuit, losses, and delayed consequences</p></td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<hr>
+
+
+
+
+<h3><span style="color:rgb(255,194,102);">Pressure and Escalation</span></h3>
+
+<p>Pressure determines whether the encounter changes if the characters delay, fail, or choose not to act.</p>
+<p>Not every encounter requires escalation, but encounters with active threats should usually worsen over time.</p>
+
+<div style="max-width:100%;">
+  <table style="width:auto;max-width:100%;border-collapse:collapse;">
+    <tbody>
+      <tr>
+        <th style="text-align:left;padding:8px 12px;border:1px solid rgb(70,75,85);background-color:rgb(0,0,0);color:rgb(255,194,102);white-space:nowrap;"><p>Pressure Type</p></th>
+        <th style="text-align:left;padding:8px 12px;border:1px solid rgb(70,75,85);background-color:rgb(0,0,0);color:rgb(255,194,102);white-space:normal;"><p>Effect</p></th>
+      </tr>
+      <tr>
+        <td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:nowrap;"><p>Time</p></td>
+        <td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:normal;"><p>The situation worsens after a delay</p></td>
+      </tr>
+      <tr>
+        <td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:nowrap;"><p>Noise</p></td>
+        <td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:normal;"><p>Combat, spells, or disturbance may attract attention</p></td>
+      </tr>
+      <tr>
+        <td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:nowrap;"><p>Morale</p></td>
+        <td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:normal;"><p>Creatures may flee, surrender, panic, or call for aid</p></td>
+      </tr>
+      <tr>
+        <td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:nowrap;"><p>Environment</p></td>
+        <td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:normal;"><p>Terrain, weather, hazards, or instability become more dangerous</p></td>
+      </tr>
+      <tr>
+        <td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:nowrap;"><p>Reinforcement</p></td>
+        <td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:normal;"><p>Additional creatures may arrive if the encounter continues</p></td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<hr>
+
+
+
+
+<h3><span style="color:rgb(255,194,102);">Resolution Outcomes</span></h3>
+
+<p>When the encounter ends, determine the outcome based on the party’s actions and the state of the situation.</p>
+
+<div style="max-width:100%;">
+  <table style="width:auto;max-width:100%;border-collapse:collapse;">
+    <tbody>
+      <tr>
+        <th style="text-align:left;padding:8px 12px;border:1px solid rgb(70,75,85);background-color:rgb(0,0,0);color:rgb(255,194,102);white-space:nowrap;"><p>Outcome</p></th>
+        <th style="text-align:left;padding:8px 12px;border:1px solid rgb(70,75,85);background-color:rgb(0,0,0);color:rgb(255,194,102);white-space:normal;"><p>Description</p></th>
+      </tr>
+      <tr>
+        <td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:nowrap;"><p>Success</p></td>
+        <td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:normal;"><p>The party achieves its goal without significant new complications</p></td>
+      </tr>
+      <tr>
+        <td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:nowrap;"><p>Partial Success</p></td>
+        <td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:normal;"><p>The party succeeds, but at a cost or with an unresolved complication</p></td>
+      </tr>
+      <tr>
+        <td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:nowrap;"><p>Costly Victory</p></td>
+        <td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:normal;"><p>The party overcomes the encounter but loses resources, time, position, or advantage</p></td>
+      </tr>
+      <tr>
+        <td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:nowrap;"><p>Failure</p></td>
+        <td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:normal;"><p>The party does not achieve its goal, and the situation changes against them</p></td>
+      </tr>
+      <tr>
+        <td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:nowrap;"><p>Escalation</p></td>
+        <td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:normal;"><p>The encounter leads directly into a worse or more complicated situation</p></td>
+      </tr>
+      <tr>
+        <td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:nowrap;"><p>Delayed Consequence</p></td>
+        <td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:normal;"><p>The full result of the encounter becomes apparent later</p></td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<hr>
+
+
+
+
+<h3><span style="color:rgb(255,194,102);">Apply Consequences</span></h3>
+
+<p>Consequences should follow naturally from the party’s choices and the encounter’s outcome.</p>
+<p>Consequences may be immediate, delayed, local, or connected to another system.</p>
+
+<ul>
+  <li><p>Characters lose Hit Points, spells, items, time, or other resources</p></li>
+  <li><p>NPCs change attitude toward the party</p></li>
+  <li><p>Creatures flee, surrender, pursue, regroup, or spread word of the party</p></li>
+  <li><p>The party gains clues, treasure, allies, access, or information</p></li>
+  <li><p>The Environment becomes safer, more dangerous, or more unstable</p></li>
+  <li><p>A future encounter gains Advantage, Disadvantage, a modifier, or a changed Situation State</p></li>
+</ul>
+
+<hr>
+
+
+
+
+<h3><span style="color:rgb(255,194,102);">Resolution Notes</span></h3>
+
+<p>The Encounter Engine creates situations, not predetermined endings.</p>
+<p>The DM should allow player choices to determine the final result whenever possible.</p>
+<p>If an encounter is bypassed, delayed, or ignored, it may still affect the world later.</p>
+    

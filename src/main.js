@@ -11,7 +11,7 @@ import { ComplicationEngine } from "./engines/complication/ComplicationEngine.js
 import { DiscoveryEngine } from "./engines/discovery/DiscoveryEngine.js";
 import { QuietTravelEngine } from "./engines/quiet-travel/QuietTravelEngine.js";
 import { ThreatEngine } from "./engines/threat/ThreatEngine.js";
-import { TravelPanel } from "./ui/TravelPanel.js";
+import { TravelPanel } from "./ui/TravelPanel.js";\nimport { RulesCompendium } from "./docs/RulesCompendium.js";
 
 console.log(`${LOG_PREFIX} 🛠️ v${MODULE_VERSION} | Loading ${MODULE_ID}`);
 
@@ -20,7 +20,7 @@ Hooks.once("init", () => {
   console.log(`${LOG_PREFIX} 🚀 v${MODULE_VERSION} | Initializing`);
 });
 
-Hooks.once("ready", () => {
+Hooks.once("ready", async () => {
   const module = game.modules.get(MODULE_ID);
   if (!module) {
     console.error(`${LOG_PREFIX} ❌ v${MODULE_VERSION} | Module record unavailable`);

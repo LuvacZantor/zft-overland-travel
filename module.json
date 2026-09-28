@@ -1,8 +1,8 @@
 {
   "id": "zft-overland-travel",
   "title": "Zantor's Overland Travel",
-  "description": "A modular overland travel, expedition-state, discovery, complication, threat, and encounter framework for Foundry VTT.",
-  "version": "0.2.1",
+  "description": "A modular overland travel, expedition-state, discovery, complication, threat, encounter, and rules-reference framework for Foundry VTT.",
+  "version": "0.3.0",
   "authors": [
     {
       "name": "Zantor"

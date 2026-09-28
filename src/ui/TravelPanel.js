@@ -3,7 +3,7 @@ import { ExpeditionState } from "../state/ExpeditionState.js";
 import { TravelEngine } from "../engines/travel/TravelEngine.js";
 import { EncounterEngine } from "../engines/encounter/EncounterEngine.js";
 import { QuietTravelEngine } from "../engines/quiet-travel/QuietTravelEngine.js";
-import { ThreatEngine } from "../engines/threat/ThreatEngine.js";
+import { ThreatEngine } from "../engines/threat/ThreatEngine.js";\nimport { RulesCompendium } from "../docs/RulesCompendium.js";
 
 function optionsFrom(record, selected = null) {
   return Object.values(record)
@@ -55,7 +55,7 @@ export class TravelPanel {
         { action: "resolve", label: "Resolve Hex", icon: "fa-solid fa-dice-d20", disabled: !hex },
         { action: "quiet", label: "Quiet Travel", icon: "fa-solid fa-campground" },
         { action: "encounter", label: "Encounter", icon: "fa-solid fa-dragon" },
-        { action: "threat", label: "Threat", icon: "fa-solid fa-triangle-exclamation" },
+        { action: "threat", label: "Threat", icon: "fa-solid fa-triangle-exclamation" },\n        { action: "rules", label: "Rules", icon: "fa-solid fa-book-open" },
         { action: "reset", label: "Reset", icon: "fa-solid fa-rotate-left" },
         { action: "close", label: "Close", default: true }
       ]
@@ -66,7 +66,7 @@ export class TravelPanel {
     if (action === "resolve") await this.#resolveHex();
     if (action === "quiet") await this.#quietTravel();
     if (action === "encounter") await this.#generateEncounter();
-    if (action === "threat") await this.#manageThreat();
+    if (action === "threat") await this.#manageThreat();\n    if (action === "rules") {\n      await RulesCompendium.open();\n      return;\n    }
 
     if (action === "reset") {
       const confirmed = await foundry.applications.api.DialogV2.confirm({

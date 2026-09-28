@@ -1,0 +1,389 @@
+        <h2><span style="color:rgb(255,194,102);"><strong>Overland Travel Procedure</strong></span></h2>
+
+<p>This system resolves travel through a hex by determining terrain difficulty, assigning roles, resolving travel checks, tracking party momentum, and generating an event that is influenced by both the environment and the party’s performance.</p>
+
+<hr>
+
+
+<h2><img src="https://cdn-ugc.kanka.io/campaigns/377014/a1b96051-f78c-4249-8aae-6332bbfb69f6.png" style="width:50%;" data-gallery-id="a1b96051-f78c-4249-8aae-6332bbfb69f6" alt="a1b96051-f78c-4249-8aae-6332bbfb69f6.png"><br></h2><hr><h2><span style="color:rgb(255,194,102);font-size:1.8rem;background-color:unset;">Procedure Checklist</span></h2>
+
+<p>Follow these steps for each hex:</p>
+
+<ol>
+  <li><p>Roll Event (establish base event)</p></li>
+  <li><p>Establish the HEX State</p></li>
+  <li><p>Choose Roles</p></li>
+  <li><p>Determine Role DC</p></li>
+  <li><p>Each Player Rolls</p></li>
+  <li><p>Determine Individual Outcomes</p></li>
+  <li><p>Tally Party Results</p></li>
+  <li><p>Determine Travel Quality</p></li>
+  <li><p>Check Party Momentum</p></li>
+  <li><p>Shift Party Momentum</p></li>
+  <li><p>Resolve the Event</p></li>
+</ol>
+
+<p></p>
+
+<hr>
+
+
+
+
+<h2><span style="color:rgb(255,194,102);"><strong>Roll Event</strong></span></h2>
+
+<p>Roll 1d20 to determine the event type. (this may change from this random starting point)</p>
+
+<h4>Event Table</h4>
+
+<div style="max-width:100%;">
+  <table style="width:auto;max-width:100%;border-collapse:collapse;">
+    <tbody>
+      <tr><th style="text-align:left;padding:8px 12px;border:1px solid rgb(70,75,85);background-color:rgb(0,0,0);color:rgb(255,194,102);white-space:nowrap;"><p>Roll d20</p></th><th style="text-align:left;padding:8px 12px;border:1px solid rgb(70,75,85);background-color:rgb(0,0,0);color:rgb(255,194,102);white-space:normal;"><p>Event</p></th></tr>
+      <tr><td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:nowrap;"><p>1-8</p></td><td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:normal;"><p>Encounter</p></td></tr>
+      <tr><td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:nowrap;"><p>9-12</p></td><td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:normal;"><p>Complication</p></td></tr>
+      <tr><td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:nowrap;"><p>13-16</p></td><td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:normal;"><p>Discovery</p></td></tr>
+      <tr><td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:nowrap;"><p>17-20</p></td><td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:normal;"><p>Quiet Travel</p></td></tr>
+    </tbody>
+  </table>
+</div>
+
+<p>The result will be modified in later steps.</p>
+
+<hr>
+
+
+
+
+<h2><span style="color:rgb(255,194,102);"><strong>Establish the HEX State</strong></span></h2>
+
+
+
+
+<h3><span style="color:rgb(255,194,102);"><strong>Terrain Base DC</strong></span></h3>
+
+<p>Each terrain has a baseline travel difficulty. Each terrain is assigned a difficulty when designing the map.</p>
+
+<p><strong>Example Classification:</strong></p>
+
+<ul>
+  <li><p><strong>Easy:</strong> Roadways, Settled Lands</p></li>
+  <li><p><strong>Standard:</strong> Plains, Coast, Riverlands</p></li>
+  <li><p><strong>Difficult:</strong> Forest, Hills</p></li>
+  <li><p><strong>Harsh:</strong> Swamp, Desert, Mountains</p></li>
+  <li><p><strong>Extreme:</strong> Arctic, Blighted Lands, Underground, Fey-Touched</p></li>
+</ul>
+
+<p></p>
+
+<p><strong>Common Terrain Types:</strong></p>
+
+<div style="max-width:100%;">
+  <table style="width:auto;max-width:100%;border-collapse:collapse;">
+    <tbody>
+      <tr><th style="text-align:left;padding:8px 12px;border:1px solid rgb(70,75,85);background-color:rgb(0,0,0);color:rgb(255,194,102);white-space:nowrap;"><p>Terrain</p></th><th style="text-align:left;padding:8px 12px;border:1px solid rgb(70,75,85);background-color:rgb(0,0,0);color:rgb(255,194,102);white-space:nowrap;"><p>Difficulty</p></th><th style="text-align:left;padding:8px 12px;border:1px solid rgb(70,75,85);background-color:rgb(0,0,0);color:rgb(255,194,102);white-space:normal;"><p>Base DC</p></th></tr>
+      <tr><td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:nowrap;"><p>Roadways</p></td><td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:nowrap;"><p>Easy</p></td><td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:normal;"><p>10</p></td></tr>
+      <tr><td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:nowrap;"><p>Settled Lands</p></td><td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:nowrap;"><p>Easy</p></td><td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:normal;"><p>10</p></td></tr>
+      <tr><td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:nowrap;"><p>Plains</p></td><td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:nowrap;"><p>Standard</p></td><td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:normal;"><p>12</p></td></tr>
+      <tr><td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:nowrap;"><p>Coast</p></td><td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:nowrap;"><p>Standard</p></td><td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:normal;"><p>12</p></td></tr>
+      <tr><td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:nowrap;"><p>Riverlands</p></td><td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:nowrap;"><p>Standard</p></td><td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:normal;"><p>12</p></td></tr>
+      <tr><td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:nowrap;"><p>Forest</p></td><td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:nowrap;"><p>Difficult</p></td><td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:normal;"><p>14</p></td></tr>
+      <tr><td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:nowrap;"><p>Hills</p></td><td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:nowrap;"><p>Difficult</p></td><td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:normal;"><p>14</p></td></tr>
+      <tr><td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:nowrap;"><p>Swamp</p></td><td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:nowrap;"><p>Harsh</p></td><td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:normal;"><p>16</p></td></tr>
+      <tr><td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:nowrap;"><p>Desert</p></td><td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:nowrap;"><p>Harsh</p></td><td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:normal;"><p>16</p></td></tr>
+      <tr><td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:nowrap;"><p>Mountains</p></td><td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:nowrap;"><p>Harsh</p></td><td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:normal;"><p>16</p></td></tr>
+      <tr><td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:nowrap;"><p>Arctic</p></td><td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:nowrap;"><p>Extreme</p></td><td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:normal;"><p>18</p></td></tr>
+      <tr><td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:nowrap;"><p>Blighted Lands</p></td><td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:nowrap;"><p>Extreme</p></td><td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:normal;"><p>18</p></td></tr>
+      <tr><td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:nowrap;"><p>Underground</p></td><td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:nowrap;"><p>Extreme</p></td><td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:normal;"><p>18</p></td></tr>
+      <tr><td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:nowrap;"><p>Fey-Touched</p></td><td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:nowrap;"><p>Extreme</p></td><td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:normal;"><p>18</p></td></tr>
+    </tbody>
+  </table>
+</div>
+
+<p></p>
+
+<hr>
+
+
+
+
+<h2><span style="color:rgb(255,194,102);"><strong>Region Danger Modifier</strong></span></h2>
+
+<p>Region Danger reflects how hostile or unstable the area is.</p>
+
+<p>It modifies both:</p>
+
+<ul>
+  <li><p>Travel difficulty (DC)</p></li>
+  <li><p>Event outcomes (later steps)</p></li>
+</ul>
+
+<div style="max-width:100%;">
+  <table style="width:auto;max-width:100%;border-collapse:collapse;">
+    <tbody>
+      <tr><th style="text-align:left;padding:8px 12px;border:1px solid rgb(70,75,85);background-color:rgb(0,0,0);color:rgb(255,194,102);white-space:nowrap;"><p style="text-align:center;">Region</p></th><th style="text-align:left;padding:8px 12px;border:1px solid rgb(70,75,85);background-color:rgb(0,0,0);color:rgb(255,194,102);white-space:nowrap;"><p>Modifier</p></th><th style="text-align:left;padding:8px 12px;border:1px solid rgb(70,75,85);background-color:rgb(0,0,0);color:rgb(255,194,102);white-space:normal;"><p>Description</p></th></tr>
+      <tr><td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:nowrap;"><p>Safe</p></td><td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:nowrap;"><p>−2</p></td><td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:normal;"><p>Stable, controlled, low risk</p></td></tr>
+      <tr><td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:nowrap;"><p>Frontier</p></td><td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:nowrap;"><p>+0</p></td><td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:normal;"><p>Lightly settled, some danger</p></td></tr>
+      <tr><td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:nowrap;"><p>Wild</p></td><td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:nowrap;"><p>+2</p></td><td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:normal;"><p>Untamed, unpredictable</p></td></tr>
+      <tr><td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:nowrap;"><p>Hostile</p></td><td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:nowrap;"><p>+4</p></td><td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:normal;"><p>Active threats present</p></td></tr>
+      <tr><td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:nowrap;"><p>Cataclysmic</p></td><td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:nowrap;"><p>+6</p></td><td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:normal;"><p>Constant, extreme danger</p></td></tr>
+    </tbody>
+  </table>
+</div>
+
+<p>👉 Region Danger can change over time due to events or player actions.</p>
+
+<hr>
+
+
+
+
+<h2><span style="color:rgb(255,194,102);"><strong>Choose Roles</strong></span></h2>
+
+<p>Each player selects one role:</p>
+
+<ul>
+  <li><p>Guide</p></li>
+  <li><p>Scout</p></li>
+  <li><p>Lookout</p></li>
+  <li><p>Forager</p></li>
+  <li><p>Pathfinder</p></li>
+  <li><p>Quartermaster</p></li>
+</ul>
+
+<hr>
+
+
+
+
+<h2><span style="color:rgb(255,194,102);"><strong>Role Limits</strong></span></h2>
+
+<ul>
+  <li><p>Each role can be filled by only one character</p></li>
+  <li><p>Roles do not stack</p></li>
+  <li><p>Unfilled roles provide no benefit</p></li>
+</ul>
+
+<hr>
+
+
+
+
+<h2><span style="color:rgb(255,194,102);"><strong>Support</strong></span></h2>
+
+<ul>
+  <li><p>One additional character may support a role</p></li>
+  <li><p>The supporter must have a relevant proficiency</p></li>
+  <li><p>The role check is made with advantage</p></li>
+</ul>
+
+<hr>
+
+
+
+
+<h2><span style="color:rgb(255,194,102);"><strong>Role Reference</strong></span></h2>
+
+<div style="max-width:100%;">
+  <table style="width:auto;max-width:100%;border-collapse:collapse;">
+    <tbody>
+      <tr><th style="text-align:left;padding:8px 12px;border:1px solid rgb(70,75,85);background-color:rgb(0,0,0);color:rgb(255,194,102);white-space:nowrap;"><p>Role</p></th><th style="text-align:left;padding:8px 12px;border:1px solid rgb(70,75,85);background-color:rgb(0,0,0);color:rgb(255,194,102);white-space:nowrap;"><p>Purpose</p></th><th style="text-align:left;padding:8px 12px;border:1px solid rgb(70,75,85);background-color:rgb(0,0,0);color:rgb(255,194,102);white-space:nowrap;"><p>Prevents</p></th><th style="text-align:left;padding:8px 12px;border:1px solid rgb(70,75,85);background-color:rgb(0,0,0);color:rgb(255,194,102);white-space:normal;"><p>Typical Skills / Tools</p></th></tr>
+      <tr><td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:nowrap;"><p>Guide</p></td><td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:nowrap;"><p>Keeps the party on course and chooses the route</p></td><td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:nowrap;"><p>Getting lost, wasted travel, poor navigation</p></td><td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:normal;"><p>Survival, Nature, Navigator’s Tools</p></td></tr>
+      <tr><td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:nowrap;"><p>Scout</p></td><td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:nowrap;"><p>Observes what lies ahead of the party</p></td><td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:nowrap;"><p>Walking blindly into danger</p></td><td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:normal;"><p>Stealth, Perception, Survival</p></td></tr>
+      <tr><td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:nowrap;"><p>Lookout</p></td><td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:nowrap;"><p>Maintains awareness of immediate surroundings</p></td><td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:nowrap;"><p>Surprise and poor positioning</p></td><td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:normal;"><p>Perception, Insight</p></td></tr>
+      <tr><td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:nowrap;"><p>Forager</p></td><td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:nowrap;"><p>Maintains supplies and gathers resources</p></td><td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:nowrap;"><p>Resource strain and exhaustion pressure</p></td><td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:normal;"><p>Survival, Nature, Herbalism Kit</p></td></tr>
+      <tr><td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:nowrap;"><p>Pathfinder</p></td><td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:nowrap;"><p>Leads movement through terrain obstacles</p></td><td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:nowrap;"><p>Environmental slowdowns and traversal hazards</p></td><td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:normal;"><p>Athletics, Acrobatics, Survival</p></td></tr>
+      <tr><td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:nowrap;"><p>Quartermaster</p></td><td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:nowrap;"><p>Organizes equipment, planning, and readiness</p></td><td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:nowrap;"><p>Preparation failures and cascading problems</p></td><td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:normal;"><p>Investigation, Insight, Persuasion, relevant tool proficiency</p></td></tr>
+    </tbody>
+  </table>
+</div>
+
+<hr>
+
+
+
+
+<h2><span style="color:rgb(255,194,102);"><strong>Determine Role DC</strong></span></h2>
+
+<p>Determine the DC for the Hex State that will be used for roll checks.</p>
+
+<blockquote><p><strong>Role DC = Terrain Base DC + Region Danger Modifier</strong></p></blockquote>
+
+<p></p>
+
+<hr>
+
+
+
+
+<h2><span style="color:rgb(255,194,102);"><strong>Each Player Rolls</strong></span></h2>
+
+<p>Each player rolls an ability check appropriate to their chosen role.</p>
+
+<ul>
+  <li><p>If a role has a supporter, the roll is made with advantage</p></li>
+</ul>
+
+<p></p>
+
+<hr>
+
+
+
+
+<h2><span style="color:rgb(255,194,102);"><strong>Determine Individual Outcomes</strong></span></h2>
+
+<p>Compare each roll to the Role DC.</p>
+
+<div style="max-width:100%;">
+  <table style="width:auto;max-width:100%;border-collapse:collapse;">
+    <tbody>
+      <tr><th style="text-align:left;padding:8px 12px;border:1px solid rgb(70,75,85);background-color:rgb(0,0,0);color:rgb(255,194,102);white-space:nowrap;"><p>Result vs DC</p></th><th style="text-align:left;padding:8px 12px;border:1px solid rgb(70,75,85);background-color:rgb(0,0,0);color:rgb(255,194,102);white-space:nowrap;"><p>Outcome</p></th><th style="text-align:left;padding:8px 12px;border:1px solid rgb(70,75,85);background-color:rgb(0,0,0);color:rgb(255,194,102);white-space:normal;"><p>Counts As</p></th></tr>
+      <tr><td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:nowrap;"><p>DC +5 or higher</p></td><td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:nowrap;"><p>Strong Success</p></td><td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:normal;"><p>2 Successes</p></td></tr>
+      <tr><td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:nowrap;"><p>Meets or exceeds DC</p></td><td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:nowrap;"><p>Success</p></td><td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:normal;"><p>1 Success</p></td></tr>
+      <tr><td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:nowrap;"><p>Misses by 1–4</p></td><td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:nowrap;"><p>Failure</p></td><td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:normal;"><p>1 Failure</p></td></tr>
+      <tr><td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:nowrap;"><p>Misses by 5 or more</p></td><td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:nowrap;"><p>Major Failure</p></td><td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:normal;"><p>2 Failures</p></td></tr>
+    </tbody>
+  </table>
+</div>
+
+<p>Record only successes and failures. No other effects are applied at this step.</p>
+
+<hr>
+
+
+
+
+<h2><span style="color:rgb(255,194,102);"><strong>Tally Party Results</strong></span></h2>
+
+<p>Add together all successes and failures from every player.</p>
+
+<hr>
+
+
+
+
+<h2><span style="color:rgb(255,194,102);"><strong>Determine Travel Quality</strong></span></h2>
+
+<div style="max-width:100%;">
+  <table style="width:auto;max-width:100%;border-collapse:collapse;">
+    <tbody>
+      <tr><th style="text-align:left;padding:8px 12px;border:1px solid rgb(70,75,85);background-color:rgb(0,0,0);color:rgb(255,194,102);white-space:nowrap;"><p>Result</p></th><th style="text-align:left;padding:8px 12px;border:1px solid rgb(70,75,85);background-color:rgb(0,0,0);color:rgb(255,194,102);white-space:normal;"><p>Travel Outcome</p></th></tr>
+      <tr><td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:nowrap;"><p>More successes than failures</p></td><td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:normal;"><p>Successful Travel</p></td></tr>
+      <tr><td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:nowrap;"><p>More failures than successes</p></td><td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:normal;"><p>Poor Travel</p></td></tr>
+      <tr><td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:nowrap;"><p>Equal successes and failures</p></td><td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:normal;"><p>Neutral Travel</p></td></tr>
+    </tbody>
+  </table>
+</div>
+
+<p></p>
+
+<hr>
+
+
+
+
+<h2><span style="color:rgb(255,194,102);"><strong>Check Party Momentum</strong></span></h2>
+
+<p>Momentum represents the party’s current expedition condition. At the start of Overland travel, will usually be <strong>Neutral</strong>, unless otherwise modified by the DM.</p>
+
+<div style="max-width:100%;">
+  <table style="width:auto;max-width:100%;border-collapse:collapse;">
+    <tbody>
+      <tr><th style="text-align:left;padding:8px 12px;border:1px solid rgb(70,75,85);background-color:rgb(0,0,0);color:rgb(255,194,102);white-space:nowrap;"><p>State</p></th><th style="text-align:left;padding:8px 12px;border:1px solid rgb(70,75,85);background-color:rgb(0,0,0);color:rgb(255,194,102);white-space:normal;"><p>Description</p></th></tr>
+      <tr><td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:nowrap;"><p>Favored</p></td><td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:normal;"><p>Everything is going right</p></td></tr>
+      <tr><td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:nowrap;"><p>Prepared</p></td><td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:normal;"><p>Well-supplied and ready</p></td></tr>
+      <tr><td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:nowrap;"><p>Neutral</p></td><td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:normal;"><p>No strong advantage or disadvantage</p></td></tr>
+      <tr><td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:nowrap;"><p>Risky</p></td><td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:normal;"><p>Mistakes are compounding</p></td></tr>
+      <tr><td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:nowrap;"><p>Deteriorating</p></td><td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:normal;"><p>Situation is awful</p></td></tr>
+    </tbody>
+  </table>
+</div>
+
+<p style="text-align:left;">👉 Momentum carries over between hexes and shifts during travel.</p>
+
+<p></p>
+
+<hr>
+
+
+
+
+<h2><span style="color:rgb(255,194,102);"><strong>Shift Party Momentum</strong></span></h2>
+
+<p>Move Momentum one step:</p>
+
+<ul>
+  <li><p>Successful Travel → one step toward <strong>Favored</strong></p></li>
+  <li><p>Poor Travel → one step toward <strong>Deteriorating</strong></p></li>
+  <li><p>Neutral Travel → no change</p></li>
+</ul>
+
+<p>Momentum may shift only one step per hex.</p>
+
+<p><strong>Momentum Effect on Event Result</strong></p>
+
+<div style="max-width:100%;">
+  <table style="width:auto;max-width:100%;border-collapse:collapse;">
+    <tbody>
+      <tr><th style="text-align:left;padding:8px 12px;border:1px solid rgb(70,75,85);background-color:rgb(0,0,0);color:rgb(255,194,102);white-space:nowrap;"><p>State</p></th><th style="text-align:left;padding:8px 12px;border:1px solid rgb(70,75,85);background-color:rgb(0,0,0);color:rgb(255,194,102);white-space:normal;"><p>Event Shift</p></th></tr>
+      <tr><td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:nowrap;"><p>Favored</p></td><td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:normal;"><p>+1 step safer</p></td></tr>
+      <tr><td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:nowrap;"><p>Prepared</p></td><td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:normal;"><p>+1 step safer</p></td></tr>
+      <tr><td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:nowrap;"><p>Neutral</p></td><td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:normal;"><p>No change</p></td></tr>
+      <tr><td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:nowrap;"><p>Risky</p></td><td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:normal;"><p>−1 step toward danger</p></td></tr>
+      <tr><td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:nowrap;"><p>Deteriorating</p></td><td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:normal;"><p>−2 steps toward danger</p></td></tr>
+    </tbody>
+  </table>
+</div>
+
+<hr>
+
+
+
+
+<h2><span style="color:rgb(255,194,102);"><strong>Resolve the Event</strong></span></h2>
+
+<p>The event represents what occurs in the hex after travel and conditions have influenced the outcome.</p>
+
+
+
+
+<h3><span style="color:rgb(255,194,102);">Event Table</span></h3>
+
+<h4 style="color:rgb(200,202,208);"><br></h4>
+
+<div style="max-width:100%;">
+  <table style="width:auto;max-width:100%;border-collapse:collapse;">
+    <tbody>
+      <tr><th style="text-align:left;padding:8px 12px;border:1px solid rgb(70,75,85);background-color:rgb(0,0,0);color:rgb(255,194,102);white-space:nowrap;"><p>Roll d20</p></th><th style="text-align:left;padding:8px 12px;border:1px solid rgb(70,75,85);background-color:rgb(0,0,0);color:rgb(255,194,102);white-space:normal;"><p>Event</p></th></tr>
+      <tr><td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:nowrap;"><p>1-8</p></td><td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:normal;"><p>Encounter</p></td></tr>
+      <tr><td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:nowrap;"><p>9-12</p></td><td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:normal;"><p>Complication</p></td></tr>
+      <tr><td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:nowrap;"><p>13-16</p></td><td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:normal;"><p>Discovery</p></td></tr>
+      <tr><td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:nowrap;"><p>17-20</p></td><td style="padding:8px 12px;border:1px solid rgb(70,75,85);white-space:normal;"><p>Quiet Travel</p></td></tr>
+    </tbody>
+  </table>
+</div>
+
+<p>This result represents the current event state and may be modified by Region Danger, Party Momentum, and Travel Outcome.</p>
+
+<hr>
+
+
+
+
+<h3><span style="color:rgb(255,194,102);">Event Types</span></h3>
+
+<p><strong style="background-color:unset;color:rgb(200,202,208);"><a href="https://app.kanka.io/w/377014/entities/9134521" target="_blank" rel="noreferrer noopener">Encounter</a></strong></p>
+
+<p>A standard interaction. This may be combat, social, or neutral depending on the situation.</p>
+
+<p><a class="text-link" href="https://app.kanka.io/w/377014/entities/9134274" target="_blank" rel="noreferrer noopener"><strong>Complication</strong></a><br>An obstacle or problem that creates difficulty, pressure, or delay. Could lead to a <a class="text-link" href="https://app.kanka.io/w/377014/entities/9134358" target="_blank" rel="noreferrer noopener">threat</a>.</p>
+
+<p><a class="text-link" href="https://app.kanka.io/w/377014/entities/9134162" target="_blank" rel="noreferrer noopener"><strong>Discovery (link)</strong></a><br>A beneficial or informative finding such as a location, resource, or opportunity.</p>
+
+<p><a class="text-link" href="https://app.kanka.io/w/377014/entities/9134093" target="_blank" rel="noreferrer noopener"><strong>Quiet Travel (link)</strong></a><br>No significant event occurs. The party travels without interruption.</p>
+
+<hr>
+
+<p></p>
+    
