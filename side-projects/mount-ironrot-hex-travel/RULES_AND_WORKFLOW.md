@@ -30,7 +30,7 @@ The macro evaluates one native Foundry `Roll`: `2d4` after success, or `2d4 + 1d
 
 ## Optional secondary exploration activity
 
-Selected **before entering each hex**. **None** is default and means no secondary check or penalty. When chosen, assign a **different main character** from the navigator. One optional secondary activity per hex:
+Selected **before entering each hex**. **None** is default and means no secondary check or penalty. When chosen, assign a **different main character** from the navigator. **v4.4 prevents invalid selection in the UI:** the selected navigator is excluded from the Secondary PC dropdown; changing the navigator dynamically refreshes that dropdown without unnecessarily losing a valid secondary selection. A single-character roster cannot select a secondary activity. A user with permission may roll for either character, even though the **two selected PCs must be different**. One optional secondary activity per hex:
 
 | Activity | Skill | Purpose / GM adjudication |
 |---|---|---|

@@ -1,6 +1,6 @@
 # Mount Ironrot Hex Travel (standalone side project)
 
-**Latest tested-at-table version: v4.3 — Continuous Card.**
+**Latest reported working at-table version: v4.3 — Continuous Card. Current revision: v4.4 — Secondary PC Clarity (awaiting live test).**
 
 This directory archives development of the **Mount Ironrot one-hex travel macro** for the *Vecna: Eve of Ruin* Friday campaign, Chapter 4, using a custom hex map. It lives in the `zft-overland-travel` repository solely as a convenient home for revisions and documentation.
 
@@ -8,7 +8,7 @@ This directory archives development of the **Mount Ironrot one-hex travel macro*
 
 ## Current macro
 
-[`versions/Mount_Ironrot_Hex_Travel_v4_3_Continuous_Card.js`](versions/Mount_Ironrot_Hex_Travel_v4_3_Continuous_Card.js)
+[`versions/Mount_Ironrot_Hex_Travel_v4_4_Secondary_PC_Clarity.js`](versions/Mount_Ironrot_Hex_Travel_v4_4_Secondary_PC_Clarity.js)
 
 Previous versions are retained under [`versions/`](versions/) with incrementing numeric filenames. See [`CHANGELOG.md`](CHANGELOG.md). Historical source is left intact; the `v4_0_Dice_Visuals` archive label clarifies ordering among several earlier files that were all originally labeled v4.
 
@@ -33,4 +33,4 @@ The PC roster comes from Foundry **Player Configuration** (`game.users.players[*
 
 The user reports v4.3's formerly disappearing progress card **seems to be working** in their Foundry game. JavaScript syntax checks and mocked workflows were previously run. This is **not** a claim of exhaustive end-to-end validation of every character ability or Midi-QOL configuration.
 
-Future modifications should create a new `v4_4_*.js`, `v4_5_*.js`, etc., update these notes, and preserve earlier versioned sources. **Do not edit the main ZFT Overland Travel module** as part of this side project.
+Future modifications should create a new `v4_5_*.js`, `v4_6_*.js`, etc., update these notes, and preserve earlier versioned sources. **Do not edit the main ZFT Overland Travel module** as part of this side project.

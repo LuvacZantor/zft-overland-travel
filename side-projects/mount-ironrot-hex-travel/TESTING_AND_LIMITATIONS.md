@@ -9,14 +9,14 @@
 
 ## Regression test checklist
 
-1. `node --check versions/Mount_Ironrot_Hex_Travel_v4_3_Continuous_Card.js` for syntax.
+1. `node --check versions/Mount_Ironrot_Hex_Travel_v4_4_Secondary_PC_Clarity.js` for syntax.
 2. Normal / Fast / Slow pace; verify upward rounding against base 2d4 (2–8 hours).
 3. DC 15 navigation success -> **only 2d4** rolled for travel.
 4. DC 15 navigation failure -> **2d4 + 1d4 + 2**, and all three d4 faces are displayed.
 5. Confirm **delay added after** pace adjustment. No accidental doubling of failed travel.
 6. Confirm a connected player's **Midi-QOL** roll dialog opens automatically, is not fast-forwarded, and permits modifiers/formula adjustment.
 7. Confirm assigned *offline* PC can be chosen and GM/Owner handles its roll; verify actor statistics match the selected character.
-8. Test secondary None and all five optional secondary skills, including independent character/roller selection.
+8. Test secondary None and all five optional secondary skills, including independent character/roller selection. Verify that the current navigator never appears in the Secondary PC menu; changing Navigator updates the list, keeps an eligible prior secondary selection, and picks another character if necessary. With one assigned PC, optional secondary actions cannot be chosen.
 9. Test cancellations, failed remote rolls, fallback/retry, DM success/failure override, and avoiding stale progress cards.
 10. Confirm progress card is visible while Dice So Nice animates final travel dice and that final card appears latest in chat.
 11. Test with Dice So Nice disabled. Verify no duplicate travel dice messages.
@@ -27,7 +27,7 @@
 
 - Source files were archived intact from the prior macro revisions.
 - Previous development reported syntax and mocked workflow tests, including failure/success, offline GM fallback, and Dice So Nice wait behavior.
-- **User report:** the v4.3 continuous card “seems to be working.” This is useful live feedback, **not** a comprehensive integration test against all configurations or features.
+- **User report:** the v4.3 continuous card “seems to be working.” v4.4 only changes secondary-character selection UI and is not yet live-tested. This is useful live feedback, **not** a comprehensive integration test against all configurations or features.
 - Dice So Nice's per-client visuals and network timing may vary. Waiting on the GM's `waitFor3DAnimationByMessageID` does not guarantee exact simultaneous visibility for every connected client.
 - The module's own `module.json`, `main.js`, source, packs, and metadata are not involved.
 
