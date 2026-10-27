@@ -305,6 +305,41 @@ return (async () => {
     await publishStatus(state, state.pending ? "Travel in progress" : "Hex completed", label);
   }
 
+  // A player reconnecting may leave socketlib's first executeAsUser promise
+  // unresolved indefinitely. The GM must be able to explicitly supersede it
+  // without canceling the hex or rolling travel time again. No automatic retry:
+  // a previous prompt might still resolve on the reconnecting client.
+  async function recoverableRemoteRoll(actor, initialRoller, makeArgs, label, keySuffix) {
+    let roller = initialRoller;
+    let attempt = 0;
+    const key = `${keySuffix}:${actor.uuid}`;
+    while (true) {
+      ensureCurrent();
+      attempt += 1;
+      let resolveChoice;
+      const choice = new Promise(resolve => { resolveChoice = resolve; });
+      const recoveryToken = globalThis.ZFTMountIronrotConsole?.registerPendingRoll?.({
+        key, actorName: actor.name, label, rollerId: roller.id,
+        rollerName: roller.name, attempt, choose: resolveChoice
+      });
+      // Both fulfillment and rejection are handled for abandoned promises.
+      // Never apply the result from an attempt superseded by the GM.
+      const remote = Promise.resolve().then(() => {
+        ensureCurrent();
+        return midiSocket.executeAsUser("rollAbility", roller.id, makeArgs());
+      }).then(value => ({ type: "result", value }), error => ({ type: "error", error }));
+      let result;
+      try { result = await Promise.race([remote, choice]); }
+      finally { globalThis.ZFTMountIronrotConsole?.unregisterPendingRoll?.(key, recoveryToken); }
+      ensureCurrent();
+      if (result?.type === "resend") continue;
+      if (result?.type === "gm") { roller = game.user; continue; }
+      if (result?.type === "cancel") return { cancelled: true };
+      if (result?.type === "error") return { error: result.error };
+      return { value: result?.value, roller };
+    }
+  }
+
   async function conSave(actor, dc) {
     const modern = foundry.utils.isNewerVersion(midiModule.version, "13.0.43");
     const args = modern ? {
@@ -323,8 +358,13 @@ return (async () => {
     };
     try {
       const roller = resolveRoller(actor, "auto");
-      return totalFromRemote(await midiSocket.executeAsUser("rollAbility", roller.id, args));
+      const request = await recoverableRemoteRoll(actor, roller, () => args,
+        `CON saving throw · DC ${dc}`, `con:${travelState.day}:${travelState.hours + 1}`);
+      if (request.cancelled) return null;
+      if (request.error) throw request.error;
+      return totalFromRemote(request.value);
     } catch (error) {
+      if (error?.name === "IronrotWorkflowCanceled") throw error;
       console.error("Mount Ironrot | CON save request failed", error);
       return null;
     }
@@ -350,16 +390,22 @@ return (async () => {
       await publishStatus(state, "GM review", "Interrupted reroll. GM may request the reroll again.");
     }
     const pendingActors = actors.filter(actor => !resolved.has(actor.uuid));
-    const missingRolls = pendingActors.filter(actor => !(actor.uuid in state.hourRolls));
+    const missingRolls = pendingActors.filter(actor => !Number.isFinite(state.hourRolls[actor.uuid]));
     if (missingRolls.length) {
       await publishStatus(state, "Saving throws", `Hour ${hour}: waiting for party Constitution saves.`);
-      // Save each finished roll immediately, even if a later player cancels.
+      // Serialize completed results in the existing ledger; a stalled or
+      // canceled player's roll never overwrites a previously accepted result.
+      let checkpoint = Promise.resolve();
       await Promise.all(missingRolls.map(async actor => {
         const total = await conSave(actor, dc);
-        state.hourRolls[actor.uuid] = total;
-        await publishStatus(state, "Saving throws", `${actor.name} submitted a Constitution save.`);
+        if (!Number.isFinite(total)) return;
+        checkpoint = checkpoint.then(async () => {
+          state.hourRolls[actor.uuid] = total;
+          await saveState(state);
+          await publishStatus(state, "Saving throws", `${actor.name} submitted a Constitution save.`);
+        });
+        await checkpoint;
       }));
-      await saveState(state);
     }
     while (resolved.size < actors.length) {
       const unresolved = actors.filter(a => !resolved.has(a.uuid));
@@ -374,10 +420,10 @@ return (async () => {
         const verdict = done ? "Resolved" : hasRoll ? (failed ? "Failed" : "Passed") : "No result";
         const selected = !done && ["choose", "accept", "exhaust"].includes(state.hourDecisions[id])
           ? state.hourDecisions[id] : (hasRoll && !failed ? "accept" : "choose");
-        const choices = [
-          ["choose", "Choose action"], ["accept", hasRoll && !failed ? "Accept success" : "Accept / waive Exhaustion"],
+        const choices = hasRoll ? [
+          ["choose", "Choose action"], ["accept", failed ? "Accept / waive Exhaustion" : "Accept success"],
           ["exhaust", "Apply +1 Exhaustion"], ["reroll", "Reroll CON"]
-        ];
+        ] : [["choose", "No result · choose a response"], ["reroll", "Request CON roll"]];
         const decision = done ? `<span style="color:${UI.green};">Saved</span>` :
           `<select name="decision-${esc(id)}">${choices.map(([v, label]) =>
             `<option value="${v}" ${v === selected ? "selected" : ""}>${label}</option>`).join("")}</select>`;
@@ -434,9 +480,11 @@ return (async () => {
         // results in one world-setting update to avoid last-writer races.
         const results = await Promise.all(rerolls.map(async actor => ({ actor, total: await conSave(actor, dc) })));
         for (const { actor, total } of results) {
+          // A disconnected/canceled reroll does NOT erase a prior save or
+          // count as a reroll. GM can select Reroll CON again in review.
+          if (!Number.isFinite(total)) continue;
           state.hourRolls[actor.uuid] = total;
           state.hourRerolls[actor.uuid] = (state.hourRerolls[actor.uuid] ?? 0) + 1;
-          // The rerolled character must receive a fresh ruling on the new total.
           delete state.hourDecisions[actor.uuid];
         }
         state.hourRerollPending = [];
@@ -718,9 +766,16 @@ return (async () => {
       let returned;
       let failure;
       try {
-        returned = await midiSocket.executeAsUser("rollAbility", currentRoller.id,
-          midiRequest(actor, skill, isNavigation));
+        const request = await recoverableRemoteRoll(actor, currentRoller,
+          () => midiRequest(actor, skill, isNavigation),
+          `${isNavigation ? "Navigation" : "Secondary"} · ${CONFIG.DND5E.skills[skill]?.label ?? skill}`,
+          isNavigation ? "navigation" : "secondary");
+        if (request.cancelled) return null;
+        returned = request.value;
+        currentRoller = request.roller ?? currentRoller;
+        if (request.error) throw request.error;
       } catch (err) {
+        if (err?.name === "IronrotWorkflowCanceled") throw err;
         failure = err;
         console.error("Mount Ironrot | Midi remote roll error", err);
       }
@@ -765,7 +820,7 @@ return (async () => {
       navigation: secondary ? "SECONDARY PENDING" : "GM REVIEW PENDING",
       secondary: "GM REVIEW PENDING",
       rolling: "ROLLING TRAVEL DICE",
-      complete: "TRAVEL COMPLETE"
+      complete: "TRAVEL TIME ROLLED"
     }[stage];
     const navStatus = navResult
       ? `${ironrotD20Total(navResult.total)} vs DC ${DC} · ` +

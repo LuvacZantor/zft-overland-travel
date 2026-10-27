@@ -1,5 +1,5 @@
 import { IronrotConsole, registerIronrotSettings, publishIronrotSnapshot, publishIronrotTravelCard, removeIronrotTravelCard, ironrotIdentity, ironrotGeneration, ironrotLogEpoch, ironrotRolePreferences, rememberIronrotRoles, rememberIronrotHex } from "./expeditions/mount-ironrot/IronrotConsole.js";
-import { MODULE_ID, MODULE_VERSION, SETTINGS, LOG_PREFIX } from "./constants/module-constants.js";
+import { MODULE_ID, MODULE_VERSION, MODULE_TITLE, SETTINGS, LOG_PREFIX } from "./constants/module-constants.js";
 import { TERRAIN, REGION_DANGER, TRAVEL_ROLES } from "./data/rules.js";
 import { ExpeditionState } from "./state/ExpeditionState.js";
 import { TravelEngine } from "./engines/travel/TravelEngine.js";
@@ -14,12 +14,14 @@ import { QuietTravelEngine } from "./engines/quiet-travel/QuietTravelEngine.js";
 import { ThreatEngine } from "./engines/threat/ThreatEngine.js";
 import { TravelPanel } from "./ui/TravelPanel.js";
 import { RulesCompendium } from "./docs/RulesCompendium.js";
+import { ThemeManager } from "./theme/ThemeManager.js";
 
 console.log(`${LOG_PREFIX} 🛠️ v${MODULE_VERSION} | Loading ${MODULE_ID}`);
 
 Hooks.once("init", () => {
   ExpeditionState.registerSettings();
   registerIronrotSettings();
+  ThemeManager.register();
   console.log(`${LOG_PREFIX} 🚀 v${MODULE_VERSION} | Initializing`);
 });
 
@@ -43,6 +45,7 @@ Hooks.once("ready", async () => {
     quietTravel: QuietTravelEngine,
     threat: ThreatEngine,
     panel: TravelPanel,
+    themes: ThemeManager,
     rules: RulesCompendium,
     data: { terrain: TERRAIN, regionDanger: REGION_DANGER, roles: TRAVEL_ROLES }
   };
@@ -50,12 +53,22 @@ Hooks.once("ready", async () => {
   game.zftOverlandTravel = module.api;
   // Only the Mount Ironrot implementation uses this bridge. It is not an API
   // of the generic Travel Manager or shared expedition-state engines.
-  globalThis.ZFTMountIronrotConsole = Object.freeze({ publish: publishIronrotSnapshot, stage: publishIronrotTravelCard, removeStage: removeIronrotTravelCard, identity: ironrotIdentity, generation: ironrotGeneration, logEpoch: ironrotLogEpoch, rolePreferences: ironrotRolePreferences, rememberRoles: rememberIronrotRoles, hexStarted: rememberIronrotHex, prompt: options => IronrotConsole.prompt(options) });
+  globalThis.ZFTMountIronrotConsole = Object.freeze({ publish: publishIronrotSnapshot, stage: publishIronrotTravelCard, removeStage: removeIronrotTravelCard, identity: ironrotIdentity, generation: ironrotGeneration, logEpoch: ironrotLogEpoch, rolePreferences: ironrotRolePreferences, rememberRoles: rememberIronrotRoles, hexStarted: rememberIronrotHex, prompt: options => IronrotConsole.prompt(options), registerPendingRoll: info => IronrotConsole.registerPendingRoll(info), unregisterPendingRoll: (key,token) => IronrotConsole.unregisterPendingRoll(key,token) });
   IronrotConsole.onReady();
   // Scoped V13 application hook: only our pending forced-march CON prompts
   // qualify for placement. No global Foundry window or Action HUD changes.
-  Hooks.on("renderApplicationV2", (application, element) => IronrotConsole.positionExpeditionRollDialog(application, element));
-  Hooks.on("closeApplicationV2", application => IronrotConsole.restoreExpeditionRollDialog(application));
+  Hooks.on("renderApplicationV2", (application, element) => {
+    IronrotConsole.onOtherApplicationRendered();
+    IronrotConsole.positionExpeditionRollDialog(application, element);
+  });
+  Hooks.on("closeApplicationV2", application => {
+    IronrotConsole.restoreExpeditionRollDialog(application);
+    IronrotConsole.onOtherApplicationRendered();
+  });
+  // V13 legacy and third-party windows should also pass in front of the
+  // expedition panes; these hooks only adjust our own panes' z-index.
+  Hooks.on("renderApplication", () => IronrotConsole.onOtherApplicationRendered());
+  Hooks.on("renderDialog", () => IronrotConsole.onOtherApplicationRendered());
 
   if (game.user?.isGM) {
     try {
@@ -80,7 +93,7 @@ Hooks.once("ready", () => {
     return;
   }
   toolbar.registerGroup(MODULE_ID, {
-    title: "Overland Travel", icon: "fa-solid fa-compass", order: 990,
+    title: MODULE_TITLE, icon: "fa-solid fa-compass", order: 990,
     tools: [
       { name: "zftOverlandTravel", title: "Travel Manager", icon: "fa-solid fa-map",
         order: 10, button: true, visible: true, gmOnly: true,

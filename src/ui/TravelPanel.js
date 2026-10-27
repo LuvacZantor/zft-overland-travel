@@ -1,4 +1,5 @@
 import { TERRAIN, REGION_DANGER, TRAVEL_ROLES } from "../data/rules.js";
+import { MODULE_TITLE } from "../constants/module-constants.js";
 import { ExpeditionState } from "../state/ExpeditionState.js";
 import { TravelEngine } from "../engines/travel/TravelEngine.js";
 import { EncounterEngine } from "../engines/encounter/EncounterEngine.js";
@@ -28,7 +29,7 @@ async function postChat(title, body) {
 export class TravelPanel {
   static async open() {
     if (!game.user?.isGM) {
-      ui.notifications.warn("Zantor's Overland Travel control panel is GM-only.");
+      ui.notifications.warn(`${MODULE_TITLE} control panel is GM-only.`);
       return;
     }
 
@@ -48,7 +49,7 @@ export class TravelPanel {
     `;
 
     const action = await foundry.applications.api.DialogV2.wait({
-      window: { title: "Zantor's Overland Travel" },
+      window: { title: MODULE_TITLE },
       content,
       rejectClose: false,
       buttons: [

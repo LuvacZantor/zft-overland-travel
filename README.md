@@ -1,10 +1,12 @@
-# Zantor's Overland Travel
+# ZFT Overland Travel
+
+Current development package: `0.4.0-dev.28` for Foundry V13 (live validation pending). The Foundry module ID remains `zft-overland-travel`.
 
 Foundry VTT module implementing Zantor's hex-based overland travel and independent encounter-generation framework.
 
 ## Version
 
-`0.3.1` alpha foundation.
+Current module build: **`0.4.0-dev.28`** (development only). The original generic framework was developed as `0.3.1`; its earlier notes remain below for historical context.
 
 ## Canonical terminology
 
@@ -68,7 +70,12 @@ The module folder name must be exactly `zft-overland-travel`. That must match th
 
 ## Development
 
-The repository follows ZFT semantic versioning and logging conventions. `main` remains the stable branch; major work should be developed and tested in feature branches before merging.
+The repository follows the authoritative ZFT development and release policy in `zft-standards`. The **`develop` branch** holds the latest in-progress module source; `main` remains the accepted/stable branch and must not receive this dev build without separate approval.
+
+- [Development status and live acceptance checklist](docs/DEVELOPMENT_STATUS.md)
+- [Interface theme configuration](docs/THEMES.md)
+
+The current codebase includes both the original generic framework and the **Mount Ironrot-specific travel implementation**. Keep the Mount Ironrot engine and persistence isolated until a separately approved generalization effort. There is no automatic world-clock advancement from the New Travel Day control.
 
 
 ## Rules documentation
@@ -241,3 +248,64 @@ When the GM requests a Forced March Constitution-save reroll, the corresponding 
 - Calendaria integration uses its public `CALENDARIA.api.getCurrentDateTime()` and `CALENDARIA.api.formatDate(date, "dateLong")` to respect `years.yearZero` (e.g. 1501 DR rather than raw year 0). A failed Calendaria lookup does not write a raw zero-year date. The **Edit** panel's Re-sync Current Travel Date action remains available to correct dates saved by older development builds. Past dates are not rewritten automatically.
 - The Dashboard header always displays **Overland Expedition / Expedition Dashboard**, while the region / world are presented once in a more prominent branded expedition context panel. Custom expedition names remain visible there.
 - Original Mount Ironrot v4.13 source, travel ledger key, travel calculations, Foundry clock, player Midi-QOL rolls, and window stacking are unchanged. Live V13 GM/player verification is required. GitHub unchanged.
+
+
+## v0.4.0-dev.21: Foundry window priority and Chronicle visual pass
+
+- Expedition Dashboard, GM Controls, and Expedition Log now share their own bounded stacking order below Foundry's native application windows. Clicking an expedition pane moves it forward only relative to the other two expedition panes. No Foundry global z-index, `#interface`, `#ui-left`, Action HUD, Midi-QOL, native window, or blocking overlay is modified.
+- On V13 application/dialog render, an application-layer compatibility check can lower **only our panes** below a native/legacy floating window with an unusually low z-index. Ordinary Foundry dialogs keep normal focus and click targets.
+- Each expedition day owns its displayed date. Collapsed hex and forced-march summaries no longer repeat the travel date; dated details omit redundant date labels. The current travel day is displayed even before it has a log event.
+- Subtle journal styling changes clarify open/current versus muted historical events, keep gold/brown styling and dice/result colors, and reduce repetitive framing.
+- No changes to travel calculations, world settings, role assignments, character Exhaustion, Foundry's clock, or history storage. Target: Foundry V13; test GM and player clients in a real Foundry session before acceptance.
+
+
+## v0.4.0-dev.22: user-facing ZFT module branding
+
+- Foundry's module title is now **ZFT Overland Travel**.
+- The main expedition window title is **ZFT Overland Travel**, with **Expedition Dashboard** retained as its subtitle; the fixed header is refreshed consistently.
+- The generic Travel Manager dialog, toolbar group, and hidden expedition-state setting label use the new ZFT title.
+- The left **GM Expedition Controls** and right **Expedition Log** headers remain descriptive within the ZFT workspace.
+- Mount Ironrot retains its expedition-specific name and isolated rules; custom expedition name/region/world settings and their defaults remain unchanged.
+- Existing world rules compendium names and IDs are intentionally not migrated or recreated by this display-title update.
+- Unchanged module ID `zft-overland-travel`, existing setting keys, actor/world state, activity logic, persisted ledger, original v4.13 source, dependencies, and Foundry window layers.
+- No GitHub push, tag, or release; verify Foundry module manager name and GM/player window headers in V13.
+
+
+## v0.4.0-dev.23: compact expedition UI (GM and player)
+
+- The dockable Expedition Log now calculates its initial height from the visible day and event content. The old 650px default no longer fills most of a screen when the expedition has no results.
+- When more history is shown or opened, the log expands up to the available viewport height, then scrolls internally. Manually resizing the log records `logHeightManual: true` in **client-scoped** settings, preserving the user's choice. A pre-dev.23 non-default saved height remains respected; a legacy `650px` default is treated as automatic. Width/docking settings are not reset.
+- Empty days display a compact status with different guidance for GM and player. Current travel day remains first.
+- Completed hexes and forced marches start as compact, expandable event summaries; full dice/results stay available on demand. Saved travel-card HTML and world ledger data are unchanged.
+- Tighter hierarchy on the dashboard and roster, with slightly larger labels, progress/status text, and clearly distinguished Start / Continue and New Travel Day actions.
+- A narrowly scoped CSS workaround targets this module's entry in Foundry's Module Management list when V13 supplies a package-ID row attribute. This needs verification with the user's actual Foundry/module-manager add-ons; it does **not** restyle other module entries.
+
+Scope: Existing three independent dockable panes, roll behavior, persistence keys, calendar dates, and the embedded original Mount Ironrot v4.13 remain unchanged. No generic-travel engine refactor. No GitHub write.
+
+
+### v0.4.0-dev.25: Recovering stalled player rolls
+While a GM is waiting on a Midi-QOL player skill check or Constitution save, GM Expedition Controls offers **Resend Prompt**, **Roll as GM**, or **Cancel Request**. Use Resend after the player reconnects; old attempts are ignored locally but a late prompt might still appear on the player client and should be closed without rolling. Cancel Request during an initial skill check cancels that hex attempt without spending time; canceled CON requests remain unresolved for GM adjudication/reroll. No changes to world clock. GM-side browser reload cannot resume the original in-memory roll request in this development version.
+
+
+### v0.4.0-dev.26 (local test build)
+- Current-day latest hex roll is identified as in progress rather than mislabeled complete; historical hex rolls are grouped and retain their full details.
+- Expanded travel results use a compact read-only layout with dice artwork and calculation preserved.
+- No changes to travel rolls, ledger keys, saved HTML, Foundry time, or the recovery controls added in dev.25.
+
+### v0.4.0-dev.27: Full interface color themes (local test build)
+
+- The existing look is **Zantor Default**. Selecting that preset with no overrides uses the same CSS as dev.26.
+- Four alternative full-interface palettes: Antique Copper, Moonlit Slate, Verdigris, and Graphite.
+- Open **Interface Color Themes** from the palette icon in the Expedition Dashboard header.
+- Customize 22 individual interface colors with a visual color picker or a six-digit `#RRGGBB` value, grouped by surfaces, typography, controls, and results.
+- Preset selection and edits preview immediately on the three ZFT expedition panes. **Save Theme** stores the choice in Foundry's per-user `client` setting `zft-overland-travel.interfaceTheme`; **Cancel** restores the saved choice. **Restore Preset** clears custom overrides; each color also has its own revert control.
+- Themes do not change Foundry UI, Action HUD, dice art/semantic dice colors, calendar, actor effects, GM travel workflow, existing travel history, shared expedition settings, or ZFT Tools.
+- All validations are static/simulated only until tested live in Foundry V13.
+
+### v0.4.0-dev.28: Independent interface theme window (local test build)
+
+- Use the **single palette button in the Dashboard header**. The duplicate palette button has been removed from the Expedition Log.
+- The theme editor is now an independent, draggable, resizable, modeless floating window (not an inline Dashboard panel). On desktop it presents preset swatches in a left column and 22 color controls in a two-column layout on the right; smaller viewports stack the groups and scroll inside the window.
+- Preview, preset/hex editing, Save, Cancel, Escape-to-cancel and client-only theme persistence remain. Closing the main Dashboard discards an unsaved preview.
+- The editor stays above ZFT panes but yields to regular Foundry/Midi-QOL windows. No global stacking changes or transparent overlays are added.
+- This update makes **no changes** to the Mount Ironrot rules, world-clock behavior, travel state, roll recovery, or saved log data. Live Foundry V13 GM/player testing remains required.

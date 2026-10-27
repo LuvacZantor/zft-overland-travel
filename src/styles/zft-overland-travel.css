@@ -88,7 +88,7 @@
   color: var(--zft-ir-amber) !important;
 }
 #zft-ironrot-console {
-  position: fixed; z-index: 110; top: 94px; left: 370px;
+  position: fixed; z-index: 70; top: 94px; left: 370px;
   width: min(460px, calc(100vw - 24px)); max-height: min(740px, calc(100vh - 42px));
   min-width: 280px; background: var(--zft-ir-bg); color: var(--zft-ir-text);
   border: 1px solid var(--zft-ir-border); border-top: 3px solid var(--zft-ir-amber);
@@ -463,7 +463,7 @@
 }
 /* Independent dockable Expedition Log window. */
 #zft-ironrot-log {
-  position: fixed; z-index: 110; display: flex; flex-direction: column;
+  position: fixed; z-index: 70; display: flex; flex-direction: column;
   min-width: 330px; min-height: 280px;
   border-radius: 9px; overflow: hidden;
   font-family: var(--font-primary, sans-serif);
@@ -671,7 +671,7 @@
   --zft-ir-amber:#dfb36e; --zft-ir-green:#9bccab; --zft-ir-red:#e59698;
   --zft-ir-text:#eadac3; --zft-ir-muted:#c3ae93; --zft-ir-bg:#1d1713;
   --zft-ir-panel:#2c241d; --zft-ir-border:#69513a; --zft-ir-parchment:#f0dfc0;
-  position:fixed; z-index:110; display:flex; flex-direction:column;
+  position:fixed; z-index:70; display:flex; flex-direction:column;
   width:405px; height:610px; min-width:300px; min-height:260px;
   max-width:calc(100vw - 8px); max-height:calc(100vh - 8px);
   overflow:hidden; border:1px solid var(--zft-ir-border);
@@ -997,3 +997,348 @@
 #zft-ironrot-workflow-window .zft-ir-roles-fields select {width:100%;min-width:0;}
 #zft-ironrot-workflow-window .zft-ir-role-note {color:#bcae9e;font-size:11px;}
 #zft-ironrot-workflow-window :is([data-ir-role-secondary],[data-ir-role-choices],[data-ir-saved-role-summary])[hidden] {display:none!important;}
+
+/* dev.21: keep expedition windows BELOW Foundry's window/application stack.
+   All focus movement is local to our three panes. No changes to Foundry
+   global interfaces, Action HUD, Midi-QOL, or other applications. */
+#zft-ironrot-console,
+#zft-ironrot-log,
+#zft-ironrot-workflow-window { z-index: 70; }
+
+/* Chronicle: one date per travel day, rather than repeating day/date inside
+   every nested event. Restrained color and more readable status hierarchy. */
+#zft-ironrot-log .zft-ir-day-group > summary {
+  border-left: 3px solid #bc925d;
+  background: linear-gradient(100deg, #3b2c20, #2b231d);
+  padding: 11px 12px;
+  gap: 8px;
+}
+#zft-ironrot-log .zft-ir-day-group-label {gap:4px;font-size:15px;line-height:1.3;}
+#zft-ironrot-log .zft-ir-day-group-label small {font-size:11px;}
+#zft-ironrot-log .zft-ir-day-group:not([open]) > summary {
+  border-left-color:#776652; background:#29241e;
+}
+#zft-ironrot-log .zft-ir-day-group-count {font-size:11px;line-height:1.5;}
+#zft-ironrot-log .zft-ir-day-group-events {padding:1px 1px 0;margin:7px 0 12px;}
+#zft-ironrot-log .zft-ir-day-empty-note {
+  margin:0;padding:13px 12px;color:#baa991;font-size:12px;
+  border:1px dashed #66513c;border-radius:5px;background:#27201a;
+}
+#zft-ironrot-log .zft-ir-march-full {border-color:#806043;background:#2c241d;}
+#zft-ironrot-log .zft-ir-log-history:not([open]) > summary {opacity:1;color:#b3a593;}
+#zft-ironrot-log .zft-ir-travel-html>div {box-shadow:none!important;}
+/* Closer relationship between the expedition heading and numeric progress. */
+#zft-ironrot-console .zft-ir-expedition-context {margin-bottom:0;}
+#zft-ironrot-console .zft-ir-stats {gap:7px;}
+#zft-ironrot-console .zft-ir-next-step {
+  border-left-color:#cfa461;
+  background:linear-gradient(90deg,#3d2c1b,#30251b);
+  border-radius:0 4px 4px 0;
+}
+
+
+/* dev.23: expedition usability pass. All selectors stay inside our panes,
+   except a single package-ID scoped workaround for the V13 module list. */
+#zft-ironrot-log { min-height: 205px; box-sizing: border-box; }
+#zft-ironrot-log .zft-ir-scroll { padding-bottom: 24px; }
+#zft-ironrot-log .zft-ir-day-empty-note {
+  display: flex; align-items: center; gap: 12px;
+  padding: 13px 14px; font-size: 13px; line-height: 1.4;
+}
+#zft-ironrot-log .zft-ir-day-empty-note > i { color: #cba269; font-size: 18px; }
+#zft-ironrot-log .zft-ir-day-empty-note > span { display: grid; gap: 3px; }
+#zft-ironrot-log .zft-ir-day-empty-note strong { color: #e7ceb0; font-size: 13px; }
+#zft-ironrot-log .zft-ir-day-empty-note small { color: #bcad9b; font-size: 12px; }
+#zft-ironrot-log .zft-ir-day-group > summary { min-height: 52px; }
+#zft-ironrot-log .zft-ir-day-group-count { font-size: 12px; }
+#zft-ironrot-log .zft-ir-log-history > summary {
+  min-height: 40px; align-items: center; padding: 10px 11px;
+  font-size: 12px; line-height: 1.4;
+}
+#zft-ironrot-log .zft-ir-history-label { font-size: 12px; font-weight: 650; }
+#zft-ironrot-log .zft-ir-march-full,
+#zft-ironrot-log .zft-ir-travel-html { line-height: 1.45; }
+#zft-ironrot-console .zft-ir-stat { padding: 8px 4px; }
+#zft-ironrot-console .zft-ir-stat span { font-size: 11px; letter-spacing: .02em; }
+#zft-ironrot-console .zft-ir-stat strong { font-size: 23px; line-height: 1.2; }
+#zft-ironrot-console .zft-ir-progress-grid { font-size: 11px; line-height: 1.45; }
+#zft-ironrot-console .zft-ir-progress-label { font-size: 11px; }
+#zft-ironrot-console .zft-ir-next-step { font-size: 12px; line-height: 1.4; padding: 7px 9px; }
+#zft-ironrot-console .zft-ir-member-info strong { font-size: 12px; }
+#zft-ironrot-console .zft-ir-member-info small { font-size: 11px; }
+#zft-ironrot-console .zft-ir-member-bonuses,
+#zft-ironrot-console .zft-ir-member-bonuses strong { font-size: 11px; }
+#zft-ironrot-console .zft-ir-member-condition { font-size: 11px; }
+#zft-ironrot-workflow-window .zft-ir-gm > .zft-ir-actions button { font-size: 12px; }
+#zft-ironrot-workflow-window .zft-ir-gm > .zft-ir-actions button:is([data-ir-action="travel"],[data-ir-action="day"]) {
+  border-color: #bb8d51; background: #49311d; color: #f4d4a3; font-weight: 700;
+}
+#zft-ironrot-workflow-window .zft-ir-gm > .zft-ir-actions button:is([data-ir-action="travel"],[data-ir-action="day"]):hover {
+  background: #614129;
+}
+/* A targeted V13 module-row accommodation. No general Module Management
+   changes: only the zft-overland-travel package entry can match. */
+:is(#module-management, .module-management, #module-management-config)
+  :is(li, .package, .module):is([data-module-id="zft-overland-travel"], [data-package-id="zft-overland-travel"]) {
+  flex-wrap: nowrap;
+}
+:is(#module-management, .module-management, #module-management-config)
+  :is(li, .package, .module):is([data-module-id="zft-overland-travel"], [data-package-id="zft-overland-travel"])
+  :is(.package-title, .package-name, .module-title, .title, label) {
+  min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+
+/* dev.25: explicit GM recovery for stalled Midi-QOL socket prompts. */
+#zft-ironrot-workflow-window .zft-ir-pending-rolls[hidden] { display:none !important; }
+#zft-ironrot-workflow-window .zft-ir-pending-rolls { display:grid; gap:7px; padding:8px 10px; border-top:1px solid #806140; }
+#zft-ironrot-workflow-window .zft-ir-pending-roll { border:1px solid #9b7544; background:#392b1f; border-radius:6px; padding:8px; display:grid; gap:6px; }
+#zft-ironrot-workflow-window .zft-ir-pending-roll-title { color:#f0ce96; font-weight:700; font-size:12px; line-height:1.4; }
+#zft-ironrot-workflow-window .zft-ir-pending-roll-note { color:#d0bda5; font-size:11px; line-height:1.35; }
+#zft-ironrot-workflow-window .zft-ir-pending-roll-actions { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:5px; }
+#zft-ironrot-workflow-window .zft-ir-pending-roll-actions button { min-height:31px; font-size:11px; padding:5px 6px; background:#493420; color:#f1d4ac; border:1px solid #957046; border-radius:4px; cursor:pointer; }
+#zft-ironrot-workflow-window .zft-ir-pending-roll-actions button:last-child { color:#e6aeaa; border-color:#875958; }
+#zft-ironrot-workflow-window .zft-ir-pending-roll-actions button:is(:focus-visible,:hover) { border-color:#ebc17d; background:#59432b; }
+/* The expanded hex is a detail view, not another full expedition dashboard. */
+#zft-ironrot-log .zft-ir-log-history[open] > .zft-ir-travel-html { margin-top:4px; }
+#zft-ironrot-log .zft-ir-log-history[open] .zft-ir-travel-html > div { padding:7px 9px !important; gap:4px !important; border-top-width:2px !important; }
+#zft-ironrot-log .zft-ir-log-history[open] [data-ir-stage-location],
+#zft-ironrot-log .zft-ir-log-history[open] [data-ir-stage-title] { display:none !important; }
+#zft-ironrot-log .zft-ir-log-history[open] .zft-ir-travel-html [style*="background:#302b39"],
+#zft-ironrot-log .zft-ir-log-history[open] .zft-ir-travel-html [style*="background:#393342"] { padding:5px 7px !important; margin-top:3px !important; }
+
+#zft-ironrot-log .zft-ir-log-history[open] .zft-ir-travel-html > div > div:has(> [data-ir-stage-title]) { display:none !important; }
+
+/* dev.26: compact, read-only log presentation of saved hex roll details.
+   All rules, saved roll HTML, and Foundry chat messages remain untouched. */
+#zft-ironrot-log .zft-ir-log-history[open] .zft-ir-travel-html > .zft-ir-compact-hex {
+  display:grid; gap:7px; padding:9px 10px !important;
+  background:#2b231c; border:1px solid #766045; border-top:2px solid #b58b56;
+  border-radius:5px; box-shadow:none!important; min-width:0;
+}
+#zft-ironrot-log .zft-ir-compact-top {
+  display:flex; align-items:center; justify-content:space-between;
+  flex-wrap:wrap; gap:4px 10px; color:#c9b99e; font-size:12px;
+}
+#zft-ironrot-log .zft-ir-compact-top i {color:#c5a16e;margin-right:3px;}
+#zft-ironrot-log .zft-ir-compact-top strong {color:#ebd09d;font-size:13px;}
+#zft-ironrot-log .zft-ir-compact-checks {display:grid;gap:5px;min-width:0;}
+#zft-ironrot-log .zft-ir-compact-check {
+  display:flex;align-items:center;justify-content:space-between;gap:5px 10px; flex-wrap:wrap;
+  background:#2b363d; border-left:3px solid #6d96a6; border-radius:4px;
+  padding:6px 8px; color:#e7d9c4; font-size:12px;line-height:1.35;
+}
+#zft-ironrot-log .zft-ir-compact-check > div:first-child {font-size:11px!important;letter-spacing:.02em!important;margin:0!important;flex-basis:100%;}
+#zft-ironrot-log .zft-ir-compact-check > div:nth-child(2) {font-size:12px;min-width:0;}
+#zft-ironrot-log .zft-ir-compact-secondary {background:#312e32;border-left-color:#a591b4;}
+#zft-ironrot-log .zft-ir-compact-no-secondary {font-size:11px;color:#aa9d8c;padding:0 4px;}
+#zft-ironrot-log .zft-ir-compact-dice {border-top:1px solid #584737;padding-top:6px;min-width:0;}
+#zft-ironrot-log .zft-ir-compact-dice-heading {font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:#d2b28a;margin-bottom:3px;}
+#zft-ironrot-log .zft-ir-compact-dice-grid {display:grid;grid-template-columns:minmax(125px,auto) minmax(150px,1fr);gap:9px;align-items:center;}
+#zft-ironrot-log .zft-ir-compact-dice-faces {font-size:12px;min-width:0;}
+#zft-ironrot-log .zft-ir-compact-dice-faces > span {display:inline-flex;align-items:center;gap:4px;flex-wrap:wrap;}
+#zft-ironrot-log .zft-ir-compact-dice-math {border:0!important;border-left:1px solid #564535!important;padding:0 0 0 10px!important;margin:0!important;display:grid;gap:2px;color:#d3c3ad;font-size:11px;}
+#zft-ironrot-log .zft-ir-compact-dice-math > div {display:flex;justify-content:space-between;gap:8px;}
+#zft-ironrot-log .zft-ir-history-summary {display:inline-flex;justify-content:flex-end;align-items:center;gap:5px 9px;flex-wrap:wrap;text-align:right;color:#d5c3a4;font-weight:600;}
+#zft-ironrot-log .zft-ir-history-remaining {color:#e0b978;font-size:11px;}
+#zft-ironrot-log .zft-ir-history-current > summary .zft-ir-history-label i {color:#ddba7a;}
+@container (max-width:430px) { #zft-ironrot-log .zft-ir-compact-dice-grid {grid-template-columns:1fr;} }
+@media(max-width:1050px) { #zft-ironrot-log .zft-ir-compact-dice-grid {grid-template-columns:1fr;} #zft-ironrot-log .zft-ir-compact-dice-math {border-left:0!important;padding-left:0!important;} }
+
+/* v0.4.0-dev.27: Independent per-user theme variables, scoped to the three
+   ZFT expedition panes. Zantor Default uses the unchanged preceding rules. */
+#zft-ironrot-console[data-zft-theme-active],
+#zft-ironrot-log[data-zft-theme-active],
+#zft-ironrot-workflow-window[data-zft-theme-active] {
+  background: var(--zft-theme-window) !important;
+  color: var(--zft-theme-text) !important;
+  border-color: var(--zft-theme-border) !important;
+  border-top-color: var(--zft-theme-accent) !important;
+}
+#zft-ironrot-console[data-zft-theme-active] .zft-ir-head,
+#zft-ironrot-log[data-zft-theme-active] .zft-ir-log-head,
+#zft-ironrot-workflow-window[data-zft-theme-active] .zft-ir-workflow-head {
+  background: linear-gradient(145deg, var(--zft-theme-header), var(--zft-theme-headerEnd)) !important;
+  color: var(--zft-theme-accent) !important;
+  border-bottom-color: var(--zft-theme-border) !important;
+}
+#zft-ironrot-console[data-zft-theme-active] :is(.zft-ir-body,.zft-ir-dashboard,.zft-ir-dashboard-content),
+#zft-ironrot-log[data-zft-theme-active] .zft-ir-scroll,
+#zft-ironrot-workflow-window[data-zft-theme-active] .zft-ir-workflow-content {
+  background: var(--zft-theme-window) !important;
+  color: var(--zft-theme-text) !important;
+}
+#zft-ironrot-console[data-zft-theme-active] :is(.zft-ir-card,.zft-ir-gm,.zft-ir-dashboard-summary),
+#zft-ironrot-workflow-window[data-zft-theme-active] :is(.zft-ir-gm,.zft-ir-attendance-editor,.zft-ir-workflow,.zft-ir-gm-ruling-row),
+#zft-ironrot-log[data-zft-theme-active] :is(.zft-ir-card,.zft-ir-march-full,.zft-ir-forced-briefing) {
+  background: var(--zft-theme-panel) !important;
+  border-color: var(--zft-theme-border) !important;
+  color: var(--zft-theme-text) !important;
+}
+#zft-ironrot-console[data-zft-theme-active] .zft-ir-expedition-context,
+#zft-ironrot-console[data-zft-theme-active] .zft-ir-next-step {
+  background: var(--zft-theme-panel) !important;
+  border-color: var(--zft-theme-accent) !important;
+  color: var(--zft-theme-text) !important;
+}
+#zft-ironrot-console[data-zft-theme-active] :is(.zft-ir-stat,.zft-ir-party-member) {
+  background: var(--zft-theme-roster) !important;
+  border-color: var(--zft-theme-border) !important;
+}
+#zft-ironrot-console[data-zft-theme-active] .zft-ir-progress,
+#zft-ironrot-console[data-zft-theme-active] .zft-ir-progress-track {
+  background: var(--zft-theme-track) !important;
+}
+#zft-ironrot-console[data-zft-theme-active] .zft-ir-progress > div,
+#zft-ironrot-console[data-zft-theme-active] .zft-ir-progress-fill {
+  background: var(--zft-theme-fill) !important;
+}
+#zft-ironrot-console[data-zft-theme-active] :is(.zft-ir-title,.zft-ir-card-title,.zft-ir-context-details strong,.zft-ir-stat strong,.zft-ir-member-info strong),
+#zft-ironrot-workflow-window[data-zft-theme-active] :is(.zft-ir-card-title,.zft-ir-prompt-title),
+#zft-ironrot-log[data-zft-theme-active] :is(.zft-ir-card-title,.zft-ir-day-group-label,.zft-ir-forced-briefing-head) {
+  color: var(--zft-theme-heading) !important;
+}
+#zft-ironrot-console[data-zft-theme-active] :is(.zft-ir-context-eyebrow,.zft-ir-gm-title),
+#zft-ironrot-log[data-zft-theme-active] :is(.zft-ir-history-label i,.zft-ir-compact-dice-heading,.zft-ir-compact-top i) {
+  color: var(--zft-theme-accent) !important;
+}
+#zft-ironrot-console[data-zft-theme-active] :is(.zft-ir-member-info small,.zft-ir-progress-grid,.zft-ir-progress-label,.zft-ir-stat span,.zft-ir-context-world,.zft-ir-context-details span,.zft-ir-card p),
+#zft-ironrot-log[data-zft-theme-active] :is(.zft-ir-day-group-label small,.zft-ir-day-group-count,.zft-ir-compact-no-secondary,.zft-ir-compact-top,.zft-ir-day-empty-note,.zft-ir-history-summary),
+#zft-ironrot-workflow-window[data-zft-theme-active] :is(.zft-ir-attendance-editor p,.zft-ir-role-note,.zft-ir-pending-roll-note) {
+  color: var(--zft-theme-muted) !important;
+}
+#zft-ironrot-console[data-zft-theme-active] button:not(.zft-ir-danger),
+#zft-ironrot-log[data-zft-theme-active] button,
+#zft-ironrot-workflow-window[data-zft-theme-active] button:not(.zft-ir-danger) {
+  background: var(--zft-theme-button) !important;
+  color: var(--zft-theme-buttonText) !important;
+  border-color: var(--zft-theme-border) !important;
+}
+#zft-ironrot-console[data-zft-theme-active] button:hover:not(.zft-ir-danger),
+#zft-ironrot-log[data-zft-theme-active] button:hover,
+#zft-ironrot-workflow-window[data-zft-theme-active] button:hover:not(.zft-ir-danger) {
+  background: var(--zft-theme-buttonHover) !important;
+}
+#zft-ironrot-console[data-zft-theme-active] .zft-ir-danger,
+#zft-ironrot-workflow-window[data-zft-theme-active] .zft-ir-danger {
+  color: var(--zft-theme-failure) !important;
+  border-color: var(--zft-theme-failure) !important;
+}
+#zft-ironrot-console[data-zft-theme-active] :is(input:not([type="color"]), select, textarea),
+#zft-ironrot-workflow-window[data-zft-theme-active] :is(input:not([type="color"]), select, textarea) {
+  background: var(--zft-theme-input) !important;
+  color: var(--zft-theme-text) !important;
+  border-color: var(--zft-theme-border) !important;
+}
+#zft-ironrot-console[data-zft-theme-active] :is(.green,.zft-ir-present-tag),
+#zft-ironrot-log[data-zft-theme-active] :is(.green,.zft-ir-present-tag),
+#zft-ironrot-workflow-window[data-zft-theme-active] .green { color: var(--zft-theme-success) !important; }
+#zft-ironrot-console[data-zft-theme-active] :is(.red,.zft-ir-member-condition),
+#zft-ironrot-log[data-zft-theme-active] .red,
+#zft-ironrot-workflow-window[data-zft-theme-active] .red { color: var(--zft-theme-failure) !important; }
+#zft-ironrot-log[data-zft-theme-active] .zft-ir-day-group > summary,
+#zft-ironrot-log[data-zft-theme-active] .zft-ir-log-history > summary {
+  background: var(--zft-theme-card) !important;
+  border-color: var(--zft-theme-border) !important;
+  color: var(--zft-theme-heading) !important;
+}
+#zft-ironrot-log[data-zft-theme-active] .zft-ir-day-group:not([open]) > summary,
+#zft-ironrot-log[data-zft-theme-active] .zft-ir-log-history:not([open]) > summary {
+  color: var(--zft-theme-muted) !important;
+}
+#zft-ironrot-log[data-zft-theme-active] .zft-ir-log-history[open] .zft-ir-travel-html > div,
+#zft-ironrot-log[data-zft-theme-active] .zft-ir-compact-hex,
+#zft-ironrot-log[data-zft-theme-active] .zft-ir-day-empty-note {
+  background: var(--zft-theme-card) !important;
+  border-color: var(--zft-theme-border) !important;
+  color: var(--zft-theme-text) !important;
+}
+#zft-ironrot-log[data-zft-theme-active] .zft-ir-compact-check,
+#zft-ironrot-log[data-zft-theme-active] .zft-ir-travel-html .zft-ir-compact-check {
+  background: var(--zft-theme-navigation) !important;
+  border-left-color: var(--zft-theme-navigationEdge) !important;
+  color: var(--zft-theme-text) !important;
+}
+#zft-ironrot-log[data-zft-theme-active] .zft-ir-compact-secondary {
+  background: var(--zft-theme-secondary) !important;
+  border-left-color: var(--zft-theme-accent) !important;
+}
+#zft-ironrot-log[data-zft-theme-active] .zft-ir-compact-dice-math {
+  color: var(--zft-theme-text) !important;
+  border-left-color: var(--zft-theme-border) !important;
+}
+#zft-ironrot-log[data-zft-theme-active] :is(.zft-ir-history-remaining,.zft-ir-compact-top strong) {color:var(--zft-theme-accent)!important;}
+#zft-ironrot-log[data-zft-theme-active] .zft-ir-log-resize { background: var(--zft-theme-button) !important; color: var(--zft-theme-accent) !important; border-color: var(--zft-theme-border) !important; }
+#zft-ironrot-log[data-zft-theme-active] .zft-ir-scroll,
+#zft-ironrot-workflow-window[data-zft-theme-active] .zft-ir-workflow-content {scrollbar-color:var(--zft-theme-accent) var(--zft-theme-window);}
+
+/* Independent theme tool window: modeless, movable, and separate from the Dashboard.
+   Its z-index is managed alongside the expedition panes, always yielding to
+   Foundry's native windows. Nothing here modifies Foundry or Action HUD CSS. */
+#zft-overland-theme-window {
+  position:fixed; z-index:73; left:calc(50vw - 450px); top:40px;
+  box-sizing:border-box; width:min(900px,calc(100vw - 24px));
+  height:min(710px,calc(100vh - 28px)); min-height:280px;
+  max-width:calc(100vw - 8px); max-height:calc(100vh - 8px);
+  resize:both; overflow:hidden; display:flex; flex-direction:column;
+  border:1px solid var(--zft-theme-border,#997449); border-top:3px solid var(--zft-theme-accent,#dfb36e);
+  border-radius:10px; background:var(--zft-theme-window,#1d1713);
+  color:var(--zft-theme-text,#eadac3); font-family:var(--font-primary,Arial,sans-serif);
+  font-size:13px; box-shadow:0 12px 40px #000a;
+}
+#zft-overland-theme-window[hidden] {display:none!important;}
+#zft-overland-theme-window * {box-sizing:border-box;}
+#zft-overland-theme-window .zft-ir-theme-window-head {
+  display:flex; align-items:center; flex:none; gap:10px; padding:10px 14px;
+  background:linear-gradient(110deg,var(--zft-theme-header,#3a2a1c),var(--zft-theme-headerEnd,#281d16));
+  color:var(--zft-theme-heading,#f2d4a0);border-bottom:1px solid var(--zft-theme-border,#80603c);
+  font-weight:700; font-size:15px; cursor:move; user-select:none; touch-action:none;
+}
+#zft-overland-theme-window .zft-ir-theme-window-head>span {flex:1;min-width:0;overflow-wrap:anywhere;}
+#zft-overland-theme-window .zft-ir-theme-window-head>i {color:var(--zft-theme-accent,#dfb36e);}
+#zft-overland-theme-window button {
+  background:var(--zft-theme-button,#453324); color:var(--zft-theme-buttonText,#f1dfbe);
+  border:1px solid var(--zft-theme-border,#80603c); border-radius:5px;
+  cursor:pointer; padding:6px 9px; min-height:32px; font:inherit;
+}
+#zft-overland-theme-window button:hover:not(:disabled) {background:var(--zft-theme-buttonHover,#564029);}
+#zft-overland-theme-window :is(button,input,summary):focus-visible {outline:2px solid var(--zft-theme-accent,#dfb36e);outline-offset:2px;}
+#zft-overland-theme-window .zft-ir-theme-window-close {flex:none;min-width:31px;padding:5px 8px;}
+#zft-overland-theme-window .zft-ir-theme-window-content {min-height:0;flex:1;overflow:auto;scrollbar-color:var(--zft-theme-accent,#dfb36e) var(--zft-theme-window,#1d1713);}
+#zft-overland-theme-window .zft-ir-theme-editor {display:flex; flex-direction:column;min-height:100%;}
+#zft-overland-theme-window .zft-ir-theme-editor>p {margin:0;padding:11px 16px;color:var(--zft-theme-muted,#c3ae93);line-height:1.45;}
+#zft-overland-theme-window .zft-ir-theme-layout {display:grid;grid-template-columns:196px minmax(0,1fr);gap:14px;align-items:start;padding:0 16px 14px;flex:1;}
+#zft-overland-theme-window .zft-ir-theme-preset-column {position:sticky;top:0;padding:12px;background:var(--zft-theme-panel,#2c241d);border:1px solid var(--zft-theme-border,#80603c);border-radius:7px;min-width:0;}
+#zft-overland-theme-window .zft-ir-theme-presets {display:grid;grid-template-columns:1fr;gap:7px;margin-top:9px;}
+#zft-overland-theme-window .zft-ir-theme-preset {text-align:left;display:grid;gap:5px;min-height:56px;font-size:12px;line-height:1.25;white-space:normal;}
+#zft-overland-theme-window .zft-ir-theme-preset[aria-pressed="true"] {outline:2px solid var(--zft-theme-accent,#dfb36e);outline-offset:-2px;}
+#zft-overland-theme-window .zft-ir-theme-swatches {display:flex;gap:3px;width:100%;}
+#zft-overland-theme-window .zft-ir-theme-swatches>span {flex:1;height:13px;border-radius:2px;border:1px solid #ffffff2b;}
+#zft-overland-theme-window .zft-ir-theme-colors-column {min-width:0;}
+#zft-overland-theme-window .zft-ir-theme-subtitle {color:var(--zft-theme-heading,#f2d4a0);font-weight:700;font-size:14px;margin-bottom:9px;}
+#zft-overland-theme-window .zft-ir-theme-subtitle small {font-weight:400;color:var(--zft-theme-muted,#c3ae93);}
+#zft-overland-theme-window .zft-ir-theme-groups {display:grid;gap:9px;}
+#zft-overland-theme-window .zft-ir-theme-group {min-width:0;border:1px solid var(--zft-theme-border,#80603c);border-radius:6px;background:var(--zft-theme-panel,#2c241d);padding:0 10px;}
+#zft-overland-theme-window .zft-ir-theme-group>summary {cursor:pointer;color:var(--zft-theme-heading,#f2d4a0);font-weight:700;padding:9px 4px;}
+#zft-overland-theme-window .zft-ir-theme-fields {display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px 14px;padding:4px 0 12px;}
+#zft-overland-theme-window .zft-ir-theme-field {display:grid;gap:4px;min-width:0;}
+#zft-overland-theme-window .zft-ir-theme-field>label {font-size:12px;color:var(--zft-theme-muted,#c3ae93);}
+#zft-overland-theme-window .zft-ir-theme-edit-row {display:grid;grid-template-columns:38px minmax(0,1fr) 31px;gap:6px;align-items:center;}
+#zft-overland-theme-window .zft-ir-theme-edit-row input[type="color"] {height:32px;width:38px;min-width:0;padding:1px;border:1px solid var(--zft-theme-border,#80603c);background:transparent;cursor:pointer;}
+#zft-overland-theme-window .zft-ir-theme-edit-row input[type="text"] {height:32px;width:100%;min-width:0;padding:5px 7px;background:var(--zft-theme-input,#191713);border:1px solid var(--zft-theme-border,#80603c);color:var(--zft-theme-text,#eadac3);border-radius:4px;font:12px ui-monospace,Consolas,monospace;}
+#zft-overland-theme-window .zft-ir-theme-edit-row input[aria-invalid="true"] {border-color:#ed7777!important;outline:1px solid #ed7777;}
+#zft-overland-theme-window .zft-ir-theme-edit-row button {width:31px;height:32px;min-height:32px;padding:0;}
+#zft-overland-theme-window .zft-ir-theme-edit-row button:disabled {opacity:.4;cursor:default;}
+#zft-overland-theme-window .zft-ir-theme-footer {
+  position:sticky;bottom:0;z-index:1;display:flex;justify-content:flex-end;gap:9px;
+  background:var(--zft-theme-window,#1d1713);border-top:1px solid var(--zft-theme-border,#80603c);
+  padding:11px 16px;flex-wrap:wrap;
+}
+#zft-overland-theme-window .zft-ir-theme-footer button {min-width:105px;}
+#zft-overland-theme-window .zft-ir-theme-save {font-weight:700;}
+@media (max-width:720px) {
+  #zft-overland-theme-window .zft-ir-theme-layout {grid-template-columns:1fr;gap:10px;padding:0 10px 12px;}
+  #zft-overland-theme-window .zft-ir-theme-preset-column {position:static;}
+  #zft-overland-theme-window .zft-ir-theme-presets {grid-template-columns:repeat(2,minmax(0,1fr));}
+  #zft-overland-theme-window .zft-ir-theme-fields {grid-template-columns:1fr;}
+}
+@media (max-width:400px) {#zft-overland-theme-window .zft-ir-theme-footer {justify-content:stretch;} #zft-overland-theme-window .zft-ir-theme-footer button {flex:1;min-width:0;}}

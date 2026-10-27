@@ -1,4 +1,4 @@
-import { MODULE_ID, MODULE_VERSION, SETTINGS, MOMENTUM, THREAT, LOG_PREFIX } from "../constants/module-constants.js";
+import { MODULE_ID, MODULE_VERSION, MODULE_TITLE, SETTINGS, MOMENTUM, THREAT, LOG_PREFIX } from "../constants/module-constants.js";
 import { clone, mergeDeep } from "../utils/helpers.js";
 
 const DEFAULT_STATE = Object.freeze({
@@ -13,7 +13,7 @@ const DEFAULT_STATE = Object.freeze({
 export class ExpeditionState {
   static registerSettings() {
     game.settings.register(MODULE_ID, SETTINGS.EXPEDITION_STATE, {
-      name: "Zantor's Overland Travel Expedition State",
+      name: `${MODULE_TITLE} Expedition State`,
       scope: "world",
       config: false,
       type: Object,

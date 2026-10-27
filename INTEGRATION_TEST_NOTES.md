@@ -1,6 +1,32 @@
-# ZFT Overland Travel v0.4.0-dev.9 | Development Test Notes
+# ZFT Overland Travel | Development Test Notes
 
-Status: Local syntax/presentation tests only. **NOT live Foundry V13 verified.**
+## v0.4.0-dev.24 | Current-day result and new-day wording (development)
+
+Status: Local source/syntax and targeted in-memory regression checks only. Live Foundry V13 GM/player verification remains required.
+
+1. Record one completed hex on Day 1. The Day 1 group and its newest completed event should both be expanded on first display, exposing the travel dice, navigator check, and result detail without a second click.
+2. Collapse that event manually. Make another UI update (such as changing role preferences); the manually collapsed event must stay closed. A newly completed event should open automatically while earlier entries remain compact unless explicitly expanded.
+3. Start a new day after previously recording travel. The current day's empty log message must say **No travel activity recorded for this day yet.** It must never call this the first travel result or imply this expedition has just begun.
+4. This update must **not** advance or otherwise change Foundry's world clock. A day number can advance while its displayed calendar date remains the same; those are distinct settings.
+5. Previous-day entries, GM roll decisions, player client visibility, persisted travel state, and all Mount Ironrot travel calculations are unchanged.
+
+Status: Historical test notes; see latest build section below. **NOT live Foundry V13 verified.**
+
+## v0.4.0-dev.23 | Compact UI and log height (development)
+
+Status: JavaScript/JSON checked and Chromium-based in-memory UI tests passed. **Not live Foundry V13 tested.**
+
+1. Fresh or reset Day 1 expedition, no events: log should occupy roughly 250px of height (depending on font/zoom), not 650px, and should display a short empty-state message.
+2. Add hex and forced-march history: log grows up to the available screen height, then scrolls; dates appear once per day and current day remains at the top.
+3. All completed hex and forced-march events start compact. Expand one to inspect full persisted dice/result HTML, then collapse it. Expansion should resize the log if it has space.
+4. Use the log resize grip to set a manual height; refresh the module and browser. The manually selected height remains, regardless of the quantity of log entries. Dock and undock, move the log, then verify both placement and sizing survive reload.
+5. With multiple Foundry windows, character sheets, Action HUD and Midi-QOL saving throws, confirm dialogs appear in front of the expedition panes and are clickable. No Foundry/Action HUD global stacking rules were changed in this build.
+6. Review all GM and player text, button priority, portraits, and exhaustion labels for legibility at your actual Foundry resolution. GM controls and inline forms must remain auto-height and scroll when space runs out.
+7. Check the Foundry V13 Module Management entry for `ZFT Overland Travel` with other installed modules enabled. The CSS row fix is specifically scoped to package ID selectors, and **cannot be guaranteed without a live V13 DOM check**. Please report if the title still wraps or any module-list behavior changes.
+8. Perform one navigation check, second activity and forced-march sequence, cancel/retry, and day rollover to verify unchanged travel logic; existing ledger/history/actor Exhaustion must not reset.
+
+Known: A legacy 650px saved height cannot be distinguished from a deliberate previous resize to exactly 650px. Such settings switch to auto height in dev.23 unless the user resizes the log again. No `mountIronrotTravelV45` state migration is performed.
+
 
 ## Scope since dev.8
 - Reuse Combat Log's exact ZFT dice palette and its *installed D&D5e system* SVG artwork via CSS masks. Combat Log has no bundled dice SVGs to copy; only `no-type.svg` is module-owned (and unrelated). D&D5e files remain owned by the installed game system and are not redistributed.
@@ -118,3 +144,63 @@ Status: Local static and state-regression checks only. **NOT live Foundry V13 ve
 - On a Calendaria Harptos calendar showing Hammer 7, 1501, the Region Edit form and newly captured current-day log date should display 1501, not raw 0. If the current date was saved incorrectly by dev.19 or earlier, explicitly Re-sync Current Travel Date. Existing older dates are intentionally preserved.
 - Verify GM Controls button order, absence of duplicate Region button, larger Dashboard region heading, and unchanged docking / automatic-height behavior on both GM and player clients.
 - Locally verified with Node syntax and mocked Calendaria API year test; Chromium role editor selection, navigator exclusion, and None activity visibility checks.
+
+
+## v0.4.0-dev.21 live GM/player acceptance tests (pending)
+
+1. With three expedition panes visible, open a D&D5e character sheet and confirm it appears above them and remains fully clickable. Repeat with two sheets, a journal, item configuration, and the Expedition Log expanded/undocked.
+2. Trigger a Midi-QOL skill check and forced-march CON saving throw from a player client. Verify controls and submission are clickable without moving/closing expedition panes; verify GM and player results update.
+3. Test native DialogV2 confirmation, legacy module dialogs, and third-party floating windows; confirm each can display above all expedition panes. Click the exposed areas of Dashboard, Log, and GM Controls to change their **internal** order without stealing native dialog focus.
+4. After closing dialogs, confirm the three expedition windows, docking, dragging, GM Controls intrinsic height, Start > Cancel > Start, and player roster still work. No hit-testing overlay should cover the map outside the panes.
+5. Move to a new travel day without travel results. The newest day must still appear at the top of the log. Current day should expand on resume and earlier days remain collapsed; manual expansion is preserved.
+6. Expand historical Hex Travel and Forced March records. The in-game date should be shown once in their owning day heading; saved dice, outcomes, and GM adjudications must be unchanged. Incorrect pre-dev.20 years require explicit current-day resync and must not be silently rewritten.
+7. Confirm Foundry native Chat tab retains its messages, Action HUD remains functional, and no in-progress expedition hours/hexes/exhaustion change just by upgrading.
+
+Static/Chromium tests do not establish live Foundry compatibility. Source includes no modifications to Foundry, Action HUD, or Midi-QOL.
+
+
+## v0.4.0-dev.22: ZFT display-name acceptance tests (pending)
+
+1. Confirm Foundry Module Management lists **ZFT Overland Travel** while the technical module ID remains `zft-overland-travel`.
+2. GM and player: open the Mount Ironrot dashboard and confirm the fixed header reads **ZFT Overland Travel** / **Expedition Dashboard**, including after role changes, log events, and refresh.
+3. GM: open generic Travel Manager and confirm the dialog title; verify toolbar group title is **ZFT Overland Travel** while the Mount Ironrot-specific tool remains recognizable.
+4. Verify GM Controls and Expedition Log headers retain their names and window management, docking, log scrolling, and foreground dialog behavior match dev.21.
+5. Verify stored expedition name/region/world, party assignments, ledger and recorded travel history are untouched; no duplicate world rules compendium is created.
+6. Reconfirm legacy V13 workflow: Start/Continue, Cancel/reopen, rolls/forced-march dialog, and player-client updates.
+
+Status: local static/source validation only until Foundry GM/player checks are completed.
+
+
+## v0.4.0-dev.25 | 2026-10-27
+- During live Midi-QOL skill/CON roll requests, GM Controls now displays an explicit recovery panel with Resend Prompt, Roll as GM, and Cancel Request. No automatic duplicate roll, no travel dice reroll. Superseded socket responses are ignored on the GM client.
+- Pending player must reconnect before resending. If the original prompt appears late, close it without rolling. GM-client refresh does not persist the JavaScript request; this recovery path targets a player disconnect while the GM remains connected.
+- Constitution save results are serialized to the existing world ledger as they complete; canceled rerolls do not erase the previous result. Other saved rolls remain intact.
+- Current hex is shown as in progress while ledger hours remain, rather than being mislabeled completed merely because the travel dice have been rolled.
+- Expanded travel detail margins/header duplication reduced. Foundry clock, existing saved ledger keys and Mount Ironrot v4.13 source are unchanged.
+- Requires GM and player live validation of socket retry and duplicate late prompt cases.
+
+
+## v0.4.0-dev.26: current hex label and compact roll details
+- Travel-card `stage: complete` still represents **travel dice finished**, not proof the party has reached the far side of the current hex. The latest recorded hex remains "Current hex · In progress" for the current day (and across a day boundary while `pending > 0`). Earlier records become "Hex completed" once superseded or on a later day without pending time.
+- Compact log details are generated from existing saved card HTML at render time. The original roll records, modifiers, actual dice faces, and navigation/secondary check totals remain intact. Legacy/unrecognized markup falls back unchanged.
+- A small metadata row replaces duplicate context, pace, and oversized "TOTAL · ONE HEX" panel. Navigation, optional secondary, dice icons and timing math remain expandable.
+- No world-clock change, ledger migration, Midi-QOL socket change, exhaustion change, or GitHub write. Requires Foundry V13 GM/player live validation.
+
+## v0.4.0-dev.27 | Personal interface themes (development)
+
+**Scope:** presentation only. New `ThemeManager.js` and `ThemeEditor.js`; no changes to Mount Ironrot v4.13 source, saved travel state, roll payloads or existing data keys.
+
+**Presets:** Zantor Default (unchanged when selected without overrides); Antique Copper, Moonlit Slate, Verdigris, and Graphite. Individual colors editable as `#RRGGBB` with native color inputs, revert per field, and revert all overrides. Save and Cancel are explicit. Preference stored in a new **client-scope** setting `interfaceTheme` (no world sync).
+
+**Validation:** JavaScript syntax pass; CSS parser pass with 0 top-level errors (dev.26 also 0). Chromium GM UI test: five presets, 22 fields, three-pane previews, editor from Dashboard and Log, save/reopen, cancel rollback, per-field reset, default restoration, simulated native Foundry dialog unaffected/clickable. Chromium non-GM UI test: player can save theme independently without GM Controls. ZIP/manifest verification pending archive generation.
+
+**Live test plan:** Open all three panes; try each preset; change navigation result background and button color via picker and hex field; cancel, then save; reload Foundry and verify personal preference persists. Repeat with a player account to verify it does not modify GM palette. Test expanded old travel cards, Foundry dialogs, and Midi-QOL prompts while themed.
+
+
+## v0.4.0-dev.28 | Independent theme window
+- Palette launch lives **only** on the main Dashboard (both GM and player). No palette action remains on the Expedition Log.
+- The editor is a separate, draggable, resizable window outside the Dashboard scroll container. At desktop widths, preset choices are in a sidebar and groups of editable color slots use two columns. On narrow clients the layout stacks.
+- The editor occupies its own low-priority z-index above ZFT panes but below Foundry application windows; no global window layer changes.
+- Client-only `interfaceTheme` persistence, live preview, hex validation, reset, Save, Cancel and Escape rollback retained. Header X discards unsaved changes.
+- Check GM and player, especially reopening from the Dashboard, dragging, input focus after preset changes, clickability of native Foundry/Midi-QOL dialogs, and cancellation when closing Dashboard. No travel engine or world-setting migration.
+- Local Chromium tests and static validation only; live Foundry V13 check pending. No GitHub writes.

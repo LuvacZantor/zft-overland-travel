@@ -4,10 +4,12 @@
  * GM publishes a compact world-setting snapshot; player clients render read-only.
  * Each stable card is reconciled individually; the floating window isn't re-rendered.
  */
-import { MODULE_ID } from "../../constants/module-constants.js";
+import { MODULE_ID, MODULE_TITLE } from "../../constants/module-constants.js";
 import { launchMountIronrot } from "./MountIronrot.js";
 import { ironrotD20Total, decorateLegacyIronrotDice } from "./IronrotDice.js";
 import { IRONROT_ACTIVITIES, IRONROT_NAVIGATION_SKILL } from "./IronrotRoles.js";
+import { ThemeManager } from "../../theme/ThemeManager.js";
+import { ThemeEditor } from "../../theme/ThemeEditor.js";
 
 const STATE_KEY = "mountIronrotTravelV45";
 const SNAPSHOT_KEY = "ironrotConsoleSnapshot";
@@ -116,7 +118,7 @@ const queueCardWrite = job => { const next = cardWrites.catch(() => {}).then(job
 
 let workflowGeneration = 0;
 export const ironrotGeneration = () => workflowGeneration;
-export const invalidateIronrotWorkflows = () => ++workflowGeneration;
+export const invalidateIronrotWorkflows = () => { IronrotConsole.cancelPendingRolls(); return ++workflowGeneration; };
 const DEFAULT_IDENTITY = { name: "Overland Expedition", region: "", world: "" };
 const EMPTY_CARDS = { cards: [] };
 const DEFAULT_LEDGER = { day: 1, hours: 0, pending: 0, hexes: 0 };
@@ -193,7 +195,7 @@ export function registerIronrotSettings() {
   });
   game.settings.register(MODULE_ID, UI_KEY, {
     name: "Mount Ironrot console layout", scope: "client", config: false,
-    type: Object, default: { mode: "hidden", left: 160, top: 80, logWidth: 540, logHeight: 650, logDocked: true, logHidden: false, workflowWidth: 405, workflowDocked: true, workflowHidden: false }
+    type: Object, default: { mode: "hidden", left: 160, top: 80, logWidth: 540, logHeight: 650, logHeightManual: false, logDocked: true, logHidden: false, workflowWidth: 405, workflowDocked: true, workflowHidden: false }
   });
 }
 
@@ -326,6 +328,42 @@ function conSaveBonus(actor) {
   return actorModifier(typeof save === "object" && save !== null ? save.total ?? save.value : save)
     ?? actorModifier(actor.getRollData?.()?.abilities?.con?.save?.total ?? actor.getRollData?.()?.abilities?.con?.save);
 }
+/**
+ * Presentation-only compact view of a completed dice roll. The stored record
+ * retains the original staged HTML; old dev.24/dev.25 cards also render here.
+ * Fall back to the original card for unexpected external or legacy markup.
+ */
+function compactIronrotHexResult(html) {
+  const template = document.createElement("template");
+  template.innerHTML = html;
+  const root = template.content.firstElementChild;
+  if (!root?.querySelector("[data-ir-stage-title]")) return html;
+  const blocks = [...root.children];
+  const heading = blocks.findIndex(block => block.querySelector("[data-ir-stage-title]"));
+  const pace = blocks[heading + 1];
+  const nav = blocks[heading + 2];
+  const secondary = blocks[heading + 3];
+  const dice = blocks[heading + 4];
+  const total = blocks[heading + 5];
+  if (heading < 0 || !pace || !nav || !secondary || !dice || !total ||
+      !/TOTAL\s*·\s*ONE HEX/i.test(total.textContent) ||
+      !/DICE ROLLED/i.test(dice.textContent) || dice.children.length < 3) return html;
+  const timeMatch = total.textContent.match(/(\d+)\s*hours?/i);
+  if (!timeMatch) return html;
+  const paceLabel = pace.textContent.replace(/^\s*Pace:\s*/i, "").trim();
+  const noSecondary = /Secondary\s*·\s*None/i.test(secondary.textContent);
+  const diceLabel = dice.children[0].textContent.trim();
+  return `<div class="zft-ir-compact-hex">` +
+    `<div class="zft-ir-compact-top"><span><i class="fa-solid fa-gauge" aria-hidden="true"></i> ${esc(paceLabel)}</span>` +
+    `<strong><i class="fa-regular fa-clock" aria-hidden="true"></i> ${esc(timeMatch[1])}h travel time</strong></div>` +
+    `<div class="zft-ir-compact-checks"><div class="zft-ir-compact-check">${nav.innerHTML}</div>` +
+    (noSecondary ? `<span class="zft-ir-compact-no-secondary">Secondary · None</span>` :
+      `<div class="zft-ir-compact-check zft-ir-compact-secondary">${secondary.innerHTML}</div>`) + `</div>` +
+    `<div class="zft-ir-compact-dice"><div class="zft-ir-compact-dice-heading">${esc(diceLabel)}</div>` +
+    `<div class="zft-ir-compact-dice-grid"><div class="zft-ir-compact-dice-faces">${dice.children[1].innerHTML}</div>` +
+    `<div class="zft-ir-compact-dice-math">${dice.children[2].innerHTML}</div></div></div></div>`;
+}
+
 function makeCards(snapshot) {
   const s = snapshot.state ?? DEFAULT_LEDGER;
   const hours = num(s.hours);
@@ -394,9 +432,15 @@ function makeCards(snapshot) {
     if (a.kind === "march" && b.kind === "march") return num(b.entry.hour) - num(a.entry.hour);
     return a.kind === "march" ? -1 : b.kind === "march" ? 1 : 0;
   });
-  const currentSaveActive = pending > 0 && (["Saving throws", "GM review", "Rerolling", "Forced march"].includes(snapshot.phase)
-    || Object.keys(s.hourRolls ?? {}).length > 0 || (s.hourResolved ?? []).length > 0);
-  const topEvent = timeline[0];
+  // The 'complete' stage of a travel card means the *dice roll* finished,
+  // not that the party crossed the hex. The ledger marks a hex counted as soon
+  // as its hours are resolved. Keep the latest recorded hex on the current day
+  // identified as current until another hex starts (or a new day begins).
+  // When hours remain, the active hex can also span a travel-day boundary.
+  const newestHex = timeline.find(item => item.kind === "hex");
+  const activeHexKey = newestHex?.complete &&
+    (newestHex.day === num(s.day) || num(s.pending) > 0) ? newestHex.key : null;
+  const newestCurrentCompletedEventKey = timeline.find(item => item.day === num(s.day) && item.complete)?.key ?? null;
   const logCards = [];
   let lastDay = Symbol("initial");
   for (const item of timeline) {
@@ -408,22 +452,33 @@ function makeCards(snapshot) {
     if (item.kind === "hex") {
       const record = item.record;
       const decorated = decorateLegacyIronrotDice(record.html);
-      const dateLabel = item.day === null ? "Date not recorded" : dateAndDay(item.day);
-      const dateTag = `<div class="zft-ir-hex-date"><i class="fa-solid fa-calendar-day" aria-hidden="true"></i> ${esc(dateLabel)}</div>`;
-      const collapsed = item.complete && (item !== topEvent || currentSaveActive || topEvent.kind === "march");
-      const summary = `${item.rolledHours ? `${item.rolledHours}h` : "Travel time unavailable"} · ${item.outcome}`;
+      // A day's header owns its date. Do not repeat it in each hex card.
+      const dateTag = item.day === null ? `<div class="zft-ir-hex-date">Date not recorded</div>` : "";
       const resultClass = item.outcome === "Navigation failure" ? "zft-ir-history-failed" : "zft-ir-history-success";
-      logCards.push(stateCard(item.key, collapsed
-        ? `<details class="zft-ir-log-history ${resultClass}" data-ir-history><summary><span class="zft-ir-history-label"><i class="fa-solid fa-circle-check" aria-hidden="true"></i> Completed hex · ${esc(dateLabel)}</span><strong>${esc(summary)}</strong></summary><div class="zft-ir-travel-html">${dateTag}${decorated}</div></details>`
+      const isCurrentHex = item.complete && item.key === activeHexKey;
+      const hasUnspentHours = isCurrentHex && num(s.pending) > 0;
+      const eventLabel = isCurrentHex ? "Current hex · In progress" : "Hex completed";
+      const eventIcon = isCurrentHex ? "fa-hourglass-half" : "fa-circle-check";
+      const timeSummary = item.rolledHours
+        ? (isCurrentHex ? `${item.rolledHours}h recorded` : `${item.rolledHours}h total`)
+        : "Travel time unavailable";
+      const summary = `${timeSummary} · ${item.outcome}`;
+      const remaining = hasUnspentHours ? `<span class="zft-ir-history-remaining">${num(s.pending)}h remaining</span>` : "";
+      // The log view can be redesigned without touching the world-setting HTML,
+      // dice rolls, or historic expedition snapshots.
+      const resultHtml = item.complete ? compactIronrotHexResult(decorated) : decorated;
+      logCards.push(stateCard(item.key, item.complete
+        ? `<details class="zft-ir-log-history ${resultClass} ${isCurrentHex ? "zft-ir-history-current" : ""}" data-ir-history ${item.key === newestCurrentCompletedEventKey ? "open" : ""}><summary><span class="zft-ir-history-label"><i class="fa-solid ${eventIcon}" aria-hidden="true"></i> ${esc(eventLabel)}</span><span class="zft-ir-history-summary">${esc(summary)}${remaining}</span></summary><div class="zft-ir-travel-html">${dateTag}${resultHtml}</div></details>`
         : `<div class="zft-ir-travel-html">${dateTag}${decorated}</div>`, "zft-ir-hex-card"));
     } else {
       const entry = item.entry;
       const rows = (entry.results ?? []).map(result => `<div class="zft-ir-result-row"><strong>${esc(result.name)}</strong><span class="${result.passed ? "green" : "red"}">${Number.isFinite(result.total) ? ironrotD20Total(result.total) : "—"} · ${result.passed ? "Passed" : "Failed"}${num(result.rerolls) ? ` · Rerolled ×${num(result.rerolls)}` : ""}</span><small>${esc(result.outcome ?? "GM resolved")}</small></div>`).join("");
-      const full = `<div class="zft-ir-march-full"><div class="zft-ir-card-title">Completed Forced March · Hour ${esc(entry.hour)} · CON DC ${esc(entry.dc)}</div><p class="zft-ir-hex-date">${esc(dateAndDay(entry.day))}</p>${rows || "<p>No entries</p>"}</div>`;
-      const compact = item !== topEvent || currentSaveActive;
-      logCards.push(stateCard(item.key, compact
-        ? `<details class="zft-ir-log-history zft-ir-history-march" data-ir-history><summary><span class="zft-ir-history-label"><i class="fa-solid fa-circle-check" aria-hidden="true"></i> Forced March · Hour ${esc(entry.hour)} · ${esc(dateAndDay(entry.day))}</span><strong>CON DC ${esc(entry.dc)} · ${(entry.results ?? []).length} resolved</strong></summary>${full}</details>`
-        : full, "zft-ir-march-card"));
+      const full = `<div class="zft-ir-march-full"><div class="zft-ir-card-title">Completed Forced March · Hour ${esc(entry.hour)} · CON DC ${esc(entry.dc)}</div>${rows || "<p>No entries</p>"}</div>`;
+      const results = Array.isArray(entry.results) ? entry.results : [];
+      const failed = results.filter(result => result.passed === false).length;
+      const compactResult = failed ? `${results.length} saves · ${failed} failed` : `${results.length} saves accepted`;
+      logCards.push(stateCard(item.key,
+        `<details class="zft-ir-log-history zft-ir-history-march" data-ir-history ${item.key === newestCurrentCompletedEventKey ? "open" : ""}><summary><span class="zft-ir-history-label"><i class="fa-solid fa-shield-halved" aria-hidden="true"></i> Forced March completed · Hour ${esc(entry.hour)}</span><strong>DC ${esc(entry.dc)} · ${esc(compactResult)}</strong></summary>${full}</details>`, "zft-ir-march-card"));
     }
   }
 
@@ -456,6 +511,19 @@ function makeCards(snapshot) {
     }
   }
   flushGroup();
+  // An active new travel day must be visible even before its first result.
+  // Without this, the log can show Day 4 while the dashboard reads Day 5.
+  const currentDayKey = `day:${Math.max(1, Number(s.day) || 1)}`;
+  if (!groupedLog.some(card => card.key === currentDayKey)) {
+    const stopped = ["Travel stopped", "Travel paused"].includes(snapshot.phase);
+    const dayTitle = dateAndDay(s.day);
+    const emptyHint = game.user?.isGM
+      ? "No travel activity recorded for this day yet."
+      : "No travel activity has been recorded for this day yet.";
+    groupedLog.unshift(stateCard(currentDayKey,
+      `<details class="zft-ir-day-group zft-ir-day-empty" data-ir-day-group="${esc(s.day)}" ${stopped ? "" : "open"}><summary><span class="zft-ir-day-group-label"><i class="fa-solid fa-calendar-days" aria-hidden="true"></i> ${esc(dayTitle)} <small>${stopped ? "Stopped / Paused" : "Current Day"}</small></span><span class="zft-ir-day-group-count">0 events</span></summary><div class="zft-ir-day-group-events"><div class="zft-ir-day-empty-note"><i class="fa-solid fa-book-open" aria-hidden="true"></i><span><strong>No travel events recorded</strong><small>${esc(emptyHint)}</small></span></div></div></details>`,
+      "zft-ir-day-group-card"));
+  }
   const roster = presentRoster();
   const roles = ironrotRolePreferences();
   const rosterHtml = roster.map(actor => {
@@ -534,7 +602,7 @@ function makeCards(snapshot) {
   return [...cards, ...activeSaveCards, ...groupedLog];
 }
 
-function syncCards(container, cards, dayOverrides = null) {
+function syncCards(container, cards, dayOverrides = null, historyOverrides = null) {
   const existing = new Map([...container.children].map(node => [node.dataset.irCard, node]));
   const desired = new Set(cards.map(card => card.key));
   for (const [i, card] of cards.entries()) {
@@ -548,16 +616,11 @@ function syncCards(container, cards, dayOverrides = null) {
         const dayDetail = replacement.querySelector("details[data-ir-day-group]");
         if (dayDetail) dayDetail.open = dayOverrides.get(card.key);
       }
-      // Preserve explicitly opened historical entries across rerolls and log updates.
-      for (const oldHistory of node?.querySelectorAll("[data-ir-card] > details[data-ir-history][open]") ?? []) {
-        const cardKey = oldHistory.closest("[data-ir-card]")?.dataset.irCard;
-        if (!cardKey) continue;
-        const nestedCard = [...replacement.querySelectorAll("[data-ir-card]")].find(n => n.dataset.irCard === cardKey);
-        if (nestedCard) nestedCard.querySelector("details[data-ir-history]")?.setAttribute("open", "");
-      }
-      if (node?.querySelector(":scope > details[data-ir-history]")?.open) {
-        const details = replacement.querySelector(":scope > details[data-ir-history]");
-        if (details) details.open = true;
+      // The current day's latest completed event opens automatically. Only a
+      // user's explicit summary click overrides that default on later renders.
+      for (const detail of replacement.querySelectorAll("[data-ir-card] > details[data-ir-history]")) {
+        const cardKey = detail.closest("[data-ir-card]")?.dataset.irCard;
+        if (cardKey && historyOverrides?.has(cardKey)) detail.open = historyOverrides.get(cardKey);
       }
       if (node) node.replaceWith(replacement);
       node = replacement;
@@ -578,14 +641,66 @@ class ExpeditionConsole {
   dragMoved = false;
   followLatest = true;
   logHasRendered = false;
+  logResizeActive = false;
   dayOpenOverrides = new Map();
+  historyOpenOverrides = new Map();
+  pendingRolls = new Map();
   lastDayState = null;
   scrollingFromCode = false;
   rollWindowOcclusions = new Map();
   rollWindowVisibility = new Map();
+  // Expedition panes only compete with one another. Native Foundry dialogs,
+  // character sheets, and module popups keep their own window stacking.
+  paneOrder = ["zft-ironrot-workflow-window", "zft-ironrot-console", "zft-ironrot-log"];
+  paneBaseZ = 70;
+
+  updateExpeditionLayers() {
+    // Foundry V13's ApplicationV2 manages normal windows itself. Do not invoke
+    // bringToFront() on other applications or modify #interface / #ui-left.
+    // Adapt down if a third-party/native dialog has a smaller z-index than the
+    // usual Foundry window layer. Never boost our panes above normal apps.
+    const candidates = document.querySelectorAll(
+      ".application, .window-app, dialog[open]"
+    );
+    let nativeMin = Infinity;
+    for (const candidate of candidates) {
+      if (candidate.closest("#zft-ironrot-console, #zft-ironrot-log, #zft-ironrot-workflow-window, #zft-overland-theme-window")) continue;
+      if (candidate.hidden || candidate.getAttribute("aria-hidden") === "true") continue;
+      const style = getComputedStyle(candidate);
+      if (style.display === "none" || style.visibility === "hidden") continue;
+      if (!Number.isFinite(Number.parseFloat(style.zIndex))) continue;
+      if (style.position !== "absolute" && style.position !== "fixed") continue;
+      const rect = candidate.getBoundingClientRect();
+      if (rect.width < 120 || rect.height < 80) continue;
+      const z = Number.parseFloat(style.zIndex);
+      if (z > 4) nativeMin = Math.min(nativeMin, z);
+    }
+    this.paneBaseZ = Number.isFinite(nativeMin) ? Math.max(1, Math.min(70, Math.floor(nativeMin) - 4)) : 70;
+    for (const [i, id] of this.paneOrder.entries()) {
+      const pane = document.getElementById(id);
+      if (pane) pane.style.zIndex = String(this.paneBaseZ + i);
+    }
+    // The independent color editor is above our three panes, but below Foundry
+    // and third-party application dialogs. Do not change any native z-index.
+    const themeWindow = document.getElementById('zft-overland-theme-window');
+    if (themeWindow) themeWindow.style.zIndex = String(this.paneBaseZ + this.paneOrder.length);
+  }
+
+  focusExpeditionPane(pane) {
+    if (!pane || !this.paneOrder.includes(pane.id)) return;
+    this.paneOrder = [...this.paneOrder.filter(id => id !== pane.id), pane.id];
+    this.updateExpeditionLayers();
+  }
+
+  onOtherApplicationRendered() {
+    // Rendering can assign an application's final position and z-index after
+    // render hooks fire. One frame later is enough; no document-wide observer,
+    // event interception, or transparent click-blocking overlay is installed.
+    requestAnimationFrame(() => this.updateExpeditionLayers());
+  }
 
   get state() {
-    return game.settings.get(MODULE_ID, UI_KEY) ?? { mode: "hidden", left: 160, top: 80, logWidth: 540, logHeight: 650, logDocked: true, logHidden: false, workflowWidth: 405, workflowDocked: true, workflowHidden: false };
+    return game.settings.get(MODULE_ID, UI_KEY) ?? { mode: "hidden", left: 160, top: 80, logWidth: 540, logHeight: 650, logHeightManual: false, logDocked: true, logHidden: false, workflowWidth: 405, workflowDocked: true, workflowHidden: false };
   }
   async remember(override) { await game.settings.set(MODULE_ID, UI_KEY, { ...this.state, ...override }); }
   // Display scaling is suspended until the expedition layout is accepted.
@@ -594,6 +709,36 @@ class ExpeditionConsole {
     this.element?.style.setProperty("--zft-ir-dashboard-scale", "1");
     this.workflowElement?.style.setProperty("--zft-ir-dashboard-scale", "1");
     this.logElement?.style.setProperty("--zft-ir-log-scale", "1");
+  }
+  /** Automatic log height follows rendered history until the GM/player resizes it.
+   * Legacy 650px was a default, not evidence of a deliberate user resize.
+   * Legacy non-default saved heights are treated as deliberate preferences.
+   * Never mutate world ledger, log visibility, or remembered window placement.
+   */
+  logHeightIsManual() {
+    const cfg = this.state;
+    if (typeof cfg.logHeightManual === "boolean") return cfg.logHeightManual;
+    const legacy = Number(cfg.logHeight ?? cfg.height);
+    return Number.isFinite(legacy) && legacy > 0 && legacy !== 650;
+  }
+  sizeLogToContent() {
+    const node = this.logElement;
+    if (!node || node.hidden || this.logResizeActive) return;
+    const scroller = node.querySelector(".zft-ir-scroll");
+    const feed = node.querySelector("[data-ir-cards]");
+    const head = node.querySelector(".zft-ir-log-head");
+    if (!scroller || !feed || !head) return;
+    const room = Math.max(160, Math.floor(window.innerHeight - node.getBoundingClientRect().top - 8));
+    const minimum = Math.min(205, room);
+    if (this.logHeightIsManual()) {
+      const saved = Number(this.state.logHeight ?? this.state.height) || 650;
+      node.style.height = `${Math.min(room, Math.max(minimum, saved))}px`;
+      return;
+    }
+    const style = getComputedStyle(scroller);
+    const pad = (parseFloat(style.paddingTop) || 0) + (parseFloat(style.paddingBottom) || 0);
+    const desired = Math.ceil(head.getBoundingClientRect().height + feed.scrollHeight + pad + 4);
+    node.style.height = `${Math.min(room, Math.max(minimum, desired))}px`;
   }
   fitDashboardToViewport() {
     if (!this.element) return;
@@ -621,10 +766,12 @@ class ExpeditionConsole {
     await this.remember({ logHidden: false });
     await this.setMode("expanded");
     if (this.logElement) this.logElement.hidden = false;
+    this.sizeLogToContent();
     if (this.followLatest) this.scrollToLatest();
   }
   async setMode(mode) {
     if (!["hidden", "expanded", "bubble"].includes(mode)) return;
+    if (mode === "hidden") this.themeEditor?.cancel();
     if (mode !== "hidden") this.mount();
     if (this.element) {
       this.element.dataset.mode = mode;
@@ -635,6 +782,7 @@ class ExpeditionConsole {
     if (mode === "expanded") {
       this.fitDashboardToViewport();
       this.positionLog();
+      this.sizeLogToContent();
       if (this.followLatest) this.scrollToLatest();
     }
     if (this.workflowElement) this.workflowElement.hidden = mode !== "expanded";
@@ -650,6 +798,7 @@ class ExpeditionConsole {
       this.fitColumnsToViewport();
       this.fitDashboardToViewport();
       this.positionLog();
+      this.sizeLogToContent();
       this.positionWorkflow();
     });
     const saved = this.state;
@@ -669,14 +818,15 @@ class ExpeditionConsole {
     const saved = this.state;
     const node = document.createElement("section");
     node.id = "zft-ironrot-console";
-    node.setAttribute("aria-label", "Expedition dashboard");
+    node.setAttribute("aria-label", `${MODULE_TITLE} Expedition Dashboard`);
     node.dataset.mode = "expanded";
     node.style.left = `${Math.max(0, Math.min(num(saved.left), window.innerWidth - 80))}px`;
     node.style.top = `${Math.max(0, Math.min(num(saved.top), window.innerHeight - 45))}px`;
     node.innerHTML = `
       <header class="zft-ir-head" data-ir-drag>
         <i class="fa-solid fa-mountain" aria-hidden="true"></i>
-        <span class="zft-ir-title" data-ir-title>Overland Expedition<small>Expedition Dashboard</small></span>
+        <span class="zft-ir-title" data-ir-title>${esc(MODULE_TITLE)}<small>Expedition Dashboard</small></span>
+        <button type="button" data-ir-action="theme" title="Interface color themes" aria-label="Customize interface colors"><i class="fa-solid fa-palette"></i></button>
         <button type="button" data-ir-action="log-visibility" title="Toggle Expedition Log"><i class="fa-solid fa-scroll"></i></button>
         <button type="button" data-ir-action="bubble" title="Collapse to floating button" aria-label="Collapse"><i class="fa-solid fa-minimize"></i></button>
         <button type="button" data-ir-action="hidden" title="Close dashboard and log" aria-label="Close"><i class="fa-solid fa-xmark"></i></button>
@@ -698,7 +848,7 @@ class ExpeditionConsole {
                   <button type="button" data-ir-action="show-players"><i class="fa-solid fa-display"></i> Show to Players</button>
                   <button type="button" data-ir-action="reset" class="zft-ir-danger"><i class="fa-solid fa-rotate-left"></i> Reset Travel</button>
                   <button type="button" data-ir-action="clear-log" class="zft-ir-danger"><i class="fa-solid fa-trash"></i> Clear Expedition Log</button>
-                </div><div class="zft-ir-attendance-editor" data-ir-editor hidden></div>
+                </div><div class="zft-ir-pending-rolls" data-ir-pending-rolls hidden></div><div class="zft-ir-attendance-editor" data-ir-editor hidden></div>
               </section>` : ""}
           </div></aside></div>`;
     const logNode = document.createElement("section");
@@ -737,14 +887,21 @@ class ExpeditionConsole {
     }
     document.body.append(node, logNode);
     if (workflowNode) document.body.append(workflowNode);
+    for (const pane of [node, logNode, workflowNode].filter(Boolean)) {
+      pane.addEventListener("pointerdown", () => this.focusExpeditionPane(pane), { passive: true });
+    }
+    this.updateExpeditionLayers();
     this.element = node;
     this.logElement = logNode;
     this.workflowElement = workflowNode;
+    this.themeEditor = new ThemeEditor(node, () => this.updateExpeditionLayers());
+    ThemeManager.apply();
     this.fitDashboardToViewport();
     const migratedWidth = num(saved.logWidth) || Math.max(430, num(saved.width) - 365) || 540;
-    const migratedHeight = num(saved.logHeight) || num(saved.height) || 650;
+    // The content-aware height is computed after the first render. A non-default
+    // legacy height (or new explicit resize) is restored by sizeLogToContent().
     logNode.style.width = `${Math.min(Math.max(330, migratedWidth), Math.max(330, window.innerWidth - 8))}px`;
-    logNode.style.height = `${Math.min(Math.max(280, migratedHeight), Math.max(280, window.innerHeight - 8))}px`;
+    logNode.style.height = "205px";
     if (workflowNode) {
       // GM Controls behaves like the former in-dashboard section: its width is
       // stable, and its height is determined entirely by visible content.
@@ -786,13 +943,20 @@ class ExpeditionConsole {
       if (daySummary) {
         const detail = daySummary.parentElement;
         const key = detail.closest("[data-ir-card]")?.dataset.irCard;
-        if (key) requestAnimationFrame(() => this.dayOpenOverrides.set(key, detail.open));
+        if (key) requestAnimationFrame(() => { this.dayOpenOverrides.set(key, detail.open); this.sizeLogToContent(); });
         this.followLatest = false;
         this.updateLatestButton();
       }
-      if (event.target.closest(".zft-ir-log-history > summary")) {
+      const historySummary = event.target.closest(".zft-ir-log-history > summary");
+      if (historySummary) {
+        const detail = historySummary.parentElement;
+        const key = detail.closest("[data-ir-card]")?.dataset.irCard;
         this.followLatest = false;
         this.updateLatestButton();
+        requestAnimationFrame(() => {
+          if (key) this.historyOpenOverrides.set(key, detail.open);
+          this.sizeLogToContent();
+        });
       }
     });
     node.querySelector("[data-ir-drag]").addEventListener("pointerdown", event => this.startDrag(event));
@@ -937,6 +1101,7 @@ class ExpeditionConsole {
     await this.remember({ logHidden: !show });
     if (show) {
       this.positionLog();
+      this.sizeLogToContent();
       if (this.followLatest) this.scrollToLatest();
     }
   }
@@ -993,17 +1158,24 @@ class ExpeditionConsole {
     const node = this.logElement;
     const rect = node.getBoundingClientRect();
     const origin = { x:event.clientX, y:event.clientY, width:rect.width, height:rect.height };
+    let resized = false;
+    this.logResizeActive = true;
     const move = ev => {
+      if (Math.abs(ev.clientX - origin.x) + Math.abs(ev.clientY - origin.y) > 3) resized = true;
       const maxW = Math.max(330, window.innerWidth - node.offsetLeft - 8);
-      const maxH = Math.max(280, window.innerHeight - node.offsetTop - 8);
+      const maxH = Math.max(205, window.innerHeight - node.offsetTop - 8);
       node.style.width = `${Math.round(Math.min(maxW, Math.max(330, origin.width + ev.clientX - origin.x)))}px`;
-      node.style.height = `${Math.round(Math.min(maxH, Math.max(280, origin.height + ev.clientY - origin.y)))}px`;
+      node.style.height = `${Math.round(Math.min(maxH, Math.max(205, origin.height + ev.clientY - origin.y)))}px`;
     };
     const stop = () => {
       document.removeEventListener("pointermove", move);
       document.removeEventListener("pointerup", stop);
       document.removeEventListener("pointercancel", stop);
-      void this.remember({ logWidth: Math.round(node.offsetWidth), logHeight: Math.round(node.offsetHeight) });
+      this.logResizeActive = false;
+      if (resized) void this.remember({
+        logWidth: Math.round(node.offsetWidth), logHeight: Math.round(node.offsetHeight), logHeightManual: true
+      });
+      else this.sizeLogToContent();
     };
     document.addEventListener("pointermove", move);
     document.addEventListener("pointerup", stop);
@@ -1017,7 +1189,7 @@ class ExpeditionConsole {
     if (!summary || !dashboard || !log) return;
     const identity = ironrotIdentity();
     const title = this.element.querySelector("[data-ir-title]");
-    if (title) title.innerHTML = `Overland Expedition<small>Expedition Dashboard</small>`;
+    if (title) title.innerHTML = `${esc(MODULE_TITLE)}<small>Expedition Dashboard</small>`;
     const context = this.element.querySelector("[data-ir-expedition-context]");
     if (context) {
       const regionText = identity.region || "Region not set";
@@ -1041,9 +1213,9 @@ class ExpeditionConsole {
     const anchorOffset = anchor ? anchor.getBoundingClientRect().top - scrollerTop : 0;
     syncCards(summary, cards.filter(card => card.key === "overview"));
     syncCards(dashboard, cards.filter(card => card.key === "party"));
-    syncCards(log, cards.filter(card => !["overview", "party"].includes(card.key)), this.dayOpenOverrides);
+    syncCards(log, cards.filter(card => !["overview", "party"].includes(card.key)), this.dayOpenOverrides, this.historyOpenOverrides);
     // Change identity labels in the view without changing saved card HTML.
-    for (const heading of log.querySelectorAll("[data-ir-stage-title]")) heading.textContent = `${identity.name} · Hex Travel`;
+    for (const heading of log.querySelectorAll("[data-ir-stage-title]")) heading.textContent = "Hex Travel";
     const place = [identity.region, identity.world].filter(Boolean).join(" · ");
     for (const label of log.querySelectorAll("[data-ir-stage-location]")) {
       label.textContent = place;
@@ -1056,6 +1228,7 @@ class ExpeditionConsole {
       else scroller.scrollTop = Math.max(0, previousScroll + scroller.scrollHeight - previousHeight);
     }
     this.updateLatestButton();
+    this.sizeLogToContent();
     this.logHasRendered = true;
     if (this.panel && !this.workflowElement?.querySelector("[data-ir-editor] input")) this.renderPanel();
   }
@@ -1333,7 +1506,60 @@ class ExpeditionConsole {
       ui.notifications.error(`Could not open ${actor.name}'s character sheet.`);
     }
   }
+  /** GM-only, local pending socket attempts; not a new world setting. */
+  registerPendingRoll(info) {
+    if (!game.user?.isGM || typeof info.choose !== "function") return null;
+    const token = Symbol(info.key);
+    this.pendingRolls.set(info.key, { ...info, token });
+    this.renderPendingRolls();
+    return token;
+  }
+  unregisterPendingRoll(key, token) {
+    if (token && this.pendingRolls.get(key)?.token === token) {
+      this.pendingRolls.delete(key);
+      this.renderPendingRolls();
+    }
+  }
+  cancelPendingRolls() {
+    for (const item of this.pendingRolls.values()) item.choose({ type: "cancel" });
+    this.pendingRolls.clear();
+    this.renderPendingRolls();
+  }
+  renderPendingRolls() {
+    const container = this.workflowElement?.querySelector("[data-ir-pending-rolls]");
+    if (!container) return;
+    const pending = [...this.pendingRolls.values()];
+    container.hidden = pending.length === 0;
+    container.innerHTML = pending.map(({ key, actorName, label, rollerName, attempt }) => `
+      <div class="zft-ir-pending-roll" data-ir-pending-key="${esc(key)}">
+        <div class="zft-ir-pending-roll-title"><i class="fa-solid fa-rotate" aria-hidden="true"></i> Awaiting ${esc(actorName)} · ${esc(label)}</div>
+        <div class="zft-ir-pending-roll-note">Sent to ${esc(rollerName)} · Attempt ${Number(attempt)}. If the player reloaded, resend after they reconnect.</div>
+        <div class="zft-ir-pending-roll-actions">
+          <button type="button" data-ir-roll-recovery="resend" data-ir-key="${esc(key)}"><i class="fa-solid fa-paper-plane" aria-hidden="true"></i> Resend Prompt</button>
+          <button type="button" data-ir-roll-recovery="gm" data-ir-key="${esc(key)}">Roll as GM</button>
+          <button type="button" data-ir-roll-recovery="cancel" data-ir-key="${esc(key)}">Cancel Request</button>
+        </div>
+      </div>`).join("");
+    this.constrainWorkflowHeight();
+  }
+  handleRollRecovery(event) {
+    const button = event.target.closest("button[data-ir-roll-recovery]");
+    if (!button || !this.workflowElement?.contains(button) || !game.user?.isGM) return false;
+    event.preventDefault();
+    const entry = this.pendingRolls.get(button.dataset.irKey);
+    if (!entry) return true;
+    const action = button.dataset.irRollRecovery;
+    if (!['resend', 'gm', 'cancel'].includes(action)) return true;
+    if (action === 'resend' && entry.rollerId !== game.user.id && !game.users.get(entry.rollerId)?.active) {
+      ui.notifications.warn(`${entry.rollerName} is not connected. Wait for reconnection or choose Roll as GM.`);
+      return true;
+    }
+    if (action === 'resend') ui.notifications.info('New roll prompt requested. If the earlier dialog appears after reconnection, close it without rolling.');
+    entry.choose({ type: action });
+    return true;
+  }
   async click(event) {
+    if (this.handleRollRecovery(event)) return;
     const button = event.target.closest("button[data-ir-action]");
     if (!button || !(this.element?.contains(button) || this.workflowElement?.contains(button))) return;
     const action = button.dataset.irAction;
