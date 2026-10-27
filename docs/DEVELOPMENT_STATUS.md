@@ -1,6 +1,6 @@
 # Development status | ZFT Overland Travel
 
-**Current source checkpoint:** `0.4.0-dev.28` on `develop`. This is not a released or live-verified build. Do not merge to `main`, create a release, or claim Foundry V14 compatibility from static/simulated tests alone.
+**Feature branch checkpoint:** `0.4.0-dev.29` on `feature/overland-framework` (based on `0.4.0-dev.28` on `develop`). This is not a released or live-verified build. Do not merge to `main`, create a release, or claim Foundry V14 compatibility from static/simulated tests alone.
 
 ## Architecture and compatibility
 
@@ -43,3 +43,16 @@ All above are **live acceptance tests pending**, not claims of live success. Dev
 ## Development and promotion
 
 Work on `develop`, use the module ID as the ZIP root directory, bump `module.json` and the ZIP name together for future builds, and test live before any promotion. `main`, tags, and published Releases require separate owner authorization under the policy in the private `zft-standards` repository.
+
+## Expedition roles redesign (feature branch; Foundry validation pending)
+
+The GM's **Expedition Roles** editor replaces the Party Roles assignment panel. The player/GM party roster displays the assigned role and skill bonus, including offline PCs assigned to a user character. The editor groups six distinct roles into three cooperative travel activities:
+
+| Activity | Roles and primary checks |
+| --- | --- |
+| Navigation | Guide (WIS Survival), Tracker (INT Investigation) |
+| Reconnaissance | Scout (DEX Stealth), Vanguard (STR Athletics) |
+| Expedition Support | Forager (WIS Survival), Coordinator (CHA Persuasion) |
+
+A character may only be assigned one expedition role/check in each travel resolution. Unfilled roles are allowed except Guide, which is required for the existing hex navigation workflow. On future cooperative roll integration: 2 successes = strong, 1 = partial, 0 = failed; these paired outcomes are **not implemented yet**. The current hex engine still uses its established Guide/Navigator roll and may retain a previous legacy secondary assignment when that character remains assigned; other new roles currently display as assignments without automatically rolling. Existing saved navigator/secondary settings are read for display migration without rewriting travel history. The established hex duration, dice, calendar, forced march and Constitution saving throws are unchanged. Run a live Foundry V13 GM/player check before promoting or claiming compatibility.
+
