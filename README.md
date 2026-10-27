@@ -1,12 +1,16 @@
 # ZFT Overland Travel
 
-Current development package: `0.4.0-dev.28` for Foundry V13 (live validation pending). The Foundry module ID remains `zft-overland-travel`.
+Current development package: `0.4.0-dev.29` for Foundry V13 (live validation pending). The Foundry module ID remains `zft-overland-travel`.
 
 Foundry VTT module implementing Zantor's hex-based overland travel and independent encounter-generation framework.
 
 ## Version
 
-Current module build: **`0.4.0-dev.28`** (development only). The original generic framework was developed as `0.3.1`; its earlier notes remain below for historical context.
+Current module build: **`0.4.0-dev.29`** (development only). The original generic framework was developed as `0.3.1`; its earlier notes remain below for historical context.
+
+## Expedition roles (feature branch)
+
+The GM **Expedition Roles** panel groups six role assignments into three paired activities: Navigation (Guide + Tracker), Reconnaissance (Scout + Vanguard), and Expedition Support (Forager + Coordinator). Each actor may hold at most one expedition assignment. Their assignments appear in the GM/player Present Party roster. The cooperative resolution rules (both succeed = strong; one = partial; neither = failed) are documented design and are **not yet executed by the existing hex roll workflow**. Existing navigation, duration, forced march and Constitution calculations are unchanged. Live Foundry V13 verification remains pending.
 
 ## Canonical terminology
 
@@ -68,6 +72,8 @@ game.zftOverlandTravel.panel
 
 The module folder name must be exactly `zft-overland-travel`. That must match the module `id` in `module.json`.
 
+**Do not install the unmodified GitHub branch source ZIP as a Foundry module.** GitHub names its extracted top-level folder after the repository and branch. For a packaged module ZIP, the archive must contain `zft-overland-travel/module.json` at its root, not `zft-overland-travel-feature-overland-framework/module.json`.
+
 ## Development
 
 The repository follows the authoritative ZFT development and release policy in `zft-standards`. The **`develop` branch** holds the latest in-progress module source; `main` remains the accepted/stable branch and must not receive this dev build without separate approval.
@@ -75,7 +81,7 @@ The repository follows the authoritative ZFT development and release policy in `
 - [Development status and live acceptance checklist](docs/DEVELOPMENT_STATUS.md)
 - [Interface theme configuration](docs/THEMES.md)
 
-The current codebase includes both the original generic framework and the **Mount Ironrot-specific travel implementation**. Keep the Mount Ironrot engine and persistence isolated until a separately approved generalization effort. There is no automatic world-clock advancement from the New Travel Day control.
+The feature branch is consolidating the original generic framework and the Mount Ironrot expedition interface into a unified workflow. Existing Mount Ironrot hex calculations and persistence remain intact during the transition. There is no automatic world-clock advancement from the New Travel Day control.
 
 
 ## Rules documentation
@@ -302,7 +308,7 @@ While a GM is waiting on a Midi-QOL player skill check or Constitution save, GM 
 - Themes do not change Foundry UI, Action HUD, dice art/semantic dice colors, calendar, actor effects, GM travel workflow, existing travel history, shared expedition settings, or ZFT Tools.
 - All validations are static/simulated only until tested live in Foundry V13.
 
-### v0.4.0-dev.28: Independent interface theme window (local test build)
+### v0.4.0-dev.29: Independent interface theme window (local test build)
 
 - Use the **single palette button in the Dashboard header**. The duplicate palette button has been removed from the Expedition Log.
 - The theme editor is now an independent, draggable, resizable, modeless floating window (not an inline Dashboard panel). On desktop it presents preset swatches in a left column and 22 color controls in a two-column layout on the right; smaller viewports stack the groups and scroll inside the window.
