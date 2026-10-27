@@ -1,3 +1,4 @@
+import { IronrotConsole, registerIronrotSettings, publishIronrotSnapshot, publishIronrotTravelCard, removeIronrotTravelCard, ironrotIdentity, ironrotGeneration, ironrotLogEpoch, ironrotRolePreferences, rememberIronrotRoles, rememberIronrotHex } from "./expeditions/mount-ironrot/IronrotConsole.js";
 import { MODULE_ID, MODULE_VERSION, SETTINGS, LOG_PREFIX } from "./constants/module-constants.js";
 import { TERRAIN, REGION_DANGER, TRAVEL_ROLES } from "./data/rules.js";
 import { ExpeditionState } from "./state/ExpeditionState.js";
@@ -18,6 +19,7 @@ console.log(`${LOG_PREFIX} 🛠️ v${MODULE_VERSION} | Loading ${MODULE_ID}`);
 
 Hooks.once("init", () => {
   ExpeditionState.registerSettings();
+  registerIronrotSettings();
   console.log(`${LOG_PREFIX} 🚀 v${MODULE_VERSION} | Initializing`);
 });
 
@@ -46,6 +48,14 @@ Hooks.once("ready", async () => {
   };
 
   game.zftOverlandTravel = module.api;
+  // Only the Mount Ironrot implementation uses this bridge. It is not an API
+  // of the generic Travel Manager or shared expedition-state engines.
+  globalThis.ZFTMountIronrotConsole = Object.freeze({ publish: publishIronrotSnapshot, stage: publishIronrotTravelCard, removeStage: removeIronrotTravelCard, identity: ironrotIdentity, generation: ironrotGeneration, logEpoch: ironrotLogEpoch, rolePreferences: ironrotRolePreferences, rememberRoles: rememberIronrotRoles, hexStarted: rememberIronrotHex, prompt: options => IronrotConsole.prompt(options) });
+  IronrotConsole.onReady();
+  // Scoped V13 application hook: only our pending forced-march CON prompts
+  // qualify for placement. No global Foundry window or Action HUD changes.
+  Hooks.on("renderApplicationV2", (application, element) => IronrotConsole.positionExpeditionRollDialog(application, element));
+  Hooks.on("closeApplicationV2", application => IronrotConsole.restoreExpeditionRollDialog(application));
 
   if (game.user?.isGM) {
     try {
@@ -62,18 +72,22 @@ Hooks.once("ready", async () => {
   console.log(`${LOG_PREFIX} ✅ v${MODULE_VERSION} | Ready`);
 });
 
-Hooks.on("getSceneControlButtons", (controls) => {
-  if (!game.user?.isGM) return;
-  const tokens = controls?.tokens;
-  if (!tokens?.tools) return;
-
-  tokens.tools.zftOverlandTravel = {
-    name: "zftOverlandTravel",
-    title: "Zantor's Overland Travel",
-    icon: "fa-solid fa-compass",
-    order: Object.keys(tokens.tools).length,
-    button: true,
-    visible: true,
-    onChange: () => TravelPanel.open()
-  };
+// Toolbar presentation is centralized in ZFT Tools; gameplay remains module-owned.
+Hooks.once("ready", () => {
+  const toolbar = game.modules.get("zft-tools")?.api;
+  if (!toolbar?.registerGroup) {
+    console.warn("[ZFT] ⚠️ Overland Travel | Requires ZFT Tools multi-group API (0.1.0-dev.8)");
+    return;
+  }
+  toolbar.registerGroup(MODULE_ID, {
+    title: "Overland Travel", icon: "fa-solid fa-compass", order: 990,
+    tools: [
+      { name: "zftOverlandTravel", title: "Travel Manager", icon: "fa-solid fa-map",
+        order: 10, button: true, visible: true, gmOnly: true,
+        onChange: () => { if (game.user?.isGM) TravelPanel.open(); } },
+      { name: "zftMountIronrot", title: "Mount Ironrot Expedition Console", icon: "fa-solid fa-mountain",
+        order: 20, button: true, visible: true, gmOnly: false,
+        onChange: () => { void IronrotConsole.toggle(); } }
+    ]
+  });
 });

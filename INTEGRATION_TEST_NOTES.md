@@ -1,0 +1,120 @@
+# ZFT Overland Travel v0.4.0-dev.9 | Development Test Notes
+
+Status: Local syntax/presentation tests only. **NOT live Foundry V13 verified.**
+
+## Scope since dev.8
+- Reuse Combat Log's exact ZFT dice palette and its *installed D&D5e system* SVG artwork via CSS masks. Combat Log has no bundled dice SVGs to copy; only `no-type.svg` is module-owned (and unrelated). D&D5e files remain owned by the installed game system and are not redistributed.
+- Render the actual 2d4 travel and optional 1d4 navigation-delay dice using d4 silhouettes with overlaid rolled face values. Not generic squares. Results, totals, game rules, state, and Dice So Nice behavior remain unchanged.
+- Give navigation checks, secondary skill totals, and expedition forced-march save results d20 icons, using the same Combat Log red d20 color. The displayed number is the **modified check total**, not the natural face.
+- Previously saved hex cards with the original square-faced d4 spans are decorated when displayed, without rewriting saved world-setting HTML. New cards use the renderer directly.
+- The Present Party portrait opens the assigned Actor sheet on double click (or Enter/Space when focused), provided the current user can view the sheet. No token required.
+- Original v4.13 standalone source is unchanged. Generic Overland Travel engine and other ZFT modules unchanged.
+
+## Live test plan
+1. Load as GM: verify d4-shaped colorful dice faces in a successful 2d4 roll. Force a navigation failure and verify 2d4 plus a visually identical d4 delay in the same result card; all three still report actual rolled values.
+2. Verify d20 symbol/color next to navigation, secondary activity, forced march (pending/completed) results. Check that a modified total over 20 is still labeled and not misrepresented as the natural die face.
+3. Reload client with existing dev.8 hex card and verify prior square chips now show the d4 silhouette without modifying the persisted result text.
+4. Test the portrait double-click in GM and player view, including permissions and a character with no token on the scene.
+5. Confirm log window docking and scroll position, clear log, role preferences, ledger, forced march, player updates, and reset remain unchanged.
+6. Verify the installed D&D5e game system exposes `systems/dnd5e/icons/svg/dice/d4.svg` and `d20.svg` as used by Combat Log. Check CSS rendering in the actual V13 browser.
+
+No GitHub operations performed.
+
+# ZFT Overland Travel v0.4.0-dev.8 | Development Test Notes
+
+Status: Local static and state-regression checks only. **NOT live Foundry V13 verified**.
+
+## Changes since v0.4.0-dev.7
+
+- Expedition Dashboard remains its own fixed-width GM/player window. A second, independent Expedition Log window docks immediately to its right. Drag the log header to undock; use Dock to redock. The log resizes from its corner and remembers client-local dimensions and position.
+- The dashboard header toggles the log's visibility. Collapse and Close hide both windows; the toolbar restores them. A GM's Show to Players request opens both on active player clients.
+- Replaced the dangerous "Clear Global Chat" function with "Clear Expedition Log" (type `CLEAR LOG`). It only clears saved expedition visual cards and hides historical forced-march results already displayed in the expedition log. **Foundry ChatMessages, Midi-QOL roll messages, ledger, and Exhaustion are not deleted.** The log-clearing epoch prevents older in-progress hex-card stage updates from restoring cleared entries. All world clients receive setting updates. New hex results appear normally after clearing.
+- Navigation, secondary character and secondary activity choices are remembered in `ironrotRolePreferences` and validated against the currently present roster before every hex. Missing/absent PCs never become eligible solely because they were saved previously.
+- A separate `ironrotHexDisplayProgress` world setting records an active hex's original travel duration, allowing precise elapsed time to be shown alongside hours remaining. Hexes already underway before installing dev.8 do not have an original duration; they display `Not recorded`, not a guessed value. Existing world ledger `mountIronrotTravelV45` remains unchanged.
+- Dashboard separates hours traveled today, safe hours remaining, forced hours, hexes completed, current-hex elapsed and remaining time, and the upcoming forced-march hour/DC.
+- Party roster is a vertical list of Foundry Actor portraits, names, saved roles, and present status. It does not require tokens on the scene or online players.
+- Experimental Zantor's Realms dark Foundry styling applies amber, parchment, warm brown and copper styling to this module's two windows. Oxblood/red is reserved for destructive controls. No other ZFT modules or shared brand policy are changed.
+
+## Important live testing (V13.351 / D&D5e 5.2.5)
+
+1. Open console as GM: verify physically separate Dashboard and Expedition Log windows. Resize only the log; drag the dashboard while docked and confirm the log follows. Drag the log to undock, redock, close log and reopen using dashboard scroll icon. Confirm refresh preserves client-local choices.
+2. Confirm **Player view** displays the dashboard, portrait roster and log, but does not contain GM action controls. Verify Show to Players restores both for a connected player.
+3. Start a new hex. Select Navigator, Secondary PC and activity; perform navigation/Midi rolls. Start another hex: verify selections are prefilled. Refresh browser and repeat. Exclude a previously selected actor from Party Attendance; verify the absent PC is never silently selected or rolled.
+4. Confirm safe-travel and forced-march hour totals and original hex duration. For pre-existing unfinished hexes, `Not recorded` is expected until a new hex starts.
+5. As GM, select **Clear Expedition Log** and enter `CLEAR LOG`. Verify both GM and player logs clear, then refresh/rejoin and confirm cleared cards do not reappear. Existing Foundry Chat tab messages must remain; day/hours/hexes/pending, character Exhaustion and saved role preferences must be untouched.
+6. Try clearing while a roll is pending. Its old card stages must not reappear afterward. Subsequent new hexes should publish new cards normally.
+7. Verify reset, new day, forced march, Stop & Carry, GM rulings and rerolls remain functional. Reset should not silently overwrite Foundry Chat or erase role preferences.
+8. Review branding readability and button/error colors at different window sizes. Do not infer Foundry V14 compatibility from V13 checks.
+
+## Known limitations and safety
+
+- Foundry's standard Midi-QOL dice/chat messages remain native in Chat, by design.
+- If a hex was started before dev.8, the original duration was never stored by older builds, so elapsed time cannot be reconstructed reliably. Do not infer it from the saved remaining-hours value.
+- Clearing the visible forced-march history does not erase the ledger's authoritative historic adjudications, preventing accidental loss of already-applied Exhaustion.
+- The v4.13 original macro source remains bundled unchanged in `MountIronrotV413.source.js` as a rollback reference. The isolated integration still requires live GM/player testing before use in a paid session.
+- No GitHub writes were performed. The central `zft-standards` repository's potential branding standards update is intentionally deferred until the owner approves the theme.
+
+
+## dev.10 client UI verification
+- GM: while forced-march prompt is active, it should appear directly below progress overview, before party/GM controls, and all buttons should still work.
+- Player: open Display Size from the dashboard header; scale Dashboard and Log independently, reload and confirm both persist only for that player.
+- Follow log: with log near bottom, generate new travel card and watch it scroll down. Scroll upward then generate another card; view must remain at reviewed position. Return to bottom to resume.
+- Earlier completed hexes collapse; click Previous hex to inspect full saved result. Most recent completed hex remains expanded.
+- Confirm Midi-QOL roll prompts remain interactive above expedition windows and do not become blocked. No global z-index changes were made.
+- Native Foundry Chat messages must remain unchanged. No GM/player world settings changed by client display preferences.
+
+
+### dev.13 test: three-column layout and cancel/restart
+1. Open GM console. Verify Left: GM Expedition Controls; center: Expedition Progress + Present Party; right: Expedition Log.
+2. Click Start / Continue: the active prompt appears directly under the GM buttons in the same left column, without creating another pop-up window.
+3. Cancel the first navigation prompt and reopen Start / Continue. It must reopen normally without Reset Travel.
+4. Check New Travel Day > Cancel and Start / Continue again. Hours and hexes must remain unchanged.
+5. Test Forced March Pause / Exit and resume, and GM adjudication with completed/partial saves. Roll progress must persist.
+6. Open, edit then Cancel Attendance, Ledger, Settings and destructive confirmations. Confirm unsaved data is unchanged, and successful saves remain functional.
+7. Confirm player display contains center progress/roster and right log but no left GM controls. Check Midi-QOL roll prompt accessibility.
+8. Test log docking, window dragging, small browser dimensions, fixed 100% display scaling, and independent scrolling.
+
+
+### dev.16 check: no GM Controls grip and automatic height
+1. On refresh with dev.15 saved manual dimensions, confirm GM Controls has **no corner resizing control**, fits buttons only, and retains its Dock/Undock button.
+2. Open Start/Continue: the controls window grows to show all choices and its action buttons **below** the form; no early clipping.
+3. Click Cancel, confirm the window shrinks, then click Start/Continue again without resetting travel.
+4. Test a tall Forced March/GM adjudication workflow. The window grows until the viewport edge, then only its inside content scrolls to reach the bottom action buttons.
+5. Move the Dashboard with GM Controls docked, and undock/redock; window height remains driven by workflow content.
+6. Confirm Player clients, Expedition Log resizing, and Midi-QOL saving throws remain functional. No native Foundry interface stacking changes.
+
+## v0.4.0-dev.17: Foundry calendar + reroll status
+
+- Expedition Settings displays the current Foundry in-world calendar date; manual start-date input removed.
+- At the first GM-authored snapshot/card each expedition day, capture the Foundry calendar date once, without touching the world clock. New Travel Day does not advance time. Older captured dates remain unchanged when the world calendar is edited. Legacy date settings remain read-only fallback for pre-upgrade records.
+- During GM-requested Forced March CON rerolls, log card immediately changes to **Rerolling · awaiting d20**, showing previous result as previous only. When the Midi-QOL rerolls return, the same actor card displays the new total, **Rerolled ×N**, and awaits a fresh GM ruling. No extra expedition cards or chat messages.
+- Interrupted pending rerolls recover to GM review on resume, without requiring travel reset.
+- Test with both a GM and player client; Foundry V13/Midi-QOL client behavior is not validated by local checks.
+
+
+## v0.4.0-dev.18: Player-facing Forced March and fixed interface scale
+
+- The Expedition Log shows a read-only Forced March briefing to both GM and players before the GM chooses Continue/Stop. It includes travel day/date, upcoming hour, CON save DC, current hex time left, and the Exhaustion consequence of failure.
+- The briefing transitions through GM decision, saving throws, rerolling, and adjudication using the existing world status snapshot. Completed hours appear once in the existing dated, newest-first Forced March history.
+- No new custom Foundry ChatMessage is created and no GM action buttons are exposed on player clients. A canceled GM decision publishes a paused status and never advances the ledger.
+- Removed both UI size sliders, the size-settings header button, and their event handlers. Existing client scale preferences are ignored; all windows render at 100% while preserving docking and other window settings.
+- Runtime compatibility remains targeted at Foundry V13 and D&D5e/Midi-QOL. Live GM/player verification is required. No GitHub write.
+
+
+## v0.4.0-dev.19: expedition roster, region, date check, day log groups
+
+- Present Party now shows configured travel role, assigned skill and ability, Actor-derived skill modifier, and Actor-derived Constitution save bonus. Unknown modifiers render as `—` rather than inventing a numeric bonus. This includes all five existing secondary activities.
+- Region / Location promoted to a prominent top-of-dashboard panel, plus a first-class GM `Region / Expedition` control. Settings put location first.
+- World calendar display prefers an installed Simple Calendar formatted date when available (including its configured year/era) and otherwise uses native Foundry V13 calendar formatting. Current-day date can be explicitly re-synced in Region / Expedition; historical days are not silently rewritten.
+- Log entries are grouped into collapsible travel-day sections. Stopping or pausing collapses the current day, continuing it expands again; older days start collapsed. Historical entries remain expandable and newest-first.
+- No changes to the original Mount Ironrot v4.13 source, travel calculations, Midi roll submission, global Foundry stacking, or GitHub. Live V13 GM/player validation required.
+
+
+## v0.4.0-dev.20 verification and regression
+
+- Start with an expedition containing a saved Navigator and Secondary; open Party Roles, confirm saved values, change the activity and Save. Verify the center Dashboard and a player client display the updated assignments.
+- Start / Continue shows the saved assignments without requiring reselection. Change Roles for This Hex still exposes the existing selectors and roller controls. Ensure a missing/absent assigned PC produces a warning and does not cause a silent replacement.
+- Start > Cancel > Start again remains usable and does not advance hours. Cancel in Party Roles discards edits and leaves the stored setting alone. Resume an unfinished hex even when the saved Navigator is no longer attending.
+- On a Calendaria Harptos calendar showing Hammer 7, 1501, the Region Edit form and newly captured current-day log date should display 1501, not raw 0. If the current date was saved incorrectly by dev.19 or earlier, explicitly Re-sync Current Travel Date. Existing older dates are intentionally preserved.
+- Verify GM Controls button order, absence of duplicate Region button, larger Dashboard region heading, and unchanged docking / automatic-height behavior on both GM and player clients.
+- Locally verified with Node syntax and mocked Calendaria API year test; Chromium role editor selection, navigator exclusion, and None activity visibility checks.
