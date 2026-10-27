@@ -7,7 +7,7 @@
 import { MODULE_ID, MODULE_TITLE } from "../../constants/module-constants.js";
 import { launchMountIronrot } from "./MountIronrot.js";
 import { ironrotD20Total, decorateLegacyIronrotDice } from "./IronrotDice.js";
-import { IRONROT_ACTIVITIES, IRONROT_NAVIGATION_SKILL } from "./IronrotRoles.js";
+import { IRONROT_ACTIVITIES, IRONROT_NAVIGATION_SKILL, EXPEDITION_PAIRS, EXPEDITION_ROLES } from "./IronrotRoles.js";
 import { ThemeManager } from "../../theme/ThemeManager.js";
 import { ThemeEditor } from "../../theme/ThemeEditor.js";
 
@@ -170,7 +170,7 @@ export function registerIronrotSettings() {
   });
   game.settings.register(MODULE_ID, ROLE_KEY, {
     name: "Expedition role preferences", scope: "world", config: false,
-    type: Object, default: { navigatorUuid: "", secondaryUuid: "", activity: "none" },
+    type: Object, default: { navigatorUuid: "", secondaryUuid: "", activity: "none", assignments: {} },
     onChange: () => IronrotConsole.refresh()
   });
   game.settings.register(MODULE_ID, HEX_KEY, {
@@ -211,14 +211,15 @@ export function ironrotLogEpoch() {
   return Number(game.settings.get(MODULE_ID, LOG_KEY)?.epoch ?? 0);
 }
 export function ironrotRolePreferences() {
-  return game.settings.get(MODULE_ID, ROLE_KEY) ?? { navigatorUuid: "", secondaryUuid: "", activity: "none" };
+  return game.settings.get(MODULE_ID, ROLE_KEY) ?? { navigatorUuid: "", secondaryUuid: "", activity: "none", assignments: {} };
 }
 export async function rememberIronrotRoles(preferences) {
   if (!game.user?.isGM) return;
   await game.settings.set(MODULE_ID, ROLE_KEY, {
     navigatorUuid: String(preferences.navigatorUuid ?? ""),
     secondaryUuid: String(preferences.secondaryUuid ?? ""),
-    activity: String(preferences.activity ?? "none")
+    activity: String(preferences.activity ?? "none"),
+    assignments: Object.fromEntries(Object.entries(preferences.assignments ?? {}).filter(([key]) => key in EXPEDITION_ROLES).map(([key,uuid]) => [key,String(uuid ?? "")]))
   });
 }
 export async function rememberIronrotHex(totalHours, baseHexes) {
@@ -308,7 +309,7 @@ const stateCard = (key, inner, className = "") => ({ key, html: `<article class=
 const spanStat = (label, value, color = "") => `<div class="zft-ir-stat"><span>${esc(label)}</span><strong ${color ? `class="${color}"` : ""}>${esc(value)}</strong></div>`;
 
 // Roles and skills are shared with the travel engine, including future additions.
-const SKILL_ABILITY_FALLBACK = Object.freeze({sur:"wis",prc:"wis",arc:"int",inv:"int",ste:"dex",nat:"int"});
+const SKILL_ABILITY_FALLBACK = Object.freeze({sur:"wis",prc:"wis",arc:"int",inv:"int",ste:"dex",nat:"int",ath:"str",per:"cha"});
 function actorModifier(value) {
   const numeric = typeof value === "number" ? value : Number(value);
   return Number.isFinite(numeric) && value !== null && value !== undefined && value !== "" ? numeric : null;
@@ -318,7 +319,7 @@ function travelSkill(actor, key) {
   const data = actor.system?.skills?.[key] ?? {};
   const modifier = actorModifier(data.total ?? actor.getRollData?.()?.skills?.[key]?.total);
   const configuredLabel = CONFIG.DND5E?.skills?.[key]?.label;
-  const label = typeof configuredLabel === "string" ? (game.i18n?.localize?.(configuredLabel) ?? configuredLabel) : ({sur:"Survival",prc:"Perception",arc:"Arcana",inv:"Investigation",ste:"Stealth",nat:"Nature"}[key] ?? key.toUpperCase());
+  const label = typeof configuredLabel === "string" ? (game.i18n?.localize?.(configuredLabel) ?? configuredLabel) : ({sur:"Survival",prc:"Perception",arc:"Arcana",inv:"Investigation",ste:"Stealth",nat:"Nature",ath:"Athletics",per:"Persuasion"}[key] ?? key.toUpperCase());
   const ability = String(data.ability ?? CONFIG.DND5E?.skills?.[key]?.ability ?? SKILL_ABILITY_FALLBACK[key] ?? "").toUpperCase();
   return { label, ability, modifier };
 }
@@ -527,10 +528,12 @@ function makeCards(snapshot) {
   const roster = presentRoster();
   const roles = ironrotRolePreferences();
   const rosterHtml = roster.map(actor => {
-    const navigator = actor.uuid === roles.navigatorUuid;
-    const activity = actor.uuid === roles.secondaryUuid && roles.activity !== "none" ? IRONROT_ACTIVITIES[roles.activity] : null;
-    const assigned = navigator ? "Navigator" : (activity ? `Secondary · ${activity.name}` : "Available");
-    const skillKey = navigator ? IRONROT_NAVIGATION_SKILL : activity?.skill ?? null;
+    const assignment = Object.entries(roles.assignments ?? {}).find(([key, uuid]) => EXPEDITION_ROLES[key] && uuid === actor.uuid);
+    const legacyNavigator = actor.uuid === roles.navigatorUuid;
+    const legacyActivity = actor.uuid === roles.secondaryUuid && roles.activity !== "none" ? IRONROT_ACTIVITIES[roles.activity] : null;
+    const definedRole = assignment ? EXPEDITION_ROLES[assignment[0]] : null;
+    const assigned = definedRole?.name ?? (legacyNavigator ? "Guide" : (legacyActivity ? `Secondary · ${legacyActivity.name}` : "Available"));
+    const skillKey = definedRole?.skill ?? (legacyNavigator ? IRONROT_NAVIGATION_SKILL : legacyActivity?.skill ?? null);
     const check = skillKey ? travelSkill(actor, skillKey) : null;
     const checkInfo = check ? `<span class="zft-ir-member-skill" title="Assigned expedition check">${esc(check.label)}${check.ability ? ` (${esc(check.ability)})` : ""} <strong>${esc(signed(check.modifier))}</strong></span>` : "";
     const con = conSaveBonus(actor);
@@ -842,7 +845,7 @@ class ExpeditionConsole {
                 <div class="zft-ir-actions">
                   <button type="button" data-ir-action="travel"><i class="fa-solid fa-route"></i> Start / Continue</button>
                   <button type="button" data-ir-action="day"><i class="fa-solid fa-sun"></i> New Travel Day</button>
-                  <button type="button" data-ir-action="roles"><i class="fa-solid fa-user-gear"></i> Party Roles</button>
+                  <button type="button" data-ir-action="roles"><i class="fa-solid fa-user-gear"></i> Expedition Roles</button>
                   <button type="button" data-ir-action="attendance"><i class="fa-solid fa-users"></i> Party Attendance</button>
                   <button type="button" data-ir-action="manage"><i class="fa-solid fa-book-open"></i> Edit Travel Ledger</button>
                   <button type="button" data-ir-action="show-players"><i class="fa-solid fa-display"></i> Show to Players</button>
@@ -1424,37 +1427,21 @@ class ExpeditionConsole {
     if (this.panel === "roles") {
       const roster = presentRoster();
       const current = ironrotRolePreferences();
-      const currentNav = roster.find(actor => actor.uuid === current.navigatorUuid)?.uuid ?? "";
-      const currentActivity = IRONROT_ACTIVITIES[current.activity] ? current.activity : "none";
-      const currentSecondary = roster.find(actor => actor.uuid === current.secondaryUuid && actor.uuid !== currentNav)?.uuid ?? "";
-      const navOptions = `<option value="">Choose Navigator</option>` + roster.map(actor => `<option value="${esc(actor.uuid)}" ${actor.uuid === currentNav ? "selected" : ""}>${esc(actor.name)}</option>`).join("");
-      const secondaryOptions = `<option value="">Choose Secondary PC</option>` + roster.map(actor => `<option value="${esc(actor.uuid)}" ${actor.uuid === currentSecondary ? "selected" : ""}>${esc(actor.name)}</option>`).join("");
-      const activityOptions = Object.entries(IRONROT_ACTIVITIES).map(([key,info]) => `<option value="${esc(key)}" ${key === currentActivity ? "selected" : ""}>${esc(info.name)}${info.skill ? ` · ${esc(travelSkill(roster[0] ?? {}, info.skill).label)}` : ""}</option>`).join("");
-      editor.innerHTML = `<div class="zft-ir-card-title">Party Role Assignments</div>
-        <p>Save once for the expedition. Start / Continue reuses these roles for each new hex.</p>
-        <div class="zft-ir-fields zft-ir-roles-fields">
-          <label>Navigator<select name="roleNavigator">${navOptions}</select></label>
-          <label>Secondary Activity<select name="roleActivity">${activityOptions}</select></label>
-          <label data-ir-role-secondary>Secondary Character<select name="roleSecondary">${secondaryOptions}</select></label>
-        </div>
-        <p class="zft-ir-role-note">The Navigator uses Survival (WIS). Secondary checks depend on the activity. The same character cannot hold both roles. Offline assigned PCs remain selectable when present.</p>
-        ${buttons("roles-save", "Save Party Roles")}`;
-      const nav = editor.querySelector("select[name='roleNavigator']");
-      const activity = editor.querySelector("select[name='roleActivity']");
-      const secondary = editor.querySelector("select[name='roleSecondary']");
-      const row = editor.querySelector("[data-ir-role-secondary]");
-      const sync = () => {
-        const chosenNav = nav.value;
-        for (const option of secondary.options) {
-          option.disabled = !!chosenNav && option.value === chosenNav;
-        }
-        if (secondary.value === chosenNav) secondary.value = "";
-        row.hidden = activity.value === "none";
-        secondary.disabled = activity.value === "none";
-      };
-      nav.addEventListener("change", sync);
-      activity.addEventListener("change", sync);
-      sync();
+      const existing = { ...(current.assignments ?? {}) };
+      // Older worlds stored only navigator and secondary assignments.
+      if (!existing.guide && current.navigatorUuid) existing.guide = current.navigatorUuid;
+      const oldSecondary = { scout: "scout", conceal: "scout", investigate: "tracker", nature: "forager", arcane: "tracker" }[current.activity];
+      if (oldSecondary && !existing[oldSecondary]) existing[oldSecondary] = current.secondaryUuid;
+      const sections = EXPEDITION_PAIRS.map(pair => `<fieldset class="zft-ir-role-pair"><legend>${esc(pair.name)}</legend>${pair.roles.map(key => {
+        const role = EXPEDITION_ROLES[key];
+        const options = `<option value="">Unassigned</option>` + roster.map(actor => `<option value="${esc(actor.uuid)}" ${existing[key] === actor.uuid ? "selected" : ""}>${esc(actor.name)}</option>`).join("");
+        return `<label>${esc(role.name)} · ${esc(role.ability)} (${esc(travelSkill(roster[0] ?? {},role.skill).label)})<select data-ir-expedition-role="${esc(key)}">${options}</select><small>${esc(role.purpose)}</small></label>`;
+      }).join("")}</fieldset>`).join("");
+      editor.innerHTML = `<div class="zft-ir-card-title">Expedition Roles</div>
+        <p>Assign one role per present character. Roles are organized as three cooperative activities.</p>
+        <div class="zft-ir-fields zft-ir-roles-fields">${sections}</div>
+        <p class="zft-ir-role-note">Each character may make only one expedition role check per travel resolution. The paired check outcomes are planned and not yet executed by the legacy hex workflow. Guide retains the existing navigation calculations; Constitution and Forced March remain unchanged.</p>
+        ${buttons("roles-save", "Save Expedition Roles")}`;
     } else if (this.panel === "attendance") {
       const excluded = new Set(attendanceConfig().excludedActorUuids ?? []);
       const options = assignedRoster().map(actor => `<label><input type="checkbox" data-ir-actor="${esc(actor.uuid)}" ${excluded.has(actor.uuid) ? "" : "checked"}> <span>${esc(actor.name)}</span></label>`).join("");
@@ -1598,15 +1585,27 @@ class ExpeditionConsole {
           if (Number(state.pending) > 0 || (state.hourResolved?.length ?? 0) || Object.keys(state.hourRolls ?? {}).length)
             return ui.notifications.warn("Finish the current hex or forced-march resolution before changing roles.");
           const roster = presentRoster();
-          const nav = editor.querySelector("select[name='roleNavigator']")?.value ?? "";
-          const activity = editor.querySelector("select[name='roleActivity']")?.value ?? "none";
-          const secondary = editor.querySelector("select[name='roleSecondary']")?.value ?? "";
-          if (!roster.some(actor => actor.uuid === nav)) return ui.notifications.warn("Select an attending Navigator.");
-          if (!IRONROT_ACTIVITIES[activity]) return ui.notifications.warn("Select a supported secondary activity.");
-          if (activity !== "none" && (!roster.some(actor => actor.uuid === secondary) || secondary === nav))
-            return ui.notifications.warn("Select a different attending PC for the secondary activity.");
-          await rememberIronrotRoles({ navigatorUuid: nav, secondaryUuid: activity === "none" ? "" : secondary, activity });
-          ui.notifications.info("Party roles saved for subsequent hexes. Start / Continue will use these assignments.");
+          const selections = [...editor.querySelectorAll("select[data-ir-expedition-role]")];
+          const assignments = Object.fromEntries(selections.map(select => [select.dataset.irExpeditionRole, select.value]));
+          const filled = Object.values(assignments).filter(Boolean);
+          if (!assignments.guide || !roster.some(actor => actor.uuid === assignments.guide))
+            return ui.notifications.warn("Select an attending Guide.");
+          if (new Set(filled).size !== filled.length)
+            return ui.notifications.warn("Each character may hold only one expedition role.");
+          if (filled.some(uuid => !roster.some(actor => actor.uuid === uuid)))
+            return ui.notifications.warn("Assigned characters must be present.");
+          // Retain the legacy secondary setting only when its existing PC remains
+          // assigned to an expedition role. Do not invent unsupported roll mappings.
+          const previous = ironrotRolePreferences();
+          const keepSecondary = filled.includes(previous.secondaryUuid) && previous.secondaryUuid !== assignments.guide &&
+            IRONROT_ACTIVITIES[previous.activity] && previous.activity !== "none";
+          await rememberIronrotRoles({
+            navigatorUuid: assignments.guide,
+            secondaryUuid: keepSecondary ? previous.secondaryUuid : "",
+            activity: keepSecondary ? previous.activity : "none",
+            assignments
+          });
+          ui.notifications.info("Expedition roles saved. Assigned roles appear in the party list.");
         } else if (action === "attendance-save") {
           const state = getLedger();
           if ((state.hourResolved?.length ?? 0) || Object.keys(state.hourRolls ?? {}).length) return ui.notifications.warn("Resolve the active forced-march hour before changing attendance.");
