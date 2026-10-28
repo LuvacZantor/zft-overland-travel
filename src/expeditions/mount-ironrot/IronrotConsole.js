@@ -371,55 +371,55 @@ function exhaustionStatusEffects(actor) {
     effect.getFlag?.("core", "statusId") === "exhaustion" ||
     effect.flags?.core?.statusId === "exhaustion");
 }
-/** In 5.x the canonical actor field is also reflected by the system's
- * exhaustion condition. Leave creation/deletion of that system effect to
- * D&D5e, not two independent ZFT writes which collide with Change Log hooks.
- * Never swallow an update failure when the requested level was not persisted. */
+/** D&D5e 5.2.5 owns the exhaustion ActiveEffect and derives the Actor
+ * exhaustion score from that effect. Its Actor._onUpdate starts effect
+ * creation/update/deletion asynchronously without awaiting the operation.
+ * Observe that native synchronization in either direction instead of making
+ * competing ActiveEffect writes from the roster. */
+function isNativeExhaustionSettled(actor, level) {
+  if (readExhaustion(actor) !== level) return false;
+  // D&D5e 5.x uses a fixed ID for its native exhaustion ActiveEffect.
+  // Other game-system generations retain the prior Actor-field verification.
+  if (game.system?.id !== "dnd5e" || !/^5\./.test(String(game.system.version ?? ""))) return true;
+  const effect = actor.effects?.get?.("dnd5eexhaustion0");
+  if (level === 0) return !effect;
+  const effectLevel = effect?.getFlag?.("dnd5e", "exhaustionLevel") ?? effect?.flags?.dnd5e?.exhaustionLevel;
+  return effectLevel === level;
+}
 async function setExpeditionExhaustion(actor, level) {
   if (!game.user?.isGM || actor.type !== "character" || !Number.isInteger(level) || level < 0 || level > 6)
     throw new Error("Invalid or unauthorized exhaustion adjustment.");
-  if (readExhaustion(actor) === level) return level;
+  if (isNativeExhaustionSettled(actor, level)) return level;
   let updateError = null;
   try {
-    // The D&D5e system is responsible for the condition. Do not call
-    // toggleStatusEffect or create an ActiveEffect with a fixed system ID.
+    // Let D&D5e create/update/delete its own effect; never mutate it here.
     await actor.update({ "system.attributes.exhaustion": level });
   } catch (error) { updateError = error; }
-  let observed = readExhaustion(actor);
-  if (observed === level) {
-    // A third-party hook can throw after the Actor has actually been changed.
-    // Only report success if the local actor state is now correct.
-    if (updateError) console.warn("[ZFT][Ironrot] Actor persisted exhaustion, but an update hook reported an error", updateError);
-    return observed;
-  }
-  // An existing 5.x exhaustion condition may restore the previous level.
-  // Reconcile only its level flag; never fabricate a duplicate system effect.
-  const effects = exhaustionStatusEffects(actor);
-  if (effects.length === 1) {
-    try {
-      if (level > 0) {
-        await effects[0].update({ "flags.dnd5e.exhaustionLevel": level });
-      } else {
-        // Remove only the identified existing exhaustion condition on level 0.
-        await effects[0].delete();
-      }
-      await actor.update({ "system.attributes.exhaustion": level });
-    } catch (error) { updateError = error; }
-    observed = readExhaustion(actor);
-  }
-  if (observed !== level) {
-    console.warn("[ZFT][Ironrot] Exhaustion update not confirmed", {
-      actor: actor.uuid, requested: level, observed,
-      source: actor._source?.system?.attributes?.exhaustion,
-      effects: exhaustionStatusEffects(actor).map(e => ({ id:e.id, level:e.flags?.dnd5e?.exhaustionLevel })),
-      error: updateError?.message
-    });
-    throw updateError ?? new Error(`Actor reports Exhaustion ${observed} after update to ${level}`);
-  }
-  if (updateError) console.warn("[ZFT][Ironrot] Exhaustion corrected after hook warning", updateError);
-  return observed;
-}
 
+  // Foundry 13 + D&D5e 5.2.5 can resolve Actor.update before its effect
+  // synchronization completes. This can occur on both 0 -> N and N -> 0.
+  // Wait a bounded period without reissuing Actor updates or racing effects.
+  for (const delayMs of [0, 60, 120, 200, 350, 500, 750, 1000, 1000, 1000]) {
+    if (delayMs) await new Promise(resolve => setTimeout(resolve, delayMs));
+    if (isNativeExhaustionSettled(actor, level)) {
+      if (updateError) console.warn("[ZFT][Ironrot] Actor persisted exhaustion, but an update hook reported an error", updateError);
+      return level;
+    }
+  }
+
+  const effect = actor.effects?.get?.("dnd5eexhaustion0");
+  const observed = readExhaustion(actor);
+  const effectLevel = effect?.getFlag?.("dnd5e", "exhaustionLevel") ?? effect?.flags?.dnd5e?.exhaustionLevel;
+  console.warn("[ZFT][Ironrot] Exhaustion update not confirmed", {
+    actor: actor.uuid, requested: level, observed,
+    source: actor._source?.system?.attributes?.exhaustion,
+    nativeEffectPresent: !!effect, nativeEffectLevel: effectLevel ?? null,
+    otherExhaustionEffects: exhaustionStatusEffects(actor).filter(e => e.id !== "dnd5eexhaustion0")
+      .map(e => ({ id: e.id, level: e.flags?.dnd5e?.exhaustionLevel })),
+    error: updateError?.message
+  });
+  throw updateError ?? new Error(`Actor reports Exhaustion ${observed} after update to ${level}`);
+}
 function exhaustionPenalty(level) {
   if (!level) return "";
   // In legacy-rules worlds use the 2014 exhaustion table.
@@ -1781,6 +1781,9 @@ class ExpeditionConsole {
     // The original day/forced-march prompts carry legacy inline blue panel
     // colors. Harmonize their surface with GM Controls without changing data.
     const stageTitle = String(options.window?.title ?? "");
+    // dev.60: style only these two paired-action GM workflows.
+    if (/Hex Travel/i.test(stageTitle)) form.classList.add("zft-ir-compact-hex-form");
+    if (/Start New Travel Day/i.test(stageTitle)) form.classList.add("zft-ir-new-day-form");
     if (/Start New Travel Day|Forced March/.test(stageTitle)) content.classList.add("zft-ir-gm-decision-content");
     if (/Hex Travel|Navigation Ruling|Roll$|Edit Saved|Manage Saved/.test(stageTitle))
       content.classList.add("zft-ir-travel-stage-content");

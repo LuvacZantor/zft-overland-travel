@@ -336,7 +336,7 @@ return (async () => {
       // Midi versions that omit message IDs can still expose one via the hook.
       let observedMessageId = null;
       const rollHook = typeof Hooks?.on === "function" ? Hooks.on("createChatMessage", message => {
-        const author = message?.user?.id ?? message?.author?.id;
+        const author = message?.author?.id;
         if (message?.isRoll && message?.speaker?.actor === actor.id && author === roller.id)
           observedMessageId = message.id;
       }) : null;
@@ -664,7 +664,7 @@ return (async () => {
       <div class="zft-ir-travel-role-groups">${expeditionSummary}</div>
       <label class="zft-ir-travel-roller"><span>Guide roll requested from</span>
         <select name="navRoller">${rollerOptions(guideActor)}</select></label>
-      <p class="zft-ir-travel-help" title="Other paired expedition checks are not yet executed; established Guide navigation and hex-time rules remain unchanged.">Role assignments are managed in Expedition Roles. Guide determines navigation and hex travel time.</p>
+      <p class="zft-ir-travel-help" title="Other paired expedition checks are not yet executed; established Guide navigation and hex-time rules remain unchanged.">Guide sets navigation and hex travel time. Edit assignments in Expedition Roles.</p>
     </section>`,
     render: (event, dialog) => colorButtons(event, dialog),
     buttons: [

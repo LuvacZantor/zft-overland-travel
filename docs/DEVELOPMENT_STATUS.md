@@ -1,6 +1,6 @@
 # Development status | ZFT Overland Travel
 
-**Local test build:** `0.4.0-dev.43` (feature branch remains `0.4.0-dev.29` on GitHub) (based on `0.4.0-dev.28` on `develop`). This is not a released or live-verified build. Do not merge to `main`, create a release, or claim Foundry V14 compatibility from static/simulated tests alone.
+**Current checkpoint:** `0.4.0-dev.62` on `develop` (based on prior `0.4.0-dev.59`). Development-only checkpoint with limited owner-observed V13 acceptance, not a stable release or Foundry V14 verification.
 
 ## Architecture and compatibility
 
@@ -227,3 +227,14 @@ Legacy Hex Travel setup/Navigation Ruling styling modernized with ZFT theme vari
 - Consistent semantic success/failure/pending presentation in Navigation Ruling, hex Log, and pending/completed Forced March results, preserving original roll vs GM adjudication.
 - Hex Travel role pairs have portraits and theme-tinted grouping; all five presets and custom overrides require live client verification. No remote GitHub promotion.
 - Generic role-check tally and recovery result messages are color-labeled without altering their data or rolls.
+
+## 0.4.0-dev.62 | Mount Ironrot hex-travel checkpoint (2026-10-28)
+
+- Based on the complete local .62 test package, incorporating scoped .60–.62 corrections since develop .59.
+- Hex Travel paired role presentation and proportional GM form footers were reported visually satisfactory by the owner. Guide remains the only live navigation check.
+- Roster manual exhaustion adjustment was reported working in live Foundry V13.351 / D&D5e 5.2.5. Native exhaustion effects are owned by the D&D5e system; ZFT waits for asynchronous synchronization and reports genuine mismatches.
+- Pending live acceptance: Forced March GM adjudication with exhaustion, character-sheet and roster synchronization after reload, player/GM roll recovery and workflow regressions.
+- The generic Overland Travel engines, their older six-role design, and the newer three paired Mount Ironrot activities are deliberately separate. No cooperative-roll mechanics or generic framework integration were added in this checkpoint.
+- Compatibility caveat: module.json currently advertises verified Foundry 14 inherited from the earlier development source, but V14 has not been live tested for this checkpoint. Correct that metadata when a generation-specific compatibility decision is approved; do not treat it as V14 certification.
+- No changes to compendium bytes, persistent world state formats, travel calculations, world-clock policy, or MountIronrotV413.source.js.
+- This is a development checkpoint on develop only, not a main promotion, tag, or release.

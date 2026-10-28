@@ -1,12 +1,12 @@
 # ZFT Overland Travel
 
-Current local test package: `0.4.0-dev.59` for Foundry V13 (live validation pending). The Foundry module ID remains `zft-overland-travel`.
+Current local test package: `0.4.0-dev.62` for Foundry V13 (live validation pending). The Foundry module ID remains `zft-overland-travel`.
 
 Foundry VTT module implementing Zantor's hex-based overland travel and independent encounter-generation framework.
 
 ## Version
 
-Current module build: **`0.4.0-dev.59`** (development only). The original generic framework was developed as `0.3.1`; its earlier notes remain below for historical context.
+Current module build: **`0.4.0-dev.62`** (development only). The original generic framework was developed as `0.3.1`; its earlier notes remain below for historical context.
 
 ## Expedition roles (feature branch)
 

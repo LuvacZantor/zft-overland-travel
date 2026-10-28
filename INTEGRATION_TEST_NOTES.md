@@ -392,3 +392,16 @@ Expanded per-client interface scaling to 60%–150%. Replaced repetitive pending
 - Expedition Log colors original Guide roll context, individual live and archived Forced March names, Passed/Failed labels, and textual GM outcomes. Original d20 red artwork and white numerical contrast retained.
 - Uses the existing theme success/failure/muted CSS variables and preserves all calculation, actor assignment, history, and socket behavior. Local browser/syntax tests are not live Foundry verification.
 - Generic travel hex role-check tallies and Quiet Travel recovery results also use semantic success/failure classes (native chat color fallback when theme variables are not in scope).
+
+## 0.4.0-dev.62 | Live acceptance record and remaining checks (2026-10-28)
+
+Environment observed in console: Foundry V13.351 / D&D5e 5.2.5; module startup logged v0.4.0-dev.61 prior to .62 upgrade.
+Owner reports: Hex Travel interface looked good after .60; manual roster exhaustion adjustment appears to work on .62. These are owner-observed acceptance notes, not exhaustive GM/player verification.
+
+Outstanding on .62:
+1. Confirm 0 to 2 and 2 to 0 transitions in roster AND character sheet, native effect level and persistence after refresh.
+2. Process a failed Forced March CON save using GM Apply +1 Exhaustion; verify exact actor change, decisions and history without duplicate effects.
+3. Exercise Guide navigation and reroll recovery with GM/player clients; verify no deprecated ChatMessage user warning.
+4. Recheck New Travel Day cancellation, unfinished hex progress, saved log and theme responsiveness.
+
+No speculative cooperative role execution was added. No stable release or V14 certification.

@@ -2727,3 +2727,118 @@
    Keep status words meaningful even when the full expedition UI is closed. */
 .zft-zot-card .zft-zot-result-success,.zft-zot-form .zft-zot-result-success {color:var(--zft-theme-success,#85bfa3);font-weight:700;}
 .zft-zot-card .zft-zot-result-failure,.zft-zot-form .zft-zot-result-failure {color:var(--zft-theme-failure,#e5a09f);font-weight:700;}
+
+/* v0.4.0-dev.62 | Hex Travel role presentation and scoped GM action footers.
+   Presentation only: no travel calculations, persistence, or event behavior. */
+
+/* Two role tiles under each of the three activity headings. The stage is the
+   responsive container; no global Foundry or other ZFT sizing is changed. */
+#zft-ironrot-workflow-window .zft-ir-hex-setup {
+  container-type: inline-size;
+}
+#zft-ironrot-workflow-window .zft-ir-hex-setup .zft-ir-travel-role-groups {
+  gap: 7px;
+}
+#zft-ironrot-workflow-window .zft-ir-hex-setup .zft-ir-travel-role-group {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 7px;
+  padding: 8px;
+}
+#zft-ironrot-workflow-window .zft-ir-hex-setup .zft-ir-travel-role-group > h4 {
+  grid-column: 1 / -1;
+  margin: 0 0 1px;
+  font-size: 13px;
+}
+#zft-ironrot-workflow-window .zft-ir-hex-setup .zft-ir-travel-role-line,
+#zft-ironrot-workflow-window .zft-ir-hex-setup .zft-ir-travel-role-line + .zft-ir-travel-role-line {
+  display: grid;
+  grid-template-columns: 34px minmax(0, 1fr);
+  grid-template-rows: auto auto;
+  gap: 2px 7px;
+  align-items: start;
+  min-width: 0;
+  padding: 7px;
+  border: 1px solid color-mix(in srgb, var(--zft-theme-border, #80603c) 65%, transparent);
+  border-radius: 5px;
+  background: color-mix(in srgb, var(--zft-theme-panel, #2c241d) 88%, var(--zft-theme-background, #211b16) 12%);
+}
+#zft-ironrot-workflow-window .zft-ir-hex-setup .zft-ir-travel-role-line.is-guide {
+  border-left: 3px solid var(--zft-theme-success, #98caaa);
+  padding-left: 5px;
+  background: color-mix(in srgb, var(--zft-theme-success, #98caaa) 9%, var(--zft-theme-panel, #2c241d));
+}
+#zft-ironrot-workflow-window .zft-ir-hex-setup .zft-ir-travel-role-portrait {
+  grid-column: 1;
+  grid-row: 1 / span 2;
+  width: 34px;
+  height: 34px;
+}
+#zft-ironrot-workflow-window .zft-ir-hex-setup .zft-ir-travel-role-identity {
+  grid-column: 2;
+  grid-row: 1;
+  gap: 1px;
+}
+#zft-ironrot-workflow-window .zft-ir-hex-setup .zft-ir-travel-role-identity strong {
+  font-size: 12px;
+  line-height: 1.23;
+  overflow-wrap: anywhere;
+}
+#zft-ironrot-workflow-window .zft-ir-hex-setup .zft-ir-travel-role-line > small {
+  grid-column: 2;
+  grid-row: 2;
+  justify-self: start;
+  text-align: left;
+  max-width: none;
+  font-size: 10px;
+  line-height: 1.25;
+}
+#zft-ironrot-workflow-window .zft-ir-hex-setup .zft-ir-travel-help {
+  margin-top: -2px;
+}
+@container (max-width: 335px) {
+  #zft-ironrot-workflow-window .zft-ir-hex-setup .zft-ir-travel-role-group {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  #zft-ironrot-workflow-window .zft-ir-hex-setup .zft-ir-travel-role-group > h4 {
+    grid-column: 1;
+  }
+}
+
+/* Standard paired footer for the two approved workflows only. Preserve the
+   native button nodes, labels, disabled states, callbacks, and theme colors. */
+#zft-ironrot-workflow-window .zft-ir-prompt-form:is(.zft-ir-compact-hex-form, .zft-ir-new-day-form) {
+  container-type: inline-size;
+}
+#zft-ironrot-workflow-window .zft-ir-prompt-form:is(.zft-ir-compact-hex-form, .zft-ir-new-day-form) > .zft-ir-prompt-actions {
+  display: grid;
+  grid-template-columns: minmax(0, 13fr) minmax(0, 7fr);
+  align-items: stretch;
+  gap: 10px;
+  width: 100%;
+  box-sizing: border-box;
+  padding: 11px 0 0;
+  margin: 4px 0 0;
+  position: static;
+}
+#zft-ironrot-workflow-window .zft-ir-prompt-form:is(.zft-ir-compact-hex-form, .zft-ir-new-day-form) > .zft-ir-prompt-actions > button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  width: 100%;
+  max-width: none;
+  min-width: 0;
+  min-height: 48px;
+  box-sizing: border-box;
+  padding: 9px 10px;
+  text-align: center;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  line-height: 1.25;
+}
+@container (max-width: 355px) {
+  #zft-ironrot-workflow-window .zft-ir-prompt-form:is(.zft-ir-compact-hex-form, .zft-ir-new-day-form) > .zft-ir-prompt-actions {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
