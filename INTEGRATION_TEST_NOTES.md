@@ -1,3 +1,97 @@
+## v0.4.0-dev.51 | Roster collapse, Forced March alignment and interface scale
+
+1. Collapse and expand Expedition Roster using its heading. Ensure the Roles reference button remains visible. Refresh the dashboard and reopen it: the per-client state must persist without affecting other players.
+2. Expand a completed Forced March event. Verify d20 graphic/total and Passed/Failed result occupy consistent fixed columns for both long and short character names, and reroll/outcome details remain accessible. Check narrow log widths.
+3. Open the sliders icon in Dashboard header. Move from 100% to 80%, 120%, then reset to 100%. Confirm Dashboard, GM Controls, Log, role reference and theme editor scale together, without affecting Foundry windows. Setting must persist on client reload and not be pushed to other users.
+4. Verify all five themes and custom overrides still work. Confirm Forced March stays nested inside the active hex and all travel calculations and saved state are unaffected.
+
+Local tests are not a substitute for live Foundry V13 verification. GitHub not modified.
+
+## v0.4.0-dev.50 | Full-width dice rows and expedition log consistency
+
+1. Roll a hex and confirm Navigation occupies its own full-width row with the red graphical d20 total, Guide, DC and success/failure, followed by a full-width Travel Dice row with the original graphical dice. The footer still shows Travel Hours and Total Hours side by side at normal log widths.
+2. Test successful navigation, failure and delay dice, GM override and incomplete navigation. Verify no redundant summaries, new roll total or mechanical changes.
+3. Trigger Forced March while a hex is active. Pending and completed entries should both appear beneath the same **Forced March Checks** heading, with matching event header formatting and different status accents.
+4. Start multiple hexes. The log labels **Hex 1**, **Hex 2**, etc., numbering persisted hex records in creation order; completed hexes remain muted when collapsed. Current-day totals distinguish completed and active hexes and count Forced March checks separately.
+5. Continue a hex to a new travel day, and check retained hex number/ID; confirm older unlinked Forced March history stays separate. Switch all five themes, including custom overrides; resize log to 320, 400, 560px; inspect responsiveness.
+
+Status: Local validation only. Live Foundry V13 verification required; GitHub unchanged.
+
+## v0.4.0-dev.49 | Unified travel report and Forced March headers
+
+1. Roll navigation and travel time for a new hex. The latest hex opens to ONE travel report with no four separate box borders: Navigation left, graphical Travel Dice right, travel-hour calculation and total separated by a rule below. Check the original red d20 total overlay and d4 results.
+2. Confirm successful navigation, failed navigation with GM override, secondary checks, pace adjustment, and delay dice all display intact and lead to unchanged total hours. Before travel dice, navigation remains visible and no fictitious duration is displayed.
+3. During Forced March, verify pending and completed Hour N entries display matching font sizes, title/icon positions, status positioning and metadata rows. Pending uses amber status; completed uses green. The additional GM decision title wrapper was removed, not the saves or GM actions.
+4. Expand completed Forced March and inspect all actor rolls and GM decisions. Confirm its history stays under its owning hex across pause/continue and New Travel Day. Old unlinked events stay separate.
+5. Switch all 5 themes and a customized theme color; resize log to 320px, 400px and 560px; verify responsive presentation, no horizontal overflow or hardcoded new panel colors.
+
+Status: Local source and browser checks only. Live Foundry V13 validation pending. GitHub unchanged.
+
+## v0.4.0-dev.48 | Navigation die total, coherent theme surfaces, muted closed history
+
+1. After a Guide check, inspect the navigation d20. The **modified check total** must render centered on the red d20 icon (the tooltip explicitly identifies it as a check total); compare its size to the blue d4 travel dice. DC and success/failure text remain separate.
+2. Check the Navigation, Travel Dice, and Travel Hours cards: all use the same surface and border colors from the selected client theme. The Total card retains a restrained themed accent. Success/failure indicators retain semantic colors.
+3. Switch through Zantor Default, Antique Copper, Moonlit Slate, Verdigris, and Graphite and try a custom color override. Confirm the log updates with the theme without reopening, and previous client theme settings remain intact.
+4. Complete several hexes. The latest expanded hex remains prominent; *collapsed completed* hexes have muted borders/header. Click an older completed hex to expand and restore full contrast; collapse it to mute again. Active/current hex is never muted by this rule.
+5. Confirm no change in actual rolls, pace, hours, navigation failure delays, Forced March associations, saved history, or original V4.13 source.
+
+Status: local source and browser checks only; live Foundry V13 validation pending; GitHub unchanged.
+
+## v0.4.0-dev.47 | Balanced hex results and navigation d20 (live testing pending)
+
+1. Roll Guide navigation before travel dice: the latest hex expands; Guide check total uses the original red d20 SVG graphic enlarged to the same silhouette dimensions as the d4 travel dice. The number remains adjacent to the d20 because it is a modified check TOTAL, not a raw die face. Guide name, DC, and GM outcome remain intact.
+2. Complete travel dice: top-left Navigation and top-right Travel Dice share a row. The right side retains pace, formula and original graphical d4s but NO base/pace math.
+3. Bottom row: left Travel Hours contains individually separated Base and Pace rows, plus the Navigation delay row on failure; right keeps prominent TOTAL · ONE HEX.
+4. Test navigation success and failure/GM override (2d4 + 1d4 + 2), confirm actual dice faces, calculated hour values, and extra legacy secondary text all remain correct.
+5. Test 320px, 400px, and 560px Log content widths; columns remain balanced without text overflow; at narrow widths they stack. Compare themes.
+6. Verify newest hex expansion, historical Force March associations, and compact GM Forced March prompt remain unchanged.
+
+Status: local browser and structural validation only; live Foundry V13 verification required. GitHub unchanged.
+
+## v0.4.0-dev.46 | Two-column Hex display (live testing pending)
+
+1. Begin a new hex and roll navigation: Hex is expanded; Navigation Guide/DC/character/d20/outcome visible in left column, Travel Dice pending on right. No separate details disclosure.
+2. Finish travel dice: original dice graphics (same size as before), formula and base/pace/delay appear in the right column; full-width Total Hours below both columns. Verify rolled hours unchanged.
+3. Test a FAILED Guide check with GM override: actual failure/d20/override label preserved on left and delay die/extra hours preserved on right; no missing secondary checks.
+4. Complete hex: the latest automatically expands; prior hexes remain collapsed unless manually expanded. Refresh and verify manual collapse persistence.
+5. Resize Expedition Log near 400px and 560px, ensure the two columns remain legible and no horizontal overflow; at exceptionally narrow widths they may stack. Test theme switching.
+6. Ensure compact GM Forced March choice from .45 remains unchanged, Forced March linked entries and historical unlinked entries remain intact, world calendar unaffected.
+
+Status: local testing only; live Foundry V13 verification pending. No remote GitHub modifications.
+
+## v0.4.0-dev.45 | Compact log / Forced March prompt (live test pending)
+
+1. Complete navigation roll: latest hex expands automatically, compact Navigation row shows character, result and DC, while travel row says Pending.
+2. Roll travel time: compact dice row shows dice formula, faces and hours. Expand `Full navigation & dice breakdown` to verify original die icons, pace, detailed calculation and navigation ruling remain available; close it and confirm summaries remain visible.
+3. Trigger Hour 9 Forced March: compact GM prompt displays Traveled, Hex Left, CON DC and the original two buttons. Verify Continue processes an hour, Pause/Exit preserves progress, New Travel Day still uses the existing GM Controls action.
+4. During GM decision/review verify the live log briefing is compact; after resolving saves confirm Force March results remain under the correct hex and character details are accessible.
+5. Verify a new hex auto-expands but its detailed dice breakdown remains closed until manually requested, older hexes stay collapsed, theme switching/readability works and narrow log width has no horizontal overflow.
+6. Check no legacy travel math/world history alteration and no Foundry clock movement.
+
+Status: local checks only, live Foundry V13 acceptance pending; no GitHub write.
+
+## v0.4.0-dev.44 | Nested navigation/dice disclosure regression (live testing pending)
+
+1. First navigation roll in a fresh hex: latest Hex and Navigation & Travel Dice details both automatically OPEN, even when the GM ruling is still pending and travel hours are unavailable.
+2. GM confirms navigation outcome and rolls travel time: both levels stay OPEN, showing the navigation result, dice, modifiers and duration.
+3. Hex completes: both levels remain OPEN after the log refresh.
+4. GM manually closes Navigation & Travel Dice, then refreshes without a new travel event: it stays closed. Repeat for outer hex. On a NEW recorded event for that same hex, both reopen.
+5. Roll a second hex: its two levels auto-open; the previous hex is collapsed by default unless the GM had explicitly expanded it.
+6. Verify pause/resume and Forced March linked checks still render correctly, and that stored travel duration and character roster are unchanged.
+
+Status: Browser DOM simulations and package checks only; live Foundry V13 unverified. No GitHub writes.
+
+## v0.4.0-dev.43 | Live Foundry checklist (pending)
+
+1. Start and complete a new hex: latest/current day's hex stays expanded when the result is recorded; navigation and travel dice remain inspectable in their expandable subsection.
+2. Collapse that hex manually, then refresh the dashboard without recording new events: it must remain closed. Record a NEW event in that hex or a newer hex: the latest updated entry should open automatically.
+3. Pause/Exit and then Start/Continue: the current day stays expanded, and unfinished hex progress remains visible with its stored hex ID.
+4. Process a Forced March after pausing and resuming: confirmed linked checks appear under the associated hex; historical checks with no saved hex ID remain separate.
+5. In the roster, verify each present character displays role, role skill, and CON save on separate lines, including when exhaustion penalties are shown on the right.
+6. Verify historical roll results, manual log resizing, docking, role assignments, world time, and hex duration remain unchanged.
+
+Status: Local tests only; NOT live Foundry verified. No GitHub writes.
+
 # ZFT Overland Travel | Development Test Notes
 
 ## v0.4.0-dev.24 | Current-day result and new-day wording (development)
@@ -204,3 +298,97 @@ Status: local static/source validation only until Foundry GM/player checks are c
 - Client-only `interfaceTheme` persistence, live preview, hex validation, reset, Save, Cancel and Escape rollback retained. Header X discards unsaved changes.
 - Check GM and player, especially reopening from the Dashboard, dragging, input focus after preset changes, clickability of native Foundry/Midi-QOL dialogs, and cancellation when closing Dashboard. No travel engine or world-setting migration.
 - Local Chromium tests and static validation only; live Foundry V13 check pending. No GitHub writes.
+
+## v0.4.0-dev.39: Safe-limit shading and Forced March ruling defaults (live testing pending)
+
+1. At 7/8, verify the Hours Today card retains its neutral surface. At 8/8, confirm amber shading and border; at 9/8, confirm red shading and border. Test a custom theme as well.
+2. With one failed CON save, confirm Apply +1 Exhaustion is preselected; with a passed save, Accept success remains preselected. Neither should commit a result before Process Party Decisions is pressed.
+3. Override a failed result to waive exhaustion, request a reroll for a different PC, and verify that override persists. Rerolled PCs should select the default corresponding to their new total.
+4. Check both decision footer buttons: Process Party / Decisions and Pause / Exit / Saves Progress. On narrow displays they stack; neither button loses its original callback.
+5. Pause with unresolved decisions, reopen and verify saved choices. Verify reroll checkpointing and no duplicated exhaustion/hex hours. Full live Foundry V13 validation remains pending.
+
+
+## v0.4.0-dev.40 live log and Forced March verification (pending)
+
+1. On a current day with a pending Forced March decision, the warning and hour/DC information should be inside that day's expanded section, not above the day header. Earlier days remain collapsed. The previous/saved timeline entries must remain intact.
+2. At the Forced March pre-hour prompt, verify only Continue Hour N and Pause / Exit appear, aligned in a single row. Pause and reopen using Start/Continue: unchanged day and unfinished hex hours. Use New Travel Day separately for carry-forward.
+3. Complete a forced march with pass/fail results. Verify the summary remains short/collapsed until clicked, and expansion reveals the original per-character saves and GM ruling. Navigation/hex result details must still expand and retain all dice and timing data.
+4. Expand/collapse an earlier day and a completed event; trigger a dashboard refresh. Verify the user selections persist and the Log still docks, undocks and resizes manually on both GM and player clients.
+5. Test at narrow window widths and with alternate theme palettes. Amber pending, blue navigation, green completed, red failed should be readable but not override personal theming.
+
+
+## v0.4.0-dev.41: Hex-parent log test checklist (requires Foundry V13)
+
+1. Begin a new hex that lasts beyond 8 travel hours and resolve one Forced March save. Expand that day's hex: the resolved save must appear INSIDE the hex, with the exact roll totals/decisions retained. New saved `marchHistory` entry must include an exact `hexId` matching the travel card.
+2. Pause and resume: confirm the current hex ID stays unchanged and the same hex owns later Forced March saves. At hex completion, ensure the active-hex pointer clears and the number of completed hexes increments once.
+3. Advance New Travel Day with unfinished hex time. The new day must display a continued segment linked to that SAME hex; current-day Forced March saves appear inside that segment, while older day sections retain their earlier results.
+4. Open pre-v41 history: old Forced March results with no `hexId` must remain visible in a labeled day-level legacy section, not be silently assigned to a hex. No dice, outcomes or dates may change.
+5. Expand and collapse day, hex and nested save details, change theme, dock/undock and manually resize the log as GM and player. Check old and new histories at narrow widths.
+6. Confirm module console version displays `0.4.0-dev.41`, ZFT Tools toolbar calls the control `Expedition Dashboard`, and no core travel dice or DCs have changed.
+
+Local syntax/DOM/render tests do not replace live Foundry GM and player checks.
+
+
+## v0.4.0-dev.42: Forced March-to-hex association regression (requires live Foundry V13)
+
+1. Begin a fresh hex with 10+ hours of travel. Pause at the Forced March prompt and close the panel. Reopen via Start / Continue. Verify the pending Forced March is nested inside the current hex, not above it or in Earlier Forced March checks.
+2. Roll/process a Forced March check, then pause and reopen once more. The completed check must remain nested under the same hex. Confirm actor totals and GM decisions are unchanged.
+3. Before completing an unfinished hex, select New Travel Day. Confirm the active hex retains its ID, its hours do not restart, and new Forced March events stay attached to that hex in the appropriate day's segment.
+4. Finish the hex. Confirm the completed hex retains linked checks, increments exactly one completed hex, and a fresh hex does not inherit the old ID.
+5. Prior unlinked Hour 9/Hour 10 checks from dev.41 remain under the labeled legacy section, with no silent reassociation. Check player log synchronization, manual docking/resizing, and no errors.
+
+Local source/DOM tests don't establish actual Foundry V13 behavior. No GitHub writes.
+
+
+## 0.4.0-dev.52 local test build
+Proportional top-left window scaling and scale-aware redocking; standalone roster toggle below original header; compact GM action/decision controls. No travel rules or world ledger changes. Live V13 tests pending.
+
+
+## 0.4.0-dev.53 local test build
+Replaced continuous slider with exact numeric scale entry (Apply/Enter), immediately applying ±1/5/10 controls, and Reset. Expanded/collapsed roster uses icon-only double chevrons beside the Roles button in the unchanged header. Per-client scale/roster state, scaled docking, themes, travel mechanics and world history retained. Live Foundry V13 testing pending.
+
+
+## 0.4.0-dev.54 local test build
+Expanded per-client interface scaling to 60%–150%. Replaced repetitive pending roll request cards with a compact shared heading and per-character icon actions; all original Resend, Roll as GM, and Cancel logic retained. Consolidated forced march GM adjudication into a compact selectable party table; selections, saved rerolls, partial progress and application mechanics are unchanged. Redesigned Expedition Roster alignment, hierarchy and spacing, preserving separate skill and CON save lines and right-aligned exhaustion. Aligned live Forced March saves with archived completed check results before and after GM approval. Five theme presets/custom colors preserved. Live Foundry V13/V14 verification pending. GitHub unchanged.
+
+
+## v0.4.0-dev.55 UI acceptance checks (pending live Foundry V13)
+- Inspect 58px portraits and actor names with long/wrapped names, with and without exhaustion, all five themes and 60%/150% scale.
+- Pending rolls: verify per-character Resend, Roll as GM, Cancel tooltips/legend, including one and six concurrent requests.
+- Forced March review: pass and fail colors; Exhaustion 0 versus positive; change each select between accept, exhaust, reroll without applying; projected level and chosen action color must respond; confirm only Process Party applies effects.
+- Scale settings: select steps 1,5,10; +/- applies instantly; Reset = 100%; persistence and GM/player dock arrangements.
+- Hex heading: navigation, GM ruling, travel dice, decision, CON saves, GM review, completion; no stale status and no layout overflow.
+
+
+## 0.4.0-dev.56 — UI layout/scale follow-up (local, live V13 testing pending)
+
+- Dashboard overview removes duplicate Current Hex Left and Completed Hexes fields without changing stored ledger state.
+- Scale controls open in an independent, movable and unscaled ZFT window with prior client-only increments preserved; normal GM/player panes still scale/redock.
+- Current hex header uses a compact top row and separate theme-aware current-action strip; Forced March count remains available when collapsed.
+- Roster tightens text/row padding; portraits fit content rather than setting height, while preserving separate skill/CON lines.
+- Check popout focus, all five themes, scaling 60–150%, hover/tooltips, window overflow, GM/player use and the saved history in actual Foundry V13. Browser tests are not live verification.
+
+
+## 0.4.0-dev.57 — roster condition alignment and empty travel days
+
+- Roster exhaustion label and penalty lines now top/right align with the character heading. The 0.4.0-dev.56 compact card height and portrait remain unchanged.
+- World-side expedition log visibility tracks explicit `recordedDays` in addition to travel cards and Force March checks. The GM snapshot registers its day and, on the explicit New Travel Day transition, the immediately preceding day. Historical empty days remain visible after browser reload and can be expanded to show a truthful zero-activity note. No empty-day roll/hex records are fabricated and Foundry's world clock is not advanced.
+- Clearing the expedition log clears recorded-day markers; full expedition reset clears markers and records Day 1 on the next published snapshot. Manual ledger jumps do not fabricate missing dates or days.
+- Older versions do not have the new markers, so an already-lost historical empty day cannot be reconstructed without evidence of that day.
+- Local source and browser tests are not live Foundry V13 validation. Verify with consecutive zero-activity days, reloads, manual ledger corrections and Clear Expedition Log.
+
+
+## 0.4.0-dev.58 local test focus
+- Hex Travel setup and Navigation Ruling now share theme-aware modern surfaces, controls and typography. The paired role actions remain informational and are not executed.
+- Travel dice are published after Dice So Nice's `showForRoll` resolves; remote Midi native rolls wait when a returned or matching observed native chat message ID is available. Retry/cancel hooks are deregistered after every attempt. Live multi-client animation timing must still be tested.
+- The latest recorded Forced March event expands for review while the next GM hour decision is pending. Continue / Pause closes it; previously opened historical entries remain available.
+- Removed the duplicate public Forced March awaiting-decision briefing; the active hex header remains the single pending-action summary.
+- Confirm live Foundry V13 and Dice So Nice player/GM behavior, especially mixed rolling modes, retries and disconnects.
+
+
+## 0.4.0-dev.59 — semantic roll outcome colors and hex roles display
+- Hex Travel setup shows the assigned actor portrait, role and skill inside three gently raised theme-aware category surfaces. Only Guide is marked as active roll.
+- Navigation Ruling distinguishes actual roll outcome from the selected GM override; preview updates when the select changes.
+- Expedition Log colors original Guide roll context, individual live and archived Forced March names, Passed/Failed labels, and textual GM outcomes. Original d20 red artwork and white numerical contrast retained.
+- Uses the existing theme success/failure/muted CSS variables and preserves all calculation, actor assignment, history, and socket behavior. Local browser/syntax tests are not live Foundry verification.
+- Generic travel hex role-check tallies and Quiet Travel recovery results also use semantic success/failure classes (native chat color fallback when theme variables are not in scope).

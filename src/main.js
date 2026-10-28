@@ -55,6 +55,7 @@ Hooks.once("ready", async () => {
   // of the generic Travel Manager or shared expedition-state engines.
   globalThis.ZFTMountIronrotConsole = Object.freeze({ publish: publishIronrotSnapshot, stage: publishIronrotTravelCard, removeStage: removeIronrotTravelCard, identity: ironrotIdentity, generation: ironrotGeneration, logEpoch: ironrotLogEpoch, rolePreferences: ironrotRolePreferences, rememberRoles: rememberIronrotRoles, hexStarted: rememberIronrotHex, prompt: options => IronrotConsole.prompt(options), registerPendingRoll: info => IronrotConsole.registerPendingRoll(info), unregisterPendingRoll: (key,token) => IronrotConsole.unregisterPendingRoll(key,token) });
   IronrotConsole.onReady();
+  Hooks.on("updateActor", actor => { if (actor?.type === "character") IronrotConsole.refresh(); });
   // Scoped V13 application hook: only our pending forced-march CON prompts
   // qualify for placement. No global Foundry window or Action HUD changes.
   Hooks.on("renderApplicationV2", (application, element) => {
@@ -98,7 +99,7 @@ Hooks.once("ready", () => {
       { name: "zftOverlandTravel", title: "Travel Manager", icon: "fa-solid fa-map",
         order: 10, button: true, visible: true, gmOnly: true,
         onChange: () => { if (game.user?.isGM) TravelPanel.open(); } },
-      { name: "zftMountIronrot", title: "Mount Ironrot Expedition Console", icon: "fa-solid fa-mountain",
+      { name: "zftMountIronrot", title: "Expedition Dashboard", icon: "fa-solid fa-mountain",
         order: 20, button: true, visible: true, gmOnly: false,
         onChange: () => { void IronrotConsole.toggle(); } }
     ]

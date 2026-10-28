@@ -93,7 +93,7 @@ export class ThemeManager {
     const safe = cleanTheme(theme);
     const active = hasCustomTheme(safe);
     const colors = themeColors(safe);
-    for (const id of ["zft-ironrot-console", "zft-ironrot-log", "zft-ironrot-workflow-window", "zft-overland-theme-window"]) {
+    for (const id of ["zft-ironrot-console", "zft-ironrot-log", "zft-ironrot-workflow-window", "zft-overland-theme-window", "zft-ir-scale-window"]) {
       const node = document.getElementById(id);
       if (!node) continue;
       if (!active) {

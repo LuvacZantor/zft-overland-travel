@@ -1342,3 +1342,1388 @@
   #zft-overland-theme-window .zft-ir-theme-fields {grid-template-columns:1fr;}
 }
 @media (max-width:400px) {#zft-overland-theme-window .zft-ir-theme-footer {justify-content:stretch;} #zft-overland-theme-window .zft-ir-theme-footer button {flex:1;min-width:0;}}
+
+/* Expedition roster: role help and inline exhaustion penalties. */
+#zft-ironrot-console .zft-ir-role-tooltip {position:relative;display:inline-block;width:max-content;max-width:100%;cursor:help;outline-offset:2px;}
+#zft-ironrot-console .zft-ir-role-tooltip i {font-size:9px;opacity:.65;}
+#zft-ironrot-console .zft-ir-role-tooltip-pop {display:none;position:absolute;left:0;bottom:calc(100% + 5px);width:245px;max-width:80vw;z-index:25;padding:9px 11px;background:#191915;border:1px solid #bc945d;border-radius:6px;box-shadow:0 5px 18px #000b;color:#f2dfbd;font:11px/1.4 var(--font-primary,sans-serif);white-space:normal;pointer-events:none;}
+#zft-ironrot-console .zft-ir-role-tooltip-pop em {display:block;margin-top:5px;font-style:normal;color:#c5b08c;}
+#zft-ironrot-console .zft-ir-role-tooltip:is(:hover,:focus-visible) .zft-ir-role-tooltip-pop {display:block;}
+#zft-ironrot-console .zft-ir-member-exhaustion {display:flex;flex-direction:column;align-items:flex-end;gap:2px;text-align:right;flex:0 0 auto;max-width:49%;}
+#zft-ironrot-console .zft-ir-member-penalty {font-size:9px;color:#c9b19b;line-height:1.25;}
+.zft-ir-exhaustion-menu {position:fixed;z-index:999999;min-width:220px;padding:5px;background:#241c17;color:#f2dfbd;border:1px solid #b78c56;border-radius:7px;box-shadow:0 7px 25px #000b;font:12px var(--font-primary,sans-serif);}
+.zft-ir-exhaustion-menu-head {padding:8px 10px;border-bottom:1px solid #65503a;font-weight:700;margin-bottom:3px;}
+.zft-ir-exhaustion-menu button {display:block;width:100%;border:0;border-radius:4px;background:transparent;color:inherit;text-align:left;padding:6px 10px;cursor:pointer;}
+.zft-ir-exhaustion-menu button:hover,.zft-ir-exhaustion-menu button:focus-visible {background:#59402a;outline:none;}
+.zft-ir-exhaustion-menu button[aria-checked="true"] {color:#eebc76;font-weight:700;}
+
+/* dev.34: compact, scrollable GM role editor and roster reference. */
+#zft-ironrot-workflow-window .zft-ir-attendance-editor {font-size:14px;}
+#zft-ironrot-workflow-window .zft-ir-attendance-editor .zft-ir-card-title {font-size:17px;}
+#zft-ironrot-workflow-window .zft-ir-attendance-editor p {font-size:14px;line-height:1.4;}
+#zft-ironrot-workflow-window .zft-ir-attendance-editor label {font-size:14px;}
+#zft-ironrot-workflow-window .zft-ir-attendance-editor :is(input:not([type=checkbox]),select,textarea) {font-size:14px;min-height:36px;}
+#zft-ironrot-workflow-window .zft-ir-attendance-editor .zft-ir-actions button {font-size:14px;padding:8px 10px;}
+#zft-ironrot-workflow-window .zft-ir-roles-scroll {max-height:min(48vh,400px);overflow-y:auto;overscroll-behavior:contain;min-height:0;margin:8px 0;padding-right:4px;}
+#zft-ironrot-workflow-window .zft-ir-roles-fields {display:grid;grid-template-columns:1fr;gap:8px;padding:0;}
+#zft-ironrot-workflow-window .zft-ir-role-pair {min-width:0;margin:0;padding:7px 9px 10px;border:1px solid #66503a;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;}
+#zft-ironrot-workflow-window .zft-ir-role-pair legend {font-size:14px;font-weight:700;padding:0 5px;}
+#zft-ironrot-workflow-window .zft-ir-role-pair label {display:grid;gap:5px;min-width:0;align-content:start;line-height:1.25;}
+#zft-ironrot-workflow-window .zft-ir-role-pair label span {font-size:13px;overflow-wrap:anywhere;}
+#zft-ironrot-workflow-window .zft-ir-role-pair select {font-size:14px;width:100%;min-width:0;max-width:100%;box-sizing:border-box;}
+#zft-ironrot-workflow-window .zft-ir-roles-scroll + .zft-ir-actions {position:sticky;bottom:0;background:#261d17;padding-top:7px;z-index:1;}
+@media (max-width:420px) {#zft-ironrot-workflow-window .zft-ir-role-pair {grid-template-columns:1fr;}}
+#zft-ironrot-console .zft-ir-roster-header {display:flex;align-items:start;justify-content:space-between;gap:8px;position:relative;}
+#zft-ironrot-console .zft-ir-role-reference {position:relative;flex:0 0 auto;z-index:12;}
+#zft-ironrot-console .zft-ir-role-reference summary {list-style:none;cursor:pointer;border:1px solid #946e44;border-radius:5px;padding:4px 8px;font-size:12px;font-weight:600;color:#e9c28a;background:#3a2a1e;}
+#zft-ironrot-console .zft-ir-role-reference summary::-webkit-details-marker {display:none;}
+#zft-ironrot-console .zft-ir-role-reference[open] summary {background:#57402a;}
+#zft-ironrot-console .zft-ir-role-reference-content {position:absolute;right:0;top:calc(100% + 5px);width:min(340px,80vw);max-height:min(430px,60vh);overflow-y:auto;background:#231b16;border:1px solid #b18a55;border-radius:6px;padding:10px;box-shadow:0 9px 25px #000c;z-index:20;}
+#zft-ironrot-console .zft-ir-reference-group + .zft-ir-reference-group {border-top:1px solid #6d5238;margin-top:9px;padding-top:9px;}
+#zft-ironrot-console .zft-ir-reference-group h4 {font-size:14px;color:#e6bb79;margin:0 0 6px;}
+#zft-ironrot-console .zft-ir-reference-role {display:grid;grid-template-columns:1fr auto;gap:2px 8px;margin:0 0 8px;}
+#zft-ironrot-console .zft-ir-reference-role strong {font-size:13px;}
+#zft-ironrot-console .zft-ir-reference-role > span {font-size:12px;color:#d7b589;}
+#zft-ironrot-console .zft-ir-reference-role p {grid-column:1/-1;font-size:12px;line-height:1.4;margin:0;color:#dac6aa;}
+#zft-ironrot-console .zft-ir-party-member {align-items:center;}
+#zft-ironrot-console .zft-ir-member-heading {display:flex;align-items:baseline;justify-content:space-between;gap:8px;flex-wrap:wrap;}
+#zft-ironrot-console .zft-ir-member-heading > strong {font-size:13px;}
+#zft-ironrot-console .zft-ir-member-exhaustion {max-width:none;display:block;text-align:right;flex:none;}
+#zft-ironrot-console .zft-ir-member-condition {font-size:13px;white-space:nowrap;}
+#zft-ironrot-console .zft-ir-member-penalty {display:grid;gap:2px;font-size:12px;text-align:left;line-height:1.3;margin-top:2px;}
+#zft-ironrot-console .zft-ir-member-penalty span {display:block;}
+#zft-ironrot-console .zft-ir-role-tooltip {font-size:12px;}
+#zft-ironrot-console .zft-ir-role-tooltip-pop {font-size:12px;}
+
+/* dev.35: remove vertical whitespace in roster; align status with name. */
+#zft-ironrot-console .zft-ir-party-member { align-items:center; min-height:0; }
+#zft-ironrot-console .zft-ir-member-info { display:grid; grid-template-columns:minmax(0,1fr) auto; grid-template-rows:auto auto auto; align-content:center; align-items:start; gap:2px 10px; }
+#zft-ironrot-console .zft-ir-member-heading { display:contents; }
+#zft-ironrot-console .zft-ir-member-heading > strong { grid-column:1;grid-row:1;line-height:1.25; }
+#zft-ironrot-console .zft-ir-member-exhaustion { grid-column:2;grid-row:1 / span 3;display:flex;flex-direction:column;gap:2px;text-align:left;min-width:118px; }
+#zft-ironrot-console .zft-ir-role-tooltip, #zft-ironrot-console .zft-ir-member-info > small {grid-column:1;grid-row:2;align-self:start;}
+#zft-ironrot-console .zft-ir-member-bonuses {grid-column:1;grid-row:3;align-self:start;}
+#zft-ironrot-console .zft-ir-member-penalty {font-size:12px;text-align:left;}
+#zft-ironrot-console .zft-ir-roles-open {cursor:pointer;background:#3a2a1e;color:#e9c28a;border:1px solid #946e44;border-radius:5px;padding:5px 10px;font-size:13px;font-weight:700;}
+#zft-ir-roles-popout {position:fixed;z-index:95;width:min(430px,calc(100vw - 16px));max-height:min(600px,calc(100vh - 16px));display:flex;flex-direction:column;color:#e9d3b5;background:#241c16;border:2px solid #c39a5d;border-radius:9px;box-shadow:0 12px 32px #000b;overflow:hidden;font-size:14px;}
+#zft-ir-roles-popout .zft-ir-roles-popout-header {cursor:move;display:flex;align-items:center;justify-content:space-between;background:#39291d;padding:10px 13px;border-bottom:1px solid #98754a;font-size:17px;user-select:none;}
+#zft-ir-roles-popout .zft-ir-roles-popout-header button {cursor:pointer;color:#e9d3b5;background:transparent;border:1px solid #75583a;border-radius:5px;padding:3px 9px;}
+#zft-ir-roles-popout .zft-ir-roles-popout-body {overflow:auto;padding:14px;}
+#zft-ir-roles-popout .zft-ir-reference-group + .zft-ir-reference-group {border-top:1px solid #6d5238;margin-top:13px;padding-top:13px;}
+#zft-ir-roles-popout .zft-ir-reference-group h4 {font-size:17px;color:#e6bb79;margin:0 0 8px;}
+#zft-ir-roles-popout .zft-ir-reference-role {display:grid;grid-template-columns:1fr auto;gap:5px 10px;margin:0 0 12px;}
+#zft-ir-roles-popout .zft-ir-reference-role strong {font-size:15px;color:#f0dfc0;}
+#zft-ir-roles-popout .zft-ir-reference-role > span {font-size:13px;color:#d7b589;}
+#zft-ir-roles-popout .zft-ir-reference-role p {grid-column:1/-1;margin:0;font-size:14px;line-height:1.45;color:#dac6aa;}
+
+
+/* dev.36: correct roster alignment, pop-out role editor, readable grouped help. */
+#zft-ironrot-console .zft-ir-member-exhaustion { text-align:right; align-items:flex-end; }
+#zft-ironrot-console .zft-ir-member-penalty,
+#zft-ironrot-console .zft-ir-member-penalty span { text-align:right; }
+#zft-ir-roles-popout {max-height:min(850px,calc(100vh - 16px));}
+#zft-ir-roles-popout .zft-ir-roles-popout-body {overflow-y:auto;padding:12px;}
+#zft-ir-roles-popout .zft-ir-reference-group {
+  padding:12px 13px; margin:0 0 11px; border:1px solid #80603f;
+  background:#30241b; border-radius:6px;
+}
+#zft-ir-roles-popout .zft-ir-reference-group + .zft-ir-reference-group {border-top:1px solid #80603f;margin-top:0;padding-top:12px;}
+#zft-ir-roles-popout .zft-ir-reference-role:not(:last-child) {padding-bottom:10px;margin-bottom:10px;border-bottom:1px solid #584536;}
+#zft-ir-roles-popout .zft-ir-reference-role:last-child {margin-bottom:0;}
+/* Previous feedback: improve dashboard travel-metric readability slightly. */
+#zft-ironrot-console .zft-ir-progress-grid,
+#zft-ironrot-console .zft-ir-progress-label {font-size:12px;}
+#zft-ironrot-console .zft-ir-next-step {font-size:13px;}
+
+
+/* v0.4.0-dev.37: consistent GM controls and responsive ledger editor.
+ * Only module windows are styled; native Foundry and Midi-QOL dialogs remain untouched. */
+#zft-ironrot-workflow-window .zft-ir-attendance-editor,
+#zft-ironrot-workflow-window .zft-ir-workflow {
+  background:var(--zft-theme-window,#261d17);
+  border:1px solid var(--zft-theme-border,#806044);
+  border-radius:7px;
+  padding:12px;
+  color:var(--zft-theme-text,#f1dfc3);
+}
+#zft-ironrot-workflow-window .zft-ir-attendance-editor .zft-ir-card-title,
+#zft-ironrot-workflow-window .zft-ir-prompt-title {
+  font-family:Georgia,'Times New Roman',serif;
+  color:var(--zft-theme-accent,#e5b777);
+  font-size:18px;line-height:1.25;font-weight:700;
+  margin:0 0 10px;
+}
+#zft-ironrot-workflow-window .zft-ir-attendance-editor .zft-ir-card-title i {margin-right:6px;font-size:15px;}
+#zft-ironrot-workflow-window .zft-ir-attendance-editor p {
+  color:var(--zft-theme-muted,#c6b29a);
+  font-size:14px;line-height:1.45;margin:8px 0 12px;
+}
+#zft-ironrot-workflow-window .zft-ir-attendance-editor label {
+  color:var(--zft-theme-text,#eee0ce);
+  font-size:14px;
+}
+#zft-ironrot-workflow-window .zft-ir-attendance-editor .zft-ir-ledger-fields {
+  display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;
+  margin:9px 0 11px;padding:0;
+}
+#zft-ironrot-workflow-window .zft-ir-attendance-editor .zft-ir-ledger-fields label {
+  display:flex;flex-direction:column;align-items:stretch;gap:7px;
+  border:1px solid var(--zft-theme-border,#77583c);border-radius:6px;
+  background:var(--zft-theme-card,#33251d);padding:10px;min-width:0;
+}
+#zft-ironrot-workflow-window .zft-ir-ledger-fields label span {
+  font-size:13px;color:var(--zft-theme-muted,#c9b79d);font-weight:700;min-height:16px;
+}
+#zft-ironrot-workflow-window .zft-ir-attendance-editor .zft-ir-ledger-fields input {
+  width:100%;min-width:0;flex:none;min-height:42px;margin:0;
+  font-size:20px;font-weight:700;text-align:center;font-variant-numeric:tabular-nums;
+  color:var(--zft-theme-text,#f4dfbd);
+}
+#zft-ironrot-workflow-window .zft-ir-attendance-editor .zft-ir-editor-warning {
+  display:flex;align-items:flex-start;gap:9px;font-size:13px;
+  color:var(--zft-theme-muted,#ccbbaa);
+  border-left:3px solid var(--zft-theme-accent,#c49a61);
+  background:var(--zft-theme-card,#31251d);padding:9px;margin:10px 0;
+}
+#zft-ironrot-workflow-window .zft-ir-editor-warning i {color:var(--zft-theme-accent,#e5b777);margin-top:2px;}
+#zft-ironrot-workflow-window .zft-ir-attendance-editor .zft-ir-actions,
+#zft-ironrot-workflow-window .zft-ir-prompt-actions {
+  display:flex;flex-wrap:wrap;align-items:center;gap:8px;
+  border-top:1px solid var(--zft-theme-border,#73553b);
+  padding-top:12px;margin-top:12px;
+}
+#zft-ironrot-workflow-window .zft-ir-attendance-editor .zft-ir-actions button,
+#zft-ironrot-workflow-window .zft-ir-prompt-actions button {
+  border-radius:5px;min-height:38px;padding:8px 12px;
+  font-size:14px;line-height:1.3;max-width:100%;
+}
+#zft-ironrot-workflow-window .zft-ir-prompt-form {gap:10px;}
+#zft-ironrot-workflow-window .zft-ir-prompt-content {font-size:14px;line-height:1.45;}
+#zft-ironrot-workflow-window .zft-ir-reset-inline {padding:10px;border-radius:5px;}
+@media (max-width:520px) {
+  #zft-ironrot-workflow-window .zft-ir-attendance-editor .zft-ir-ledger-fields {grid-template-columns:1fr;}
+}
+
+#zft-ironrot-workflow-window .zft-ir-gm-decision-content > div {
+  color:var(--zft-theme-text,#f1dfc3)!important;
+  background:var(--zft-theme-card,#32261e)!important;
+  border:1px solid var(--zft-theme-border,#74583f);
+  border-radius:6px;padding:12px!important;
+}
+#zft-ironrot-workflow-window .zft-ir-gm-decision-content :is(p,small) {line-height:1.45;}
+
+/* dev.38: return role assignments to the inline GM Controls editor. */
+#zft-ironrot-workflow-window .zft-ir-attendance-editor .zft-ir-roles-scroll {
+  max-height:min(57vh,480px); overflow-y:auto; min-height:0; padding:2px 3px 4px;
+}
+#zft-ironrot-workflow-window .zft-ir-attendance-editor .zft-ir-roles-fields {
+  display:grid; grid-template-columns:1fr; gap:11px;
+}
+#zft-ironrot-workflow-window .zft-ir-attendance-editor .zft-ir-role-pair {
+  display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:9px;
+  border:1px solid var(--zft-theme-border,#80603f); min-width:0;
+  padding:9px; margin:0; background:var(--zft-theme-card,#32251b);
+}
+#zft-ironrot-workflow-window .zft-ir-attendance-editor .zft-ir-role-pair legend {
+  padding:0 6px; font-size:15px; color:var(--zft-theme-accent,#e2b778);
+}
+#zft-ironrot-workflow-window .zft-ir-attendance-editor .zft-ir-role-pair label {
+  display:flex;flex-direction:column;align-items:stretch;gap:4px;min-width:0;
+}
+#zft-ironrot-workflow-window .zft-ir-role-assignment-name {font-size:14px;line-height:1.25;color:var(--zft-theme-heading,#f0dfc0);}
+#zft-ironrot-workflow-window .zft-ir-role-assignment-skill {font-size:13px;line-height:1.25;color:var(--zft-theme-muted,#cbb69d);}
+#zft-ironrot-workflow-window .zft-ir-attendance-editor .zft-ir-role-pair select {
+  box-sizing:border-box;min-width:0;max-width:100%;width:100%;font-size:14px;
+  flex:0 0 auto;height:36px;min-height:36px;
+  background:var(--zft-theme-input,#181511); color:var(--zft-theme-text,#e9dbc3);
+}
+#zft-ironrot-workflow-window .zft-ir-role-pair option:disabled {color:#7a7067;text-decoration:line-through;}
+@media(max-width:390px) {
+  #zft-ironrot-workflow-window .zft-ir-attendance-editor .zft-ir-role-pair {grid-template-columns:1fr;}
+}
+/* dev.38: align exhaustion against the right edge of the character card. */
+#zft-ironrot-console .zft-ir-member-info .zft-ir-member-exhaustion {
+  justify-self:end; align-self:start; margin-left:auto; padding:0;
+  display:flex; flex-direction:column; align-items:flex-end; text-align:right;
+  min-width:122px; width:max-content; max-width:100%;
+}
+#zft-ironrot-console .zft-ir-member-exhaustion :is(.zft-ir-member-condition,.zft-ir-member-penalty,.zft-ir-member-penalty span) {
+  display:block; width:100%; text-align:right; white-space:nowrap;
+}
+/* dev.38: actionable travel colors, using theme accent, success and failure. */
+#zft-ironrot-console .zft-ir-stat strong.green,
+#zft-ironrot-console[data-zft-theme-active] .zft-ir-stat strong.green {color:var(--zft-theme-success,var(--zft-ir-green))!important;}
+#zft-ironrot-console .zft-ir-stat strong.amber,
+#zft-ironrot-console[data-zft-theme-active] .zft-ir-stat strong.amber {color:var(--zft-theme-accent,var(--zft-ir-amber))!important;}
+#zft-ironrot-console .zft-ir-stat strong.red,
+#zft-ironrot-console[data-zft-theme-active] .zft-ir-stat strong.red {color:var(--zft-theme-failure,var(--zft-ir-red))!important;}
+#zft-ironrot-console .zft-ir-safe-label.green strong,
+#zft-ironrot-console .zft-ir-safe-remaining.green strong {color:var(--zft-theme-success,var(--zft-ir-green));}
+#zft-ironrot-console .zft-ir-safe-label.amber strong,
+#zft-ironrot-console .zft-ir-safe-remaining.amber strong {color:var(--zft-theme-accent,var(--zft-ir-amber));}
+#zft-ironrot-console .zft-ir-forced-hours.red strong {color:var(--zft-theme-failure,var(--zft-ir-red));}
+#zft-ironrot-console .zft-ir-safe-progress.green > div,
+#zft-ironrot-console[data-zft-theme-active] .zft-ir-safe-progress.green > div {background:var(--zft-theme-success,var(--zft-ir-green))!important;}
+#zft-ironrot-console .zft-ir-safe-progress.amber > div,
+#zft-ironrot-console[data-zft-theme-active] .zft-ir-safe-progress.amber > div {background:var(--zft-theme-accent,var(--zft-ir-amber))!important;}
+#zft-ironrot-console .zft-ir-safe-progress.red > div,
+#zft-ironrot-console[data-zft-theme-active] .zft-ir-safe-progress.red > div {background:var(--zft-theme-failure,var(--zft-ir-red))!important;}
+#zft-ironrot-console .zft-ir-hex-progress > div,
+#zft-ironrot-console[data-zft-theme-active] .zft-ir-hex-progress > div {
+  background:linear-gradient(90deg,#739fba,#8dbbd0)!important;
+}
+#zft-ironrot-console .zft-ir-next-step.is-warning {border-left-color:var(--zft-theme-accent,var(--zft-ir-amber));}
+#zft-ironrot-console .zft-ir-next-step.is-forced {border-left-color:var(--zft-theme-failure,var(--zft-ir-red));}
+
+/* dev.39: state-sensitive Hours Today card; scoped and theme-aware.
+   Amber = all safe hours consumed, red = time beyond the safe limit. */
+#zft-ironrot-console .zft-ir-hours-stat.is-limit,
+#zft-ironrot-console[data-zft-theme-active] .zft-ir-hours-stat.is-limit {
+  background:color-mix(in srgb, var(--zft-theme-accent,var(--zft-ir-amber)) 17%, var(--zft-theme-roster,#292019))!important;
+  border-color:var(--zft-theme-accent,var(--zft-ir-amber))!important;
+  box-shadow:inset 0 0 0 1px color-mix(in srgb, var(--zft-theme-accent,var(--zft-ir-amber)) 17%, transparent);
+}
+#zft-ironrot-console .zft-ir-hours-stat.is-forced,
+#zft-ironrot-console[data-zft-theme-active] .zft-ir-hours-stat.is-forced {
+  background:color-mix(in srgb, var(--zft-theme-failure,var(--zft-ir-red)) 18%, var(--zft-theme-roster,#292019))!important;
+  border-color:var(--zft-theme-failure,var(--zft-ir-red))!important;
+  box-shadow:inset 0 0 0 1px color-mix(in srgb, var(--zft-theme-failure,var(--zft-ir-red)) 20%, transparent);
+}
+/* dev.39: two balanced decision buttons under the Forced March party review. */
+#zft-ironrot-workflow-window .zft-ir-prompt-actions.zft-ir-forced-decision-actions {
+  display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;
+}
+#zft-ironrot-workflow-window .zft-ir-prompt-actions.zft-ir-forced-decision-actions button {
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  gap:2px;width:100%;min-height:62px;line-height:1.25;
+  padding:9px 8px;text-align:center;white-space:normal;
+}
+#zft-ironrot-workflow-window .zft-ir-forced-decision-actions .zft-ir-action-primary {
+  display:block;font-size:15px;font-weight:700;
+}
+#zft-ironrot-workflow-window .zft-ir-forced-decision-actions .zft-ir-action-secondary {
+  display:block;font-size:13px;font-weight:600;opacity:.88;
+}
+@media (max-width:440px) {
+  #zft-ironrot-workflow-window .zft-ir-prompt-actions.zft-ir-forced-decision-actions {
+    grid-template-columns:1fr;
+  }
+  #zft-ironrot-workflow-window .zft-ir-prompt-actions.zft-ir-forced-decision-actions button {min-height:54px;}
+}
+
+
+/* v0.4.0-dev.40: Expedition Log hierarchy. A day is the visual parent of
+   pending decisions, completed Forced Marches, and hex progress. This is
+   log-window-only and does not affect persisted world history or Foundry UI. */
+#zft-ironrot-log .zft-ir-log-feed { gap: 13px; }
+#zft-ironrot-log .zft-ir-day-group-card {
+  padding: 0; border: 0; background: transparent; min-width: 0;
+}
+#zft-ironrot-log .zft-ir-day-group {
+  display: block; overflow: hidden; border: 1px solid var(--zft-theme-border,#796040);
+  border-left: 4px solid var(--zft-theme-accent,#cca065); border-radius: 8px;
+  background: color-mix(in srgb, var(--zft-theme-panel,#30251c) 90%, #080706);
+}
+#zft-ironrot-log .zft-ir-day-group > summary,
+#zft-ironrot-log[data-zft-theme-active] .zft-ir-day-group > summary {
+  padding: 12px 13px; border: 0!important; border-radius: 0;
+  border-bottom: 1px solid color-mix(in srgb, var(--zft-theme-border,#80603b) 72%, transparent)!important;
+  background: color-mix(in srgb,var(--zft-theme-accent,#ba8a54) 13%,var(--zft-theme-header,#35271c))!important;
+  min-height: 56px; color: var(--zft-theme-heading,#eed2a5)!important;
+}
+#zft-ironrot-log .zft-ir-day-group:not([open]) > summary,
+#zft-ironrot-log[data-zft-theme-active] .zft-ir-day-group:not([open]) > summary {
+  border-bottom: 0!important;
+  background: color-mix(in srgb,var(--zft-theme-card,#27211c) 95%,#111)!important;
+}
+#zft-ironrot-log .zft-ir-day-group-label { font-size:16px;line-height:1.3;gap:4px; }
+#zft-ironrot-log .zft-ir-day-group-label small {font-family:var(--font-primary,sans-serif);font-size:11px;font-weight:500;}
+#zft-ironrot-log .zft-ir-day-group-count {font-size:11px;line-height:1.35;max-width:38%;}
+#zft-ironrot-log .zft-ir-day-group-events {
+  display:grid; gap:7px; padding:10px 10px 12px; margin:0;
+}
+#zft-ironrot-log .zft-ir-day-group-events > .zft-ir-card,
+#zft-ironrot-log[data-zft-theme-active] .zft-ir-day-group-events > .zft-ir-card {
+  min-width:0; margin:0; padding:0; border:0; background:transparent!important;
+}
+#zft-ironrot-log .zft-ir-day-group-events .zft-ir-log-history > summary,
+#zft-ironrot-log[data-zft-theme-active] .zft-ir-day-group-events .zft-ir-log-history > summary {
+  display:flex;align-items:center;justify-content:space-between;gap:5px 10px;
+  min-height:40px; padding:9px 10px;
+  background: color-mix(in srgb,var(--zft-theme-card,#28221c) 90%,#101014)!important;
+  border:1px solid var(--zft-theme-border,#65503b)!important;
+  border-left:3px solid #6c9caa!important;
+  color:var(--zft-theme-text,#e9d8bf)!important;
+}
+#zft-ironrot-log .zft-ir-day-group-events .zft-ir-history-march > summary,
+#zft-ironrot-log[data-zft-theme-active] .zft-ir-day-group-events .zft-ir-history-march > summary {
+  border-left-color:var(--zft-theme-success,#76a58a)!important;
+}
+#zft-ironrot-log .zft-ir-day-group-events .zft-ir-history-failed > summary,
+#zft-ironrot-log[data-zft-theme-active] .zft-ir-day-group-events .zft-ir-history-failed > summary {
+  border-left-color:var(--zft-theme-failure,#c88487)!important;
+}
+#zft-ironrot-log .zft-ir-day-group-events .zft-ir-history-current > summary,
+#zft-ironrot-log[data-zft-theme-active] .zft-ir-day-group-events .zft-ir-history-current > summary {
+  border-left-color:var(--zft-theme-navigationEdge,#79a4b9)!important;
+}
+#zft-ironrot-log .zft-ir-log-history .zft-ir-history-label {font-size:12px;}
+#zft-ironrot-log .zft-ir-log-history .zft-ir-history-summary,
+#zft-ironrot-log .zft-ir-log-history > summary > strong {font-size:11px;font-weight:600;}
+#zft-ironrot-log .zft-ir-log-history > .zft-ir-march-full,
+#zft-ironrot-log .zft-ir-log-history > .zft-ir-travel-html { margin-top:4px; }
+#zft-ironrot-log .zft-ir-march-full {padding:8px 11px;}
+#zft-ironrot-log .zft-ir-march-full .zft-ir-card-title {font-size:13px;}
+#zft-ironrot-log .zft-ir-march-full .zft-ir-result-row {font-size:12px;gap:2px 8px;padding:6px 0;}
+#zft-ironrot-log .zft-ir-live-section {
+  display:grid;gap:7px;padding:9px;border:1px solid color-mix(in srgb,var(--zft-theme-accent,#c79c61) 62%,transparent);
+  border-radius:6px; background:color-mix(in srgb,var(--zft-theme-accent,#bd8e54) 9%,var(--zft-theme-panel,#29201b));
+}
+#zft-ironrot-log .zft-ir-live-label {
+  display:flex;align-items:center;gap:6px;font-size:11px;font-weight:750;
+  text-transform:uppercase;letter-spacing:.05em;color:var(--zft-theme-accent,#d7aa6e);
+}
+#zft-ironrot-log .zft-ir-live-section > .zft-ir-card,
+#zft-ironrot-log[data-zft-theme-active] .zft-ir-live-section > .zft-ir-card {
+  padding:0;border:0;background:transparent!important;margin:0;
+}
+#zft-ironrot-log .zft-ir-live-section .zft-ir-forced-briefing,
+#zft-ironrot-log[data-zft-theme-active] .zft-ir-live-section .zft-ir-forced-briefing {
+  padding:10px;gap:7px;
+  border:1px solid var(--zft-theme-accent,#bd9056)!important;
+  border-left:3px solid var(--zft-theme-accent,#d4a362)!important;
+  border-radius:5px;
+  background:color-mix(in srgb,var(--zft-theme-accent,#c49450) 11%,var(--zft-theme-card,#2c231b))!important;
+}
+#zft-ironrot-log .zft-ir-forced-briefing-head {font-size:15px;}
+#zft-ironrot-log .zft-ir-forced-briefing-date {display:none;}
+#zft-ironrot-log .zft-ir-live-section .zft-ir-forced-briefing-stats {gap:5px;}
+#zft-ironrot-log .zft-ir-live-section .zft-ir-forced-briefing-stats span {
+  padding:6px 5px;border-color:var(--zft-theme-border,#77614c);
+  background:color-mix(in srgb,var(--zft-theme-navigation,#2b363d) 50%,var(--zft-theme-card,#30251e));
+}
+#zft-ironrot-log .zft-ir-live-section .zft-ir-forced-briefing-stats strong {font-size:14px;}
+#zft-ironrot-log .zft-ir-live-section .zft-ir-forced-briefing p {font-size:12px;line-height:1.4;}
+#zft-ironrot-log .zft-ir-live-section .zft-ir-forced-briefing-warning {padding:6px 8px;font-size:11px;}
+#zft-ironrot-log .zft-ir-live-section .zft-ir-result {font-size:12px;}
+#zft-ironrot-log .zft-ir-live-section .zft-ir-card p {margin:3px 0;font-size:11px;}
+#zft-ironrot-log .zft-ir-day-group:has(.zft-ir-live-section) .zft-ir-day-empty-note {display:none;}
+#zft-ironrot-log .zft-ir-day-group:has(.zft-ir-live-section) .zft-ir-day-group-count {color:var(--zft-theme-accent,#e0b77e);}
+@container (max-width:430px) {
+  #zft-ironrot-log .zft-ir-day-group > summary {align-items:start;}
+  #zft-ironrot-log .zft-ir-day-group-count {max-width:45%;font-size:10px;}
+  #zft-ironrot-log .zft-ir-day-group-events {padding:8px;}
+}
+
+/* dev.40: Forced March choice offers two distinct actions on one row.
+   New Travel Day remains a separate GM Controls action. */
+#zft-ironrot-workflow-window .zft-ir-prompt-actions.zft-ir-march-choice-actions {
+  display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;
+}
+#zft-ironrot-workflow-window .zft-ir-march-choice-actions button {
+  width:100%;min-width:0;min-height:62px;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;gap:2px;padding:8px 9px;text-align:center;
+  white-space:normal;line-height:1.25;
+}
+#zft-ironrot-workflow-window .zft-ir-march-choice-actions .zft-ir-action-primary {font-weight:700;font-size:15px;}
+#zft-ironrot-workflow-window .zft-ir-march-choice-actions .zft-ir-action-secondary {font-weight:600;font-size:12px;opacity:.88;}
+
+
+/* v0.4.0-dev.41: Day > Hex > Forced March hierarchy. Only the log display
+   changes; older records without stored hexId remain explicitly unlinked. */
+#zft-ironrot-log .zft-ir-day-group-events {gap:10px;}
+#zft-ironrot-log .zft-ir-hex-parent-card {min-width:0;}
+#zft-ironrot-log .zft-ir-hex-section {border:1px solid var(--zft-theme-navigationEdge,#6f9fb3);border-left:4px solid var(--zft-theme-navigationEdge,#78a7bd);border-radius:7px;background:color-mix(in srgb,var(--zft-theme-navigation,#2b363d) 24%,var(--zft-theme-card,#2b231d));overflow:hidden;}
+#zft-ironrot-log .zft-ir-day-group-events .zft-ir-hex-section > summary,
+#zft-ironrot-log[data-zft-theme-active] .zft-ir-day-group-events .zft-ir-hex-section > summary {
+  display:flex;flex-wrap:wrap;align-items:center;gap:6px 12px;min-height:49px;padding:10px 12px;border:0!important;
+  background:color-mix(in srgb,var(--zft-theme-navigation,#2b363d) 50%,var(--zft-theme-card,#28201c))!important;
+  color:var(--zft-theme-heading,#edd6b5)!important;
+}
+#zft-ironrot-log .zft-ir-hex-section > summary .zft-ir-history-label {font-size:14px;font-weight:700;}
+#zft-ironrot-log .zft-ir-hex-header-meta {display:flex;flex-wrap:wrap;align-items:center;gap:4px 9px;margin-left:auto;justify-content:flex-end;color:var(--zft-theme-muted,#baa78c);font-size:11px;}
+#zft-ironrot-log .zft-ir-hex-header-meta strong {color:var(--zft-theme-accent,#e2ad70);font-size:12px;}
+#zft-ironrot-log .zft-ir-hex-contents {display:grid;gap:9px;padding:10px 12px 12px;background:color-mix(in srgb,var(--zft-theme-card,#2b231d) 91%,#050707);}
+#zft-ironrot-log .zft-ir-hex-rolls {border:1px solid var(--zft-theme-border,#735d45);border-radius:5px;overflow:hidden;}
+#zft-ironrot-log .zft-ir-hex-rolls > summary,
+#zft-ironrot-log[data-zft-theme-active] .zft-ir-hex-rolls > summary {display:flex;flex-wrap:wrap;align-items:center;gap:5px 8px;background:var(--zft-theme-card,#30251e)!important;padding:9px 10px;border:0!important;color:var(--zft-theme-text,#e8d8c7)!important;font-size:12px;font-weight:650;}
+#zft-ironrot-log .zft-ir-hex-rolls > summary small {margin-left:auto;font-weight:500;color:var(--zft-theme-muted,#c1b2a0);font-size:11px;}
+#zft-ironrot-log .zft-ir-hex-rolls > .zft-ir-travel-html {padding:6px 7px;}
+#zft-ironrot-log .zft-ir-hex-events {display:grid;gap:7px;margin-left:10px;padding-left:12px;border-left:2px solid color-mix(in srgb,var(--zft-theme-navigationEdge,#6e9fb4) 48%,transparent);}
+#zft-ironrot-log .zft-ir-hex-events:empty {display:none;}
+#zft-ironrot-log .zft-ir-hex-events > .zft-ir-card {padding:0;margin:0;min-width:0;border:0;background:transparent!important;}
+#zft-ironrot-log .zft-ir-hex-events .zft-ir-history-march > summary,
+#zft-ironrot-log[data-zft-theme-active] .zft-ir-hex-events .zft-ir-history-march > summary {border-left:3px solid var(--zft-theme-success,#78a892)!important;background:var(--zft-theme-card,#2a231c)!important;}
+#zft-ironrot-log .zft-ir-hex-progress-line {display:flex;justify-content:space-between;font-size:12px;color:var(--zft-theme-muted,#c3b19b);}
+#zft-ironrot-log .zft-ir-hex-progress-bar {height:6px;background:var(--zft-theme-panel,#241a14);border-radius:5px;overflow:hidden;}
+#zft-ironrot-log .zft-ir-hex-progress-bar div {height:100%;background:var(--zft-theme-navigationEdge,#78a7bd);}
+#zft-ironrot-log .zft-ir-legacy-marches {display:grid;gap:7px;padding:10px;border:1px dashed var(--zft-theme-border,#796040);border-radius:6px;}
+#zft-ironrot-log .zft-ir-legacy-label {display:flex;flex-wrap:wrap;gap:4px 10px;color:var(--zft-theme-muted,#c2ad94);font-size:12px;font-weight:700;}
+#zft-ironrot-log .zft-ir-legacy-label small {font-size:11px;font-weight:500;}
+#zft-ironrot-log .zft-ir-legacy-marches > .zft-ir-card {padding:0;margin:0;border:0;background:transparent!important;}
+#zft-ironrot-log .zft-ir-hex-events .zft-ir-live-section {margin-top:4px;}
+@container (max-width:430px) {
+  #zft-ironrot-log .zft-ir-hex-section > summary {align-items:flex-start;}
+  #zft-ironrot-log .zft-ir-hex-header-meta {margin-left:0;}
+  #zft-ironrot-log .zft-ir-hex-contents {padding:8px;}
+  #zft-ironrot-log .zft-ir-hex-events {margin-left:4px;padding-left:8px;}
+}
+
+
+/* v0.4.0-dev.43: role skill and CON saving throw on separate rows.
+   Do not change exhaustion column or row's existing actor interaction. */
+#zft-ironrot-console .zft-ir-member-bonuses {
+  display:flex !important;
+  flex-direction:column !important;
+  align-items:flex-start;
+  justify-content:flex-start;
+  width:100%;
+  min-width:0;
+  gap:3px;
+  line-height:1.3;
+}
+#zft-ironrot-console .zft-ir-member-bonuses > .zft-ir-member-skill,
+#zft-ironrot-console .zft-ir-member-bonuses > .zft-ir-member-con {
+  display:block;
+  min-width:0;
+  margin:0;
+  padding:0;
+  white-space:normal;
+}
+#zft-ironrot-log .zft-ir-hex-event-heading {
+  font-size:12px;
+  font-weight:700;
+  line-height:1.35;
+  color:var(--zft-theme-muted,#c7b5a0);
+  display:flex;
+  align-items:center;
+  gap:7px;
+}
+#zft-ironrot-log .zft-ir-hex-event-heading i {
+  color:var(--zft-theme-success,#84ac91);
+}
+
+
+/* dev.45 compact-first log. Hexes stay auto-expanded, and the full original
+   navigation/dice breakdown remains a deliberate secondary disclosure. */
+#zft-ironrot-log .zft-ir-day-group-events {gap:8px;}
+#zft-ironrot-log .zft-ir-hex-contents {gap:7px;padding:9px 10px 10px;}
+#zft-ironrot-log .zft-ir-hex-section > summary,
+#zft-ironrot-log[data-zft-theme-active] .zft-ir-day-group-events .zft-ir-hex-section > summary {
+  min-height:44px;padding:8px 11px;
+}
+#zft-ironrot-log .zft-ir-hex-roll-view {display:grid;gap:5px;min-width:0;}
+#zft-ironrot-log .zft-ir-hex-skim {display:grid;gap:0;min-width:0;}
+#zft-ironrot-log .zft-ir-skim-row {
+  display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;
+  gap:4px 10px;padding:7px 4px;border-bottom:1px solid color-mix(in srgb,var(--zft-theme-border,#735d45) 48%,transparent);
+  color:var(--zft-theme-text,#e9d5b6);font-size:12px;
+}
+#zft-ironrot-log .zft-ir-skim-row:last-child {border-bottom:0;}
+#zft-ironrot-log .zft-ir-skim-label {display:inline-flex;align-items:center;gap:6px;font-weight:700;flex:0 0 auto;}
+#zft-ironrot-log .zft-ir-skim-label i {color:var(--zft-theme-navigationEdge,#8eb6c8);width:13px;text-align:center;}
+#zft-ironrot-log .zft-ir-skim-result {display:flex;align-items:center;flex-wrap:wrap;justify-content:flex-end;gap:4px 8px;min-width:0;text-align:right;}
+#zft-ironrot-log .zft-ir-skim-result strong {font-size:12px;white-space:nowrap;}
+#zft-ironrot-log .zft-ir-skim-name {color:var(--zft-theme-muted,#c3af97);overflow-wrap:anywhere;}
+#zft-ironrot-log .zft-ir-skim-result .zft-ir-skim-success {color:var(--zft-theme-success,#8bc4a4);}
+#zft-ironrot-log .zft-ir-skim-result .zft-ir-skim-failure {color:var(--zft-theme-failure,#e4a0a0);}
+#zft-ironrot-log .zft-ir-skim-result .zft-ir-skim-pending {color:var(--zft-theme-accent,#d9ac6b);}
+#zft-ironrot-log .zft-ir-hex-rolls {border:0;border-radius:0;background:transparent;}
+#zft-ironrot-log .zft-ir-hex-rolls > summary,
+#zft-ironrot-log[data-zft-theme-active] .zft-ir-hex-rolls > summary {
+  display:flex;align-items:center;min-height:27px;padding:4px 5px;
+  background:transparent!important;color:var(--zft-theme-navigationEdge,#86b3c7)!important;
+  font-size:11px;font-weight:600;cursor:pointer;
+}
+#zft-ironrot-log .zft-ir-hex-rolls > summary small {font-weight:400;color:var(--zft-theme-muted,#baa995);}
+#zft-ironrot-log .zft-ir-hex-rolls[open] > summary .fa-chevron-right {transform:rotate(90deg);}
+#zft-ironrot-log .zft-ir-hex-rolls > .zft-ir-travel-html {padding:4px 3px 5px;}
+#zft-ironrot-log .zft-ir-hex-events {gap:5px;margin-left:3px;padding-left:8px;}
+#zft-ironrot-log .zft-ir-forced-compact,
+#zft-ironrot-log[data-zft-theme-active] .zft-ir-forced-compact {padding:8px 10px!important;background:color-mix(in srgb,var(--zft-theme-accent,#c69b57) 12%,var(--zft-theme-card,#2c231b))!important;}
+#zft-ironrot-log .zft-ir-forced-compact .zft-ir-forced-briefing-head {font-size:12px;gap:8px;flex-wrap:wrap;}
+#zft-ironrot-log .zft-ir-forced-inline-stats {display:flex;align-items:center;flex-wrap:wrap;gap:5px 12px;margin-top:5px;color:var(--zft-theme-muted,#c7b39a);font-size:11px;}
+#zft-ironrot-log .zft-ir-forced-inline-stats strong {color:var(--zft-theme-accent,#e2b976);}
+#zft-ironrot-log .zft-ir-forced-review-note {font-size:11px;color:var(--zft-theme-failure,#e3a2a2);margin-top:4px;}
+@container (max-width:430px) { #zft-ironrot-log .zft-ir-skim-row {align-items:flex-start;}
+  #zft-ironrot-log .zft-ir-skim-result {justify-content:flex-start;text-align:left;flex-basis:100%;}
+}
+/* dev.45 Forced March is an action prompt, not a second expedition ledger. */
+#zft-ironrot-workflow-window .zft-ir-gm-decision-content > .zft-ir-forced-choice {
+  display:grid;gap:10px;padding:10px!important;background:var(--zft-theme-card,#32261e)!important;
+}
+#zft-ironrot-workflow-window .zft-ir-forced-choice-stats {display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;}
+#zft-ironrot-workflow-window .zft-ir-forced-choice-stats > span {display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;min-width:0;min-height:57px;padding:7px 4px;border:1px solid var(--zft-theme-navigationEdge,#728fa3);border-radius:5px;background:color-mix(in srgb,var(--zft-theme-navigation,#2b3943) 47%,var(--zft-theme-card,#32261e));}
+#zft-ironrot-workflow-window .zft-ir-forced-choice-stats small {font-size:10px;letter-spacing:.04em;font-weight:700;color:var(--zft-theme-muted,#bfc8cb);}
+#zft-ironrot-workflow-window .zft-ir-forced-choice-stats strong {font-size:18px;color:var(--zft-theme-navigationEdge,#9cc8de);line-height:1.15;}
+#zft-ironrot-workflow-window .zft-ir-forced-choice-stats .zft-ir-forced-choice-dc {border-color:var(--zft-theme-accent,#c99a55);}
+#zft-ironrot-workflow-window .zft-ir-forced-choice-stats .zft-ir-forced-choice-dc strong {color:var(--zft-theme-accent,#dcb273);}
+#zft-ironrot-workflow-window .zft-ir-forced-choice p {margin:0;font-size:13px;line-height:1.4;color:var(--zft-theme-text,#f0ddc7);}
+
+
+/* v0.4.0-dev.46: full hex result in two coordinated columns. Reuse existing
+   29px die faces; no extra summary or nested click for the latest result. */
+#zft-ironrot-log .zft-ir-hex-roll-container {min-width:0;container-type:inline-size;}
+#zft-ironrot-log .zft-ir-hex-detail {display:grid;gap:8px;min-width:0;color:var(--zft-theme-text,#e9d8c3);}
+#zft-ironrot-log .zft-ir-hex-detail-grid {display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;align-items:stretch;min-width:0;}
+#zft-ironrot-log .zft-ir-hex-detail-grid > section {
+  min-width:0;padding:9px 9px 10px;display:flex;flex-direction:column;gap:6px;
+  border:1px solid var(--zft-theme-border,#715942);border-radius:6px;
+  background:var(--zft-theme-card,#30251e);
+}
+#zft-ironrot-log .zft-ir-hex-detail-grid > .zft-ir-hex-detail-nav {background:color-mix(in srgb,var(--zft-theme-navigation,#2d3b47) 68%,var(--zft-theme-card,#30251e));border-color:var(--zft-theme-navigationEdge,#7098ab);}
+#zft-ironrot-log .zft-ir-hex-detail-grid h4 {
+  display:flex;align-items:center;gap:7px;margin:0;padding-bottom:6px;
+  border-bottom:1px solid color-mix(in srgb,var(--zft-theme-border,#715942) 58%,transparent);
+  font-size:13px;line-height:1.25;color:var(--zft-theme-heading,#ebd3ad);font-weight:750;
+}
+#zft-ironrot-log .zft-ir-hex-detail-grid h4 i {color:var(--zft-theme-navigationEdge,#87b1c7);}
+#zft-ironrot-log .zft-ir-hex-guide-meta {font-size:10px;line-height:1.35;letter-spacing:.025em;font-weight:700;color:var(--zft-theme-muted,#c4b7a7);overflow-wrap:anywhere;}
+#zft-ironrot-log .zft-ir-hex-guide-name {font-size:13px;font-weight:700;line-height:1.35;overflow-wrap:anywhere;}
+#zft-ironrot-log .zft-ir-hex-guide-roll {min-width:0;font-size:12px;line-height:1.5;overflow-wrap:anywhere;}
+#zft-ironrot-log .zft-ir-hex-guide-status {display:flex;align-items:center;flex-wrap:wrap;gap:3px 6px;font-size:13px;font-weight:800;}
+#zft-ironrot-log .zft-ir-hex-guide-status.success {color:var(--zft-theme-success,#8ac2a3);}
+#zft-ironrot-log .zft-ir-hex-guide-status.failure {color:var(--zft-theme-failure,#e4a2a2);}
+#zft-ironrot-log .zft-ir-hex-guide-status.pending {color:var(--zft-theme-accent,#d4ab6d);}
+#zft-ironrot-log .zft-ir-hex-guide-status small {font-size:10px;font-weight:600;color:var(--zft-theme-muted,#baa995);}
+#zft-ironrot-log .zft-ir-hex-pace {font-size:11px;line-height:1.35;color:var(--zft-theme-muted,#c3b099);}
+#zft-ironrot-log .zft-ir-hex-pace strong {color:var(--zft-theme-text,#e9d8c3);}
+#zft-ironrot-log .zft-ir-hex-dice-formula {font-size:10px;letter-spacing:.06em;font-weight:700;color:var(--zft-theme-accent,#dab57f);}
+#zft-ironrot-log .zft-ir-hex-dice-faces {min-width:0;line-height:1.5;font-size:11px;overflow-wrap:anywhere;}
+#zft-ironrot-log .zft-ir-hex-dice-faces > div {display:flex;flex-wrap:wrap;align-items:center;gap:4px 6px;}
+#zft-ironrot-log .zft-ir-hex-dice-math {display:grid;gap:3px;margin-top:auto;padding-top:6px;border-top:1px solid color-mix(in srgb,var(--zft-theme-border,#715942) 60%,transparent);font-size:11px;line-height:1.35;}
+#zft-ironrot-log .zft-ir-hex-dice-math > div {display:flex;flex-wrap:wrap;justify-content:space-between;gap:2px 7px;}
+#zft-ironrot-log .zft-ir-hex-dice-math strong {white-space:nowrap;}
+#zft-ironrot-log .zft-ir-hex-dice-pending {font-size:11px;color:var(--zft-theme-muted,#bdaa94);line-height:1.5;}
+#zft-ironrot-log .zft-ir-hex-extra {margin-top:5px;padding-top:5px;border-top:1px dashed var(--zft-theme-border,#70593d);font-size:11px;line-height:1.4;}
+#zft-ironrot-log .zft-ir-hex-extra > span > div:first-child {font-size:10px;color:var(--zft-theme-muted,#c3b09d);}
+#zft-ironrot-log .zft-ir-hex-detail-total {
+  display:grid;justify-items:center;gap:3px;padding:9px 10px;
+  border:1px solid var(--zft-theme-accent,#aa8757);border-radius:6px;
+  background:color-mix(in srgb,var(--zft-theme-card,#30251e) 86%,var(--zft-theme-accent,#bb965f));
+}
+#zft-ironrot-log .zft-ir-hex-detail-total span {font-size:10px;letter-spacing:.1em;color:var(--zft-theme-muted,#c6b5a4);font-weight:700;}
+#zft-ironrot-log .zft-ir-hex-detail-total strong {font-size:25px;line-height:1.16;color:var(--zft-theme-heading,#f0d9b7);font-weight:800;}
+@container (max-width:260px) {
+ #zft-ironrot-log .zft-ir-hex-detail-grid {grid-template-columns:minmax(0,1fr);}
+}
+
+
+/* v0.4.0-dev.47: calculations share the bottom row with Total Hours.
+   Keep the evaluated dice artwork unchanged and present the d20 check total
+   alongside the same-sized d20 silhouette (not as an unmodified face). */
+#zft-ironrot-log .zft-ir-hex-detail-bottom {
+  display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;
+  align-items:stretch;min-width:0;
+}
+#zft-ironrot-log .zft-ir-hex-detail-math {
+  display:flex;flex-direction:column;justify-content:center;gap:5px;
+  min-width:0;padding:9px 10px;border:1px solid var(--zft-theme-border,#715942);
+  border-radius:6px;background:var(--zft-theme-card,#30251e);
+}
+#zft-ironrot-log .zft-ir-hex-math-title {
+  font-size:10px;letter-spacing:.09em;color:var(--zft-theme-muted,#c6b5a4);font-weight:700;
+}
+#zft-ironrot-log .zft-ir-hex-detail-bottom .zft-ir-hex-dice-math {
+  display:grid;gap:0;margin:0;padding:0;border:0;
+  font-size:11px;line-height:1.35;min-width:0;
+}
+#zft-ironrot-log .zft-ir-hex-detail-bottom .zft-ir-hex-dice-math > div {
+  display:grid!important;grid-template-columns:minmax(0,1fr) auto;
+  align-items:center;gap:6px;padding:5px 0;
+  border-bottom:1px solid color-mix(in srgb,var(--zft-theme-border,#715942) 48%,transparent);
+  min-width:0;
+}
+#zft-ironrot-log .zft-ir-hex-detail-bottom .zft-ir-hex-dice-math > div:last-child {border-bottom:0;}
+#zft-ironrot-log .zft-ir-hex-detail-bottom .zft-ir-hex-dice-math > div span {min-width:0;overflow-wrap:normal;}
+#zft-ironrot-log .zft-ir-hex-detail-bottom .zft-ir-hex-dice-math > div strong {white-space:nowrap;justify-self:end;}
+#zft-ironrot-log .zft-ir-hex-detail-total {display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:90px;}
+#zft-ironrot-log .zft-ir-hex-total-pending strong {font-size:14px;color:var(--zft-theme-muted,#baa995);}
+#zft-ironrot-log .zft-ir-hex-guide-roll .zft-ir-d20-total {
+  display:inline-flex;align-items:center;gap:7px;white-space:nowrap;
+  vertical-align:middle;font-weight:800;
+}
+#zft-ironrot-log .zft-ir-hex-guide-roll .zft-ir-d20-total > .zft-ir-die-icon {
+  width:29px;height:29px;flex-basis:29px;
+}
+#zft-ironrot-log .zft-ir-hex-guide-roll .zft-ir-d20-total > strong {
+  font-size:18px;line-height:1.2;
+}
+#zft-ironrot-log .zft-ir-hex-guide-roll {display:flex;flex-wrap:wrap;align-items:center;gap:4px;}
+@container (max-width:260px) {
+  #zft-ironrot-log .zft-ir-hex-detail-bottom {grid-template-columns:minmax(0,1fr);}
+}
+
+
+/* v0.4.0-dev.48: harmonize hex results across all five client themes.
+   All surfaces and semantic accents derive from the existing 22 editable
+   ThemeManager variables; no second palette or hardcoded status backgrounds. */
+#zft-ironrot-log .zft-ir-hex-detail-grid > .zft-ir-hex-detail-nav,
+#zft-ironrot-log .zft-ir-hex-detail-grid > .zft-ir-hex-detail-dice,
+#zft-ironrot-log .zft-ir-hex-detail-math {
+  background:var(--zft-theme-card,#2B231C);
+  border:1px solid var(--zft-theme-border,#80603C);
+  color:var(--zft-theme-text,#EADAC3);
+}
+/* A discreet navigation accent belongs to the title, not a whole blue panel. */
+#zft-ironrot-log .zft-ir-hex-detail-nav h4 i,
+#zft-ironrot-log .zft-ir-hex-detail-dice h4 i {
+  color:var(--zft-theme-navigationEdge,#6D96A6);
+}
+#zft-ironrot-log .zft-ir-hex-detail-total {
+  background:color-mix(in srgb,var(--zft-theme-accent,#DFB36E) 9%,var(--zft-theme-card,#2B231C));
+  border-color:var(--zft-theme-accent,#DFB36E);
+}
+/* A d20 check TOTAL is not a natural d20 face: preserve its accessible
+   check-total label while placing the evaluated number over the existing SVG
+   silhouette for the same die-face presentation as the travel dice. */
+#zft-ironrot-log .zft-ir-hex-guide-roll .zft-ir-d20-total {
+  position:relative;display:inline-grid;grid-template-columns:32px;
+  grid-template-rows:32px;place-items:center;gap:0;
+  width:32px;height:32px;flex:0 0 32px;vertical-align:middle;
+  white-space:nowrap;isolation:isolate;
+}
+#zft-ironrot-log .zft-ir-hex-guide-roll .zft-ir-d20-total > .zft-ir-die-icon {
+  grid-area:1/1;width:32px;height:32px;min-width:32px;
+  flex:initial;align-self:center;justify-self:center;
+}
+#zft-ironrot-log .zft-ir-hex-guide-roll .zft-ir-d20-total > strong {
+  grid-area:1/1;z-index:1;display:block;position:relative;
+  padding:0;margin:0;max-width:28px;min-width:0;
+  font-family:var(--font-primary,sans-serif);font-size:13px!important;
+  font-weight:800;line-height:1;color:#fff!important;
+  text-shadow:0 1px 2px #171717,0 0 3px #171717;
+  text-align:center;pointer-events:none;
+}
+/* Closed, COMPLETED hexes recede; active/in-progress hexes and manually
+   expanded historical hexes keep the primary navigation accent. */
+#zft-ironrot-log .zft-ir-hex-section.zft-ir-hex-complete:not([open]) {
+  background:var(--zft-theme-card,#2B231C);
+  border-color:color-mix(in srgb,var(--zft-theme-border,#80603C) 60%,var(--zft-theme-card,#2B231C));
+  border-left-color:color-mix(in srgb,var(--zft-theme-navigationEdge,#6D96A6) 36%,var(--zft-theme-card,#2B231C));
+}
+#zft-ironrot-log .zft-ir-day-group-events .zft-ir-hex-section.zft-ir-hex-complete:not([open]) > summary,
+#zft-ironrot-log[data-zft-theme-active] .zft-ir-day-group-events .zft-ir-hex-section.zft-ir-hex-complete:not([open]) > summary {
+  background:var(--zft-theme-card,#2B231C)!important;
+  color:var(--zft-theme-muted,#C3AE93)!important;
+}
+#zft-ironrot-log .zft-ir-hex-section.zft-ir-hex-complete:not([open]) > summary .zft-ir-history-label,
+#zft-ironrot-log .zft-ir-hex-section.zft-ir-hex-complete:not([open]) > summary .zft-ir-history-label i,
+#zft-ironrot-log[data-zft-theme-active] .zft-ir-hex-section.zft-ir-hex-complete:not([open]) > summary .zft-ir-history-label i {
+  color:var(--zft-theme-muted,#C3AE93)!important;
+}
+#zft-ironrot-log .zft-ir-hex-section.zft-ir-hex-complete:not([open]) > summary:hover,
+#zft-ironrot-log .zft-ir-hex-section.zft-ir-hex-complete:not([open]) > summary:focus-visible,
+#zft-ironrot-log[data-zft-theme-active] .zft-ir-hex-section.zft-ir-hex-complete:not([open]) > summary:hover,
+#zft-ironrot-log[data-zft-theme-active] .zft-ir-hex-section.zft-ir-hex-complete:not([open]) > summary:focus-visible {
+  background:color-mix(in srgb,var(--zft-theme-navigationEdge,#6D96A6) 9%,var(--zft-theme-card,#2B231C))!important;
+  color:var(--zft-theme-text,#EADAC3)!important;
+}
+#zft-ironrot-log .zft-ir-hex-section.zft-ir-hex-complete:not([open]) > summary {cursor:pointer;}
+
+
+/* v0.4.0-dev.49: ONE travel report, not four adjacent competing cards.
+   The original die graphics, rolls, pace math, GM overrides and duration are
+   retained in their existing DOM; only the presentation changes.
+   Every surface and status color comes from the active ZFT ThemeManager. */
+#zft-ironrot-log .zft-ir-hex-roll-container .zft-ir-travel-report {
+  min-width:0;display:grid;gap:0;padding:12px 13px 11px;
+  background:var(--zft-theme-card,#2b231c);
+  border:1px solid var(--zft-theme-border,#715942);
+  border-radius:7px;
+}
+#zft-ironrot-log .zft-ir-travel-report .zft-ir-hex-detail-grid {
+  display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:0;
+  align-items:stretch;min-width:0;
+}
+#zft-ironrot-log .zft-ir-travel-report .zft-ir-hex-detail-grid > section,
+#zft-ironrot-log[data-zft-theme-active] .zft-ir-travel-report .zft-ir-hex-detail-grid > section {
+  min-width:0;min-height:136px;padding:2px 10px 9px 0;
+  margin:0;border:0!important;border-radius:0;
+  background:transparent!important;color:var(--zft-theme-text,#eadac3);
+  box-shadow:none;gap:6px;
+}
+#zft-ironrot-log .zft-ir-travel-report .zft-ir-hex-detail-grid > section + section {
+  padding-left:13px;padding-right:0;
+  border-left:1px solid color-mix(in srgb,var(--zft-theme-border,#80603c) 70%,transparent)!important;
+}
+#zft-ironrot-log .zft-ir-travel-report .zft-ir-hex-detail-grid h4 {
+  border-bottom:0;padding-bottom:5px;margin-bottom:2px;
+  color:var(--zft-theme-heading,#eed5b0);
+}
+#zft-ironrot-log .zft-ir-travel-report .zft-ir-hex-detail-bottom {
+  display:grid;grid-template-columns:minmax(0,1.05fr) minmax(0,1fr);
+  gap:0;align-items:stretch;min-width:0;
+  padding-top:9px;border-top:1px solid color-mix(in srgb,var(--zft-theme-border,#80603c) 68%,transparent);
+}
+#zft-ironrot-log .zft-ir-travel-report .zft-ir-hex-detail-math,
+#zft-ironrot-log[data-zft-theme-active] .zft-ir-travel-report .zft-ir-hex-detail-math {
+  min-width:0;padding:1px 13px 1px 0;margin:0;
+  border:0!important;border-radius:0;background:transparent!important;
+  display:flex;flex-direction:column;justify-content:center;gap:4px;
+}
+#zft-ironrot-log .zft-ir-travel-report .zft-ir-hex-detail-total,
+#zft-ironrot-log[data-zft-theme-active] .zft-ir-travel-report .zft-ir-hex-detail-total {
+  min-width:0;min-height:75px;margin:0;padding:5px 3px 5px 13px;
+  display:flex;align-items:center;justify-content:center;flex-direction:column;gap:4px;
+  background:transparent!important;border:0!important;border-radius:0;
+  border-left:1px solid color-mix(in srgb,var(--zft-theme-border,#80603c) 70%,transparent)!important;
+}
+#zft-ironrot-log .zft-ir-travel-report .zft-ir-hex-detail-total strong {
+  color:var(--zft-theme-heading,#efd5ac);font-size:25px;
+}
+#zft-ironrot-log .zft-ir-travel-report .zft-ir-hex-detail-bottom .zft-ir-hex-dice-math > div {
+  padding:4px 0;gap:5px;
+}
+#zft-ironrot-log .zft-ir-travel-report .zft-ir-hex-dice-math > div:last-child {border-bottom:0;}
+/* At very narrow dock widths use a single column with rule separators, not
+   clipped dice or squashed navigation results. */
+@container (max-width:260px) {
+  #zft-ironrot-log .zft-ir-travel-report .zft-ir-hex-detail-grid,
+  #zft-ironrot-log .zft-ir-travel-report .zft-ir-hex-detail-bottom {grid-template-columns:minmax(0,1fr);}
+  #zft-ironrot-log .zft-ir-travel-report .zft-ir-hex-detail-grid > section {min-height:0;padding:3px 0 9px;}
+  #zft-ironrot-log .zft-ir-travel-report .zft-ir-hex-detail-grid > section + section {
+    border-left:0!important;border-top:1px solid var(--zft-theme-border,#80603c)!important;
+    padding:10px 0 8px;
+  }
+  #zft-ironrot-log .zft-ir-travel-report .zft-ir-hex-detail-math {padding:0 0 9px;}
+  #zft-ironrot-log .zft-ir-travel-report .zft-ir-hex-detail-total {
+    border-left:0!important;border-top:1px solid var(--zft-theme-border,#80603c)!important;
+    padding:10px 0 0;min-height:62px;
+  }
+}
+
+/* Shared pending/completed Forced March event typography and geometry. The
+   header and metadata stay the same; the status accent communicates state. */
+#zft-ironrot-log .zft-ir-live-section,
+#zft-ironrot-log[data-zft-theme-active] .zft-ir-live-section {
+  padding:0;background:transparent;border:0;border-radius:0;gap:6px;
+}
+#zft-ironrot-log .zft-ir-forced-briefing.zft-ir-march-event,
+#zft-ironrot-log[data-zft-theme-active] .zft-ir-forced-briefing.zft-ir-march-event {
+  display:block;min-width:0;margin:0;padding:9px 10px!important;
+  background:color-mix(in srgb,var(--zft-theme-accent,#d1a168) 8%,var(--zft-theme-card,#2b231c))!important;
+  border:1px solid var(--zft-theme-border,#80603c)!important;
+  border-left:3px solid var(--zft-theme-accent,#d1a168)!important;
+  border-radius:6px;
+}
+#zft-ironrot-log .zft-ir-history-march.zft-ir-march-event > summary,
+#zft-ironrot-log[data-zft-theme-active] .zft-ir-history-march.zft-ir-march-event > summary,
+#zft-ironrot-log .zft-ir-hex-events .zft-ir-history-march.zft-ir-march-event > summary,
+#zft-ironrot-log[data-zft-theme-active] .zft-ir-hex-events .zft-ir-history-march.zft-ir-march-event > summary {
+  display:grid!important;grid-template-columns:minmax(0,1fr) auto;
+  align-items:center;column-gap:8px;row-gap:3px;
+  margin:0;min-height:0;padding:9px 10px!important;
+  background:var(--zft-theme-card,#2b231c)!important;
+  border:1px solid var(--zft-theme-border,#80603c)!important;
+  border-left:3px solid var(--zft-theme-success,#87b69a)!important;
+  border-radius:6px;
+}
+#zft-ironrot-log .zft-ir-march-event-head {display:grid;grid-template-columns:minmax(0,1fr) auto;gap:3px 8px;align-items:center;min-width:0;}
+#zft-ironrot-log .zft-ir-march-event .zft-ir-march-title {
+  display:flex;align-items:center;gap:7px;min-width:0;
+  font-family:var(--font-primary,sans-serif);font-size:12px;font-weight:700;line-height:1.3;
+  color:var(--zft-theme-text,#ead8c3);
+}
+#zft-ironrot-log .zft-ir-march-event .zft-ir-march-title i {color:var(--zft-theme-muted,#b9ab99);}
+#zft-ironrot-log .zft-ir-march-event .zft-ir-march-status {
+  font-size:10px;line-height:1.3;font-weight:700;white-space:normal;
+  text-align:right;max-width:140px;
+}
+#zft-ironrot-log .zft-ir-march-status-pending {color:var(--zft-theme-accent,#dcb475);}
+#zft-ironrot-log .zft-ir-march-status-completed {color:var(--zft-theme-success,#8ab89b);}
+#zft-ironrot-log .zft-ir-march-event .zft-ir-march-event-meta {
+  grid-column:1/-1;min-width:0;font-size:11px;line-height:1.45;font-weight:500;
+  color:var(--zft-theme-muted,#beac96);
+}
+#zft-ironrot-log .zft-ir-march-event.zft-ir-history-march > summary::before {
+  content:'▸';display:inline-block;position:static;order:0;
+  grid-column:1;grid-row:1;justify-self:start;color:var(--zft-theme-muted,#bda995);
+  width:10px;margin:0;
+}
+#zft-ironrot-log .zft-ir-march-event.zft-ir-history-march[open] > summary::before {content:'▾';}
+#zft-ironrot-log .zft-ir-march-event.zft-ir-history-march > summary .zft-ir-march-title {padding-left:11px;grid-column:1;grid-row:1;}
+#zft-ironrot-log .zft-ir-march-event.zft-ir-history-march > summary .zft-ir-march-status {grid-column:2;grid-row:1;}
+#zft-ironrot-log .zft-ir-march-event.zft-ir-history-march > summary .zft-ir-march-event-meta {grid-column:1/-1;grid-row:2;}
+#zft-ironrot-log .zft-ir-forced-briefing.zft-ir-march-event .zft-ir-march-title {grid-column:1;}
+#zft-ironrot-log .zft-ir-forced-briefing.zft-ir-march-event .zft-ir-march-status {grid-column:2;}
+#zft-ironrot-log .zft-ir-forced-briefing.zft-ir-march-event .zft-ir-march-event-meta {grid-row:2;}
+#zft-ironrot-log .zft-ir-march-event .zft-ir-forced-review-note {margin-top:5px;}
+@container (max-width:260px) {
+  #zft-ironrot-log .zft-ir-march-event-head,
+  #zft-ironrot-log .zft-ir-history-march.zft-ir-march-event > summary {grid-template-columns:minmax(0,1fr);}
+  #zft-ironrot-log .zft-ir-march-event .zft-ir-march-status {max-width:none;text-align:left;}
+  #zft-ironrot-log .zft-ir-march-event.zft-ir-history-march > summary .zft-ir-march-status {grid-column:1;grid-row:2;}
+  #zft-ironrot-log .zft-ir-march-event.zft-ir-history-march > summary .zft-ir-march-event-meta {grid-row:3;}
+}
+
+
+/* v0.4.0-dev.50: full-width Navigation and Travel Dice rows. The unified
+   report retains the two-column calculation footer at normal dock widths.
+   Palette selections and every color override remain the source of truth. */
+#zft-ironrot-log .zft-ir-travel-report .zft-ir-hex-detail-grid {
+  grid-template-columns:minmax(0,1fr);gap:0;min-width:0;
+}
+#zft-ironrot-log .zft-ir-travel-report .zft-ir-hex-detail-grid > section,
+#zft-ironrot-log[data-zft-theme-active] .zft-ir-travel-report .zft-ir-hex-detail-grid > section {
+  min-width:0;min-height:0;padding:5px 0 11px!important;display:flex;
+  flex-direction:column;gap:7px;background:transparent!important;
+  border:0!important;border-radius:0;
+}
+#zft-ironrot-log .zft-ir-travel-report .zft-ir-hex-detail-grid > section + section,
+#zft-ironrot-log[data-zft-theme-active] .zft-ir-travel-report .zft-ir-hex-detail-grid > section + section {
+  padding:11px 0 12px!important;margin:0;
+  border-left:0!important;
+  border-top:1px solid color-mix(in srgb,var(--zft-theme-border,#80603c) 65%,transparent)!important;
+}
+#zft-ironrot-log .zft-ir-travel-report .zft-ir-hex-detail-grid h4 {
+  padding:0;margin:0;min-height:17px;border:0!important;
+  font-size:13px;line-height:1.3;
+}
+#zft-ironrot-log .zft-ir-hex-nav-line,
+#zft-ironrot-log .zft-ir-hex-dice-line {
+  display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);
+  gap:10px;align-items:center;min-width:0;
+}
+#zft-ironrot-log .zft-ir-hex-nav-info,
+#zft-ironrot-log .zft-ir-hex-nav-result,
+#zft-ironrot-log .zft-ir-hex-dice-info {
+  display:flex;flex-direction:column;align-items:flex-start;
+  gap:5px;min-width:0;
+}
+#zft-ironrot-log .zft-ir-hex-guide-meta {overflow-wrap:normal;word-break:normal;}
+#zft-ironrot-log .zft-ir-hex-guide-name {font-size:13px;overflow-wrap:break-word;}
+#zft-ironrot-log .zft-ir-hex-nav-result {gap:3px;}
+#zft-ironrot-log .zft-ir-hex-dice-line {align-items:center;}
+#zft-ironrot-log .zft-ir-hex-dice-faces {min-width:0;}
+#zft-ironrot-log .zft-ir-hex-dice-formula {font-size:11px;}
+#zft-ironrot-log .zft-ir-travel-report .zft-ir-hex-detail-bottom {
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:0;min-width:0;padding-top:11px;
+}
+#zft-ironrot-log .zft-ir-travel-report .zft-ir-hex-detail-math {padding-right:12px;}
+#zft-ironrot-log .zft-ir-travel-report .zft-ir-hex-detail-total {
+  padding-left:12px;min-height:74px;
+}
+/* Layout reflows only when an independently resizable log is truly narrow. */
+@container (max-width:260px) {
+  #zft-ironrot-log .zft-ir-hex-nav-line,
+  #zft-ironrot-log .zft-ir-hex-dice-line {grid-template-columns:minmax(0,1fr);gap:8px;}
+  #zft-ironrot-log .zft-ir-hex-nav-result {flex-direction:row;align-items:center;gap:10px;flex-wrap:wrap;}
+  #zft-ironrot-log .zft-ir-travel-report .zft-ir-hex-detail-bottom {grid-template-columns:minmax(0,1fr);}
+  #zft-ironrot-log .zft-ir-travel-report .zft-ir-hex-detail-total {padding:10px 0 0;}
+}
+/* Match the labels to the content instead of allowing odd single-word wraps. */
+#zft-ironrot-log .zft-ir-day-group-count {max-width:50%;overflow-wrap:normal;}
+#zft-ironrot-log .zft-ir-hex-header-meta {font-size:11px;}
+#zft-ironrot-log .zft-ir-travel-report .zft-ir-hex-dice-math > div {line-height:1.4;}
+
+
+/* v0.4.0-dev.51: fixed-column Forced March result rows. */
+#zft-ironrot-log .zft-ir-march-full .zft-ir-march-result-grid {
+  display:grid;grid-template-columns:minmax(0,1fr) 65px 60px;
+  gap:3px 9px;align-items:center;min-width:0;
+}
+#zft-ironrot-log .zft-ir-march-result-grid > .zft-ir-march-character {
+  grid-column:1;min-width:0;overflow-wrap:anywhere;
+}
+#zft-ironrot-log .zft-ir-march-result-grid > .zft-ir-march-check {
+  grid-column:2;display:flex;justify-content:center;align-items:center;min-width:0;font-variant-numeric:tabular-nums;
+}
+#zft-ironrot-log .zft-ir-march-result-grid .zft-ir-d20-total {gap:4px;justify-content:center;}
+#zft-ironrot-log .zft-ir-march-result-grid > .zft-ir-march-verdict {
+  grid-column:3;min-width:0;text-align:right;font-variant-numeric:tabular-nums;font-weight:700;
+}
+#zft-ironrot-log .zft-ir-march-full .zft-ir-march-result-grid > small {
+  grid-column:1/-1;grid-row:auto;margin:0;min-width:0;
+}
+@container (max-width:270px) {
+  #zft-ironrot-log .zft-ir-march-full .zft-ir-march-result-grid {grid-template-columns:minmax(0,1fr) 62px 51px;gap:3px 5px;}
+  #zft-ironrot-log .zft-ir-march-result-grid .zft-ir-march-verdict {font-size:11px;}
+}
+
+/* Collapse only roster members, not the Roles reference button. */
+#zft-ironrot-console .zft-ir-roster-toggle {
+  display:inline-flex;align-items:center;gap:8px;flex:1;min-width:0;
+  padding:3px 2px;border:none;background:transparent!important;
+  text-align:left;color:var(--zft-theme-heading,var(--zft-ir-parchment));
+  font-family:Georgia,'Times New Roman',serif;
+  font-size:14px;font-weight:700;cursor:pointer;
+}
+#zft-ironrot-console .zft-ir-roster-toggle i {font-size:11px;opacity:.9;flex:none;}
+#zft-ironrot-console .zft-ir-roster-toggle:hover,
+#zft-ironrot-console .zft-ir-roster-toggle:focus-visible {color:var(--zft-theme-accent,var(--zft-ir-amber));}
+#zft-ironrot-console #zft-ir-roster-members[hidden] {display:none!important;}
+
+/* Global, per-client ZFT scale, applied only to module-owned windows.
+   Scale UI contents and headers in place. Never zoom Foundry's #interface. */
+#zft-ironrot-console .zft-ir-head,
+#zft-ironrot-console .zft-ir-dashboard-summary,
+#zft-ironrot-console .zft-ir-dashboard-content {zoom:var(--zft-zot-interface-scale,1);}
+#zft-ironrot-log .zft-ir-log-head,
+#zft-ironrot-log .zft-ir-log-feed {zoom:var(--zft-zot-interface-scale,1);}
+#zft-ironrot-workflow-window .zft-ir-workflow-head,
+#zft-ironrot-workflow-window .zft-ir-workflow-content {zoom:var(--zft-zot-interface-scale,1);}
+#zft-overland-theme-window .zft-ir-theme-window-head,
+#zft-overland-theme-window .zft-ir-theme-window-content,
+#zft-ir-roles-popout .zft-ir-roles-popout-header,
+#zft-ir-roles-popout .zft-ir-roles-popout-body {zoom:var(--zft-zot-interface-scale,1);}
+#zft-ironrot-console .zft-ir-scale-panel {
+  position:absolute;top:42px;right:8px;z-index:100;
+  width:min(285px,calc(100% - 16px));padding:12px;
+  border:1px solid var(--zft-theme-border,var(--zft-ir-border));border-radius:6px;
+  background:var(--zft-theme-panel,var(--zft-ir-panel));
+  color:var(--zft-theme-text,var(--zft-ir-text));box-shadow:0 8px 20px #0008;
+  font-size:12px;zoom:var(--zft-zot-interface-scale,1);
+}
+#zft-ironrot-console .zft-ir-scale-panel label {display:flex;justify-content:space-between;font-size:13px;font-weight:700;gap:12px;}
+#zft-ironrot-console .zft-ir-scale-panel output {font-variant-numeric:tabular-nums;white-space:nowrap;}
+#zft-ironrot-console .zft-ir-scale-panel input[type=range] {display:block;width:100%;margin:10px 0;accent-color:var(--zft-theme-accent,var(--zft-ir-amber));}
+#zft-ironrot-console .zft-ir-scale-footer {display:flex;gap:6px;align-items:center;justify-content:space-between;color:var(--zft-theme-muted,var(--zft-ir-muted));}
+#zft-ironrot-console .zft-ir-scale-footer button {font-size:11px;min-height:24px;}
+
+
+/* v0.4.0-dev.52: proportional window scaling, not child zoom/reflow.
+   Scale each complete frame from its top left, then dock using scaled rects. */
+#zft-ironrot-console,
+#zft-ironrot-log,
+#zft-ironrot-workflow-window,
+#zft-overland-theme-window,
+#zft-ir-roles-popout {
+  transform:scale(var(--zft-ir-ui-scale,var(--zft-zot-interface-scale,1)));
+  transform-origin:top left;
+}
+#zft-ironrot-console :is(.zft-ir-head,.zft-ir-dashboard-summary,.zft-ir-dashboard-content,.zft-ir-scale-panel),
+#zft-ironrot-log :is(.zft-ir-log-head,.zft-ir-log-feed),
+#zft-ironrot-workflow-window :is(.zft-ir-workflow-head,.zft-ir-workflow-content),
+#zft-overland-theme-window :is(.zft-ir-theme-window-head,.zft-ir-theme-window-content),
+#zft-ir-roles-popout :is(.zft-ir-roles-popout-header,.zft-ir-roles-popout-body) {zoom:1!important;}
+
+/* Restore the original static roster header; separate small action underneath. */
+#zft-ironrot-console .zft-ir-roster-header {
+  display:flex;align-items:center;justify-content:space-between;gap:8px;
+}
+#zft-ironrot-console .zft-ir-roster-header .zft-ir-card-title {
+  flex:1;min-width:0;font-weight:700;
+}
+#zft-ironrot-console .zft-ir-roster-toggle {
+  display:flex;align-items:center;justify-content:center;gap:7px;
+  width:100%;min-height:27px;margin:7px 0 2px;padding:4px 9px;
+  border:1px solid var(--zft-theme-border,var(--zft-ir-border));border-radius:5px;
+  background:color-mix(in srgb,var(--zft-theme-card,var(--zft-ir-panel)) 80%,transparent)!important;
+  color:var(--zft-theme-muted,var(--zft-ir-muted));
+  text-align:center;font:600 11px/1.3 var(--font-primary,sans-serif);cursor:pointer;
+}
+#zft-ironrot-console .zft-ir-roster-toggle:hover,
+#zft-ironrot-console .zft-ir-roster-toggle:focus-visible {
+  color:var(--zft-theme-accent,var(--zft-ir-amber));
+  border-color:var(--zft-theme-accent,var(--zft-ir-amber));
+}
+#zft-ironrot-console .zft-ir-roster-toggle i {font-size:10px;}
+
+/* Compact GM button groups: strong primary actions, smaller secondary and
+   visually restrained danger actions. Same delegated actions, no hiding. */
+#zft-ironrot-workflow-window .zft-ir-gm {padding:5px 7px 7px;margin-bottom:5px;}
+#zft-ironrot-workflow-window .zft-ir-workflow-content {padding:7px;}
+#zft-ironrot-workflow-window .zft-ir-gm > .zft-ir-actions {
+  display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:5px;
+}
+#zft-ironrot-workflow-window .zft-ir-gm > .zft-ir-actions button {
+  display:inline-flex;align-items:center;justify-content:center;gap:5px;
+  min-height:30px;padding:5px 7px;font-size:11px;line-height:1.2;
+  overflow-wrap:normal;white-space:normal;
+  border-color:var(--zft-theme-border,var(--zft-ir-border));
+  background:var(--zft-theme-panel,var(--zft-ir-panel));
+  color:var(--zft-theme-text,var(--zft-ir-text));
+}
+#zft-ironrot-workflow-window .zft-ir-gm > .zft-ir-actions button:is([data-ir-action="travel"],[data-ir-action="day"]) {
+  background:color-mix(in srgb,var(--zft-theme-accent,var(--zft-ir-amber)) 18%,var(--zft-theme-panel,var(--zft-ir-panel)));
+  border-color:var(--zft-theme-accent,var(--zft-ir-amber));
+  color:var(--zft-theme-heading,var(--zft-ir-parchment));
+}
+#zft-ironrot-workflow-window .zft-ir-gm > .zft-ir-actions button.zft-ir-danger {
+  background:color-mix(in srgb,var(--zft-theme-failure,var(--zft-ir-red)) 8%,var(--zft-theme-panel,var(--zft-ir-panel)));
+  color:var(--zft-theme-failure,var(--zft-ir-red));
+  border-color:color-mix(in srgb,var(--zft-theme-failure,var(--zft-ir-red)) 35%,var(--zft-theme-border,var(--zft-ir-border)));
+}
+/* Reduce vertical cost of active decision while preserving all numbers,
+   confirm controls, and native roll prompts. */
+#zft-ironrot-workflow-window .zft-ir-workflow {padding:8px;margin-bottom:5px;}
+#zft-ironrot-workflow-window .zft-ir-prompt-form {gap:7px;}
+#zft-ironrot-workflow-window .zft-ir-prompt-title {font-size:17px;margin-bottom:5px;}
+#zft-ironrot-workflow-window .zft-ir-prompt-content {line-height:1.35;}
+#zft-ironrot-workflow-window .zft-ir-prompt-actions:is(.zft-ir-march-choice-actions,.zft-ir-forced-decision-actions) {gap:7px;}
+#zft-ironrot-workflow-window .zft-ir-prompt-actions:is(.zft-ir-march-choice-actions,.zft-ir-forced-decision-actions) button {
+  min-height:46px;padding:5px 7px;gap:1px;
+}
+#zft-ironrot-workflow-window .zft-ir-prompt-actions .zft-ir-action-primary {font-size:13px;}
+#zft-ironrot-workflow-window .zft-ir-prompt-actions .zft-ir-action-secondary {font-size:11px;}
+
+
+/* v0.4.0-dev.53: static roster title, icon-only action beside Roles. */
+#zft-ironrot-console .zft-ir-roster-header-actions {
+  display:inline-flex;align-items:center;justify-content:flex-end;gap:6px;flex:none;
+}
+#zft-ironrot-console .zft-ir-roster-header-actions .zft-ir-roster-toggle {
+  display:inline-flex;align-items:center;justify-content:center;flex:none;
+  width:30px;height:30px;min-height:30px;margin:0;padding:0;
+  border:1px solid var(--zft-theme-border,var(--zft-ir-border));border-radius:5px;
+  background:var(--zft-theme-panel,var(--zft-ir-panel))!important;
+  color:var(--zft-theme-text,var(--zft-ir-text));
+  cursor:pointer;
+}
+#zft-ironrot-console .zft-ir-roster-header-actions .zft-ir-roster-toggle i {font-size:13px;}
+#zft-ironrot-console .zft-ir-roster-header-actions .zft-ir-roster-toggle:hover,
+#zft-ironrot-console .zft-ir-roster-header-actions .zft-ir-roster-toggle:focus-visible {
+  color:var(--zft-theme-accent,var(--zft-ir-amber));border-color:var(--zft-theme-accent,var(--zft-ir-amber));
+}
+
+/* Discrete scale editor: fixed-width numeric entry, staged Apply and instant steps.
+   Uses theme properties and inherits the whole-frame scale of v0.4.0-dev.52. */
+#zft-ironrot-console .zft-ir-scale-panel {width:min(315px,calc(100% - 16px));}
+#zft-ironrot-console .zft-ir-scale-heading {
+  display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:10px;
+  font-size:13px;font-weight:700;
+}
+#zft-ironrot-console .zft-ir-scale-heading output {font-variant-numeric:tabular-nums;}
+#zft-ironrot-console .zft-ir-scale-entry {
+  display:grid;grid-template-columns:minmax(0,1fr) 56px auto auto;
+  align-items:center;gap:5px;
+}
+#zft-ironrot-console .zft-ir-scale-entry label {
+  display:block;margin:0;font-size:11px;font-weight:600;
+  color:var(--zft-theme-muted,var(--zft-ir-muted));white-space:nowrap;
+}
+#zft-ironrot-console .zft-ir-scale-entry input {
+  width:100%;min-width:0;height:29px;padding:3px 5px;box-sizing:border-box;
+  font-size:12px;text-align:center;font-variant-numeric:tabular-nums;
+  border-radius:4px;border:1px solid var(--zft-theme-border,var(--zft-ir-border));
+  background:var(--zft-theme-background,var(--zft-ir-bg));color:var(--zft-theme-text,var(--zft-ir-text));
+}
+#zft-ironrot-console .zft-ir-scale-entry button,
+#zft-ironrot-console .zft-ir-scale-steps button {
+  min-height:29px;padding:4px 7px;line-height:1.1;font-size:11px;font-weight:700;
+  border:1px solid var(--zft-theme-border,var(--zft-ir-border));border-radius:4px;
+  background:var(--zft-theme-panel,var(--zft-ir-panel));
+  color:var(--zft-theme-text,var(--zft-ir-text));cursor:pointer;
+}
+#zft-ironrot-console .zft-ir-scale-steps {
+  display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:5px;margin-top:10px;
+}
+#zft-ironrot-console .zft-ir-scale-entry button:hover,
+#zft-ironrot-console .zft-ir-scale-steps button:hover,
+#zft-ironrot-console .zft-ir-scale-entry button:focus-visible,
+#zft-ironrot-console .zft-ir-scale-steps button:focus-visible {
+  border-color:var(--zft-theme-accent,var(--zft-ir-amber));color:var(--zft-theme-accent,var(--zft-ir-amber));
+}
+#zft-ironrot-console .zft-ir-scale-help {
+  margin:8px 0 0;font-size:11px;line-height:1.3;color:var(--zft-theme-muted,var(--zft-ir-muted));
+}
+
+
+/* dev.54: compact, unified GM pending checks. Scoped to ZFT workflow. */
+#zft-ironrot-workflow-window .zft-ir-pending-rolls {display:block;padding:6px 9px;border-top:1px solid var(--zft-theme-border,#876747);}
+#zft-ironrot-workflow-window .zft-ir-pending-group {display:grid;gap:6px;border:1px solid var(--zft-theme-border,#876747);border-radius:6px;padding:8px;background:var(--zft-theme-card,#32271e);}
+#zft-ironrot-workflow-window .zft-ir-pending-head {display:flex;gap:8px;align-items:center;justify-content:space-between;font-size:12px;}
+#zft-ironrot-workflow-window .zft-ir-pending-head strong {color:var(--zft-theme-heading,#edcd9e);}
+#zft-ironrot-workflow-window .zft-ir-pending-head span,#zft-ironrot-workflow-window .zft-ir-pending-context {color:var(--zft-theme-muted,#c3b09a);font-size:10px;}
+#zft-ironrot-workflow-window .zft-ir-pending-rows {display:grid;gap:0;min-width:0;}
+#zft-ironrot-workflow-window .zft-ir-pending-roll {display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:8px;padding:6px 0;border:0;border-bottom:1px solid var(--zft-theme-border,#715640);border-radius:0;background:none;min-width:0;}
+#zft-ironrot-workflow-window .zft-ir-pending-roll:last-child {border-bottom:0;}
+#zft-ironrot-workflow-window .zft-ir-pending-identity {display:grid;min-width:0;gap:3px;line-height:1.25;}
+#zft-ironrot-workflow-window .zft-ir-pending-identity strong {font-size:11px;color:var(--zft-theme-text,#f0dfc0);overflow-wrap:anywhere;}
+#zft-ironrot-workflow-window .zft-ir-pending-identity small {font-size:10px;color:var(--zft-theme-muted,#c3b09a);}
+#zft-ironrot-workflow-window .zft-ir-pending-roll-actions {display:flex;align-items:center;gap:4px;flex:none;}
+#zft-ironrot-workflow-window .zft-ir-pending-roll-actions button {width:29px;height:29px;min-height:29px;padding:0;display:grid;place-items:center;border:1px solid var(--zft-theme-border,#896c4f);border-radius:5px;color:var(--zft-theme-text,#f0dfc0);background:var(--zft-theme-panel,#463424);cursor:pointer;}
+#zft-ironrot-workflow-window .zft-ir-pending-roll-actions button:last-child {color:var(--zft-theme-failure,#e19896);}
+#zft-ironrot-workflow-window .zft-ir-pending-roll-actions button:is(:hover,:focus-visible) {border-color:var(--zft-theme-accent,#eac17d);color:var(--zft-theme-accent,#eac17d);}
+#zft-ironrot-workflow-window .zft-ir-pending-help {font-size:10px;color:var(--zft-theme-muted,#c3b09a);line-height:1.4;}
+
+/* Compact editable adjudication grid; preserved decision-select name and values. */
+#zft-ironrot-workflow-window .zft-ir-march-review {display:grid;gap:8px;min-width:0;padding:9px;background:var(--zft-theme-panel,#2d241c);color:var(--zft-theme-text,#f0dfc0);border:1px solid var(--zft-theme-border,#806044);border-radius:6px;container-type:inline-size;}
+#zft-ironrot-workflow-window .zft-ir-march-review-heading {display:flex;justify-content:space-between;align-items:baseline;flex-wrap:wrap;gap:3px 8px;}
+#zft-ironrot-workflow-window .zft-ir-march-review-heading strong {font-family:Georgia,serif;font-size:15px;color:var(--zft-theme-heading,#f2d4a2);}
+#zft-ironrot-workflow-window .zft-ir-march-review-heading span {font-size:11px;color:var(--zft-theme-muted,#c5b099);}
+#zft-ironrot-workflow-window .zft-ir-march-review-note,#zft-ironrot-workflow-window .zft-ir-march-review-footnote {margin:0;font-size:10px;line-height:1.35;color:var(--zft-theme-muted,#c5b099);}
+#zft-ironrot-workflow-window .zft-ir-gm-ruling-head,#zft-ironrot-workflow-window .zft-ir-gm-ruling-row {display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,.68fr) minmax(0,1.32fr);align-items:center;gap:7px;min-width:0;}
+#zft-ironrot-workflow-window .zft-ir-gm-ruling-head {padding:0 4px 4px;border-bottom:1px solid var(--zft-theme-border,#71563b);font-size:9px;font-weight:750;color:var(--zft-theme-muted,#c5b099);letter-spacing:.04em;text-transform:uppercase;}
+#zft-ironrot-workflow-window .zft-ir-gm-ruling-list {display:grid;gap:0;min-width:0;max-height:min(44vh,355px);overflow-y:auto;overscroll-behavior:contain;}
+#zft-ironrot-workflow-window .zft-ir-gm-ruling-row {padding:6px 4px;border:0;border-bottom:1px solid var(--zft-theme-border,#71563b);border-radius:0;background:transparent;}
+#zft-ironrot-workflow-window .zft-ir-gm-ruling-row:last-child {border-bottom:0;}
+#zft-ironrot-workflow-window .zft-ir-gm-ruling-identity {display:grid;align-content:center;justify-content:initial;gap:2px;min-width:0;font-size:11px;}
+#zft-ironrot-workflow-window .zft-ir-gm-ruling-identity strong {color:var(--zft-theme-text,#f0dfc0);overflow-wrap:anywhere;line-height:1.25;}
+#zft-ironrot-workflow-window .zft-ir-gm-ruling-roll {font-size:10px;font-variant-numeric:tabular-nums;font-weight:700;}
+#zft-ironrot-workflow-window .zft-ir-gm-ruling-exhaustion {display:grid;gap:2px;align-content:center;font-variant-numeric:tabular-nums;min-width:0;font-size:11px;}
+#zft-ironrot-workflow-window .zft-ir-gm-ruling-exhaustion small {font-size:9px;color:var(--zft-theme-muted,#c5b099);}
+#zft-ironrot-workflow-window .zft-ir-gm-ruling-choice {display:block;min-width:0;}
+#zft-ironrot-workflow-window .zft-ir-gm-ruling-choice select {width:100%;min-width:0;max-width:100%;min-height:31px;padding:4px 3px;font-size:10px;box-sizing:border-box;color:var(--zft-theme-text,#f0dfc0);background:var(--zft-theme-background,#211a15);border-color:var(--zft-theme-border,#71563b);}
+#zft-ironrot-workflow-window .zft-ir-prompt-actions.zft-ir-forced-decision-actions button {min-height:43px;padding:5px 8px;}
+#zft-ironrot-workflow-window .zft-ir-forced-decision-actions .zft-ir-action-primary {font-size:12px;}
+#zft-ironrot-workflow-window .zft-ir-forced-decision-actions .zft-ir-action-secondary {font-size:10px;}
+@container (max-width:345px) {
+ #zft-ironrot-workflow-window .zft-ir-gm-ruling-head {display:none;}
+ #zft-ironrot-workflow-window .zft-ir-gm-ruling-row {grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:5px;}
+ #zft-ironrot-workflow-window .zft-ir-gm-ruling-identity {grid-column:1;}
+ #zft-ironrot-workflow-window .zft-ir-gm-ruling-exhaustion {grid-column:2;text-align:right;}
+ #zft-ironrot-workflow-window .zft-ir-gm-ruling-choice {grid-column:1 / -1;}
+}
+
+/* Roster: consistent portrait/name, separate check/save lines, and a right-side
+   condition column that never steals a fixed 122px from long names. */
+#zft-ironrot-console .zft-ir-party-list {gap:5px;padding-top:8px;}
+#zft-ironrot-console .zft-ir-roster-refined {display:grid;grid-template-columns:42px minmax(0,1fr);align-items:center;gap:9px;padding:7px 8px;min-width:0;background:var(--zft-theme-roster,var(--zft-theme-card,#271e18));border-color:var(--zft-theme-border,#624a31);}
+#zft-ironrot-console .zft-ir-roster-refined .zft-ir-portrait {width:42px;height:42px;min-width:42px;}
+#zft-ironrot-console .zft-ir-roster-refined .zft-ir-member-info {display:grid;grid-template-columns:minmax(0,1fr) auto;grid-template-rows:auto auto auto;gap:2px 8px;align-items:start;min-width:0;}
+#zft-ironrot-console .zft-ir-roster-refined .zft-ir-member-heading > strong {grid-row:1;grid-column:1;font-size:12px;line-height:1.3;overflow-wrap:break-word;}
+#zft-ironrot-console .zft-ir-roster-refined .zft-ir-role-tooltip {grid-row:2;grid-column:1;}
+#zft-ironrot-console .zft-ir-roster-refined .zft-ir-member-bonuses {grid-row:3;grid-column:1;gap:3px;font-size:11px;}
+#zft-ironrot-console .zft-ir-roster-refined .zft-ir-member-exhaustion {grid-column:2;grid-row:1 / span 3;min-width:0!important;width:auto!important;align-self:start;max-width:115px;white-space:normal;}
+#zft-ironrot-console .zft-ir-roster-refined .zft-ir-member-condition {font-size:11px;line-height:1.3;}
+#zft-ironrot-console .zft-ir-roster-refined .zft-ir-member-penalty {font-size:10px;line-height:1.25;gap:1px;}
+#zft-ironrot-console .zft-ir-roster-refined .zft-ir-member-exhaustion :is(.zft-ir-member-condition,.zft-ir-member-penalty,.zft-ir-member-penalty span) {white-space:normal;}
+
+/* Live / completed Force March use identical name, die, total and verdict grid. */
+#zft-ironrot-log .zft-ir-live-section {gap:3px;}
+#zft-ironrot-log .zft-ir-live-section > .zft-ir-card:has(.zft-ir-live-save-row) {padding:0;border:0;background:transparent!important;}
+#zft-ironrot-log .zft-ir-live-save-row.zft-ir-march-result-grid {display:grid;grid-template-columns:minmax(0,1fr) 65px 60px;gap:2px 9px;align-items:center;min-width:0;padding:6px 3px;border-bottom:1px solid var(--zft-theme-border,#614c37);font-size:11px;}
+#zft-ironrot-log .zft-ir-live-save-row > .zft-ir-march-character {grid-column:1;min-width:0;overflow-wrap:anywhere;}
+#zft-ironrot-log .zft-ir-live-save-row > .zft-ir-march-check {grid-column:2;display:flex;justify-content:center;align-items:center;font-variant-numeric:tabular-nums;min-width:0;}
+#zft-ironrot-log .zft-ir-live-save-row > .zft-ir-march-verdict {grid-column:3;text-align:right;font-size:11px;font-weight:700;}
+#zft-ironrot-log .zft-ir-live-save-row > small {grid-column:1 / -1;font-size:10px;margin:0;color:var(--zft-theme-muted,#c8ae8f);}
+#zft-ironrot-log .zft-ir-live-save-row .zft-ir-march-no-roll {color:var(--zft-theme-muted,#c8ae8f);}
+#zft-ironrot-log .zft-ir-live-save-row .zft-ir-march-verdict.green {color:var(--zft-theme-success,#8cc9a4);}
+#zft-ironrot-log .zft-ir-live-save-row .zft-ir-march-verdict.red {color:var(--zft-theme-failure,#e9a0a1);}
+#zft-ironrot-log .zft-ir-live-save-row .zft-ir-march-verdict.amber {color:var(--zft-theme-accent,#e2b57a);}
+@container (max-width:270px) {#zft-ironrot-log .zft-ir-live-save-row.zft-ir-march-result-grid {grid-template-columns:minmax(0,1fr) 62px 51px;gap:3px 5px;}}
+
+
+/* dev.55: portrait fills existing character-row height, without new row padding. */
+#zft-ironrot-console .zft-ir-roster-refined {grid-template-columns:58px minmax(0,1fr);}
+#zft-ironrot-console .zft-ir-roster-refined .zft-ir-portrait {width:58px;height:58px;min-width:58px;flex:0 0 58px;align-self:center;}
+#zft-ironrot-console .zft-ir-roster-refined .zft-ir-portrait img {object-fit:cover;width:100%;height:100%;}
+
+/* Compact selectable increment and immediate +/- controls. */
+#zft-ironrot-console .zft-ir-scale-panel {width:min(310px,calc(100% - 16px));}
+#zft-ironrot-console .zft-ir-scale-control-row {display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px;align-items:center;}
+#zft-ironrot-console .zft-ir-scale-step-picker,#zft-ironrot-console .zft-ir-scale-adjust {display:flex;gap:4px;align-items:center;}
+#zft-ironrot-console .zft-ir-scale-control-row button,#zft-ironrot-console .zft-ir-scale-foot button {border:1px solid var(--zft-theme-border,#73593b);border-radius:5px;min-height:30px;min-width:32px;padding:4px 7px;line-height:1.2;font-size:12px;font-weight:700;background:var(--zft-theme-button,#483626);color:var(--zft-theme-buttonText,#f4dcb1);cursor:pointer;}
+#zft-ironrot-console .zft-ir-scale-control-row button.is-active,#zft-ironrot-console .zft-ir-scale-control-row button[aria-pressed=true] {background:var(--zft-theme-accent,#e3b37a);color:var(--zft-theme-window,#211813);border-color:var(--zft-theme-accent,#e3b37a);}
+#zft-ironrot-console .zft-ir-scale-control-row button:is(:hover,:focus-visible),#zft-ironrot-console .zft-ir-scale-foot button:is(:hover,:focus-visible) {border-color:var(--zft-theme-accent,#e3b37a);}
+#zft-ironrot-console .zft-ir-scale-foot {display:flex;gap:8px;align-items:center;justify-content:space-between;margin-top:9px;color:var(--zft-theme-muted,#cab79e);font-size:11px;}
+#zft-ironrot-console .zft-ir-scale-foot strong {color:var(--zft-theme-text,#e9d8c3);}
+
+/* Pending-roll action legend replaces repeated instructions; no added panels. */
+#zft-ironrot-workflow-window .zft-ir-pending-legend {display:flex;gap:5px 12px;flex-wrap:wrap;align-items:center;padding-top:6px;border-top:1px solid var(--zft-theme-border,#73593b);font-size:10px;color:var(--zft-theme-muted,#cab79e);}
+#zft-ironrot-workflow-window .zft-ir-pending-legend span {display:inline-flex;gap:4px;align-items:center;white-space:nowrap;}
+#zft-ironrot-workflow-window .zft-ir-pending-legend i {color:var(--zft-theme-accent,#e3b37a);font-size:11px;}
+#zft-ironrot-workflow-window .zft-ir-pending-legend span:last-child i {color:var(--zft-theme-failure,#e69a9b);}
+
+/* GM rulings: semantic CSS classes allow every theme and custom override. */
+#zft-ironrot-workflow-window .zft-ir-gm-ruling-name.passed,#zft-ironrot-workflow-window .zft-ir-gm-ruling-roll.passed {color:var(--zft-theme-success,#98caaa);}
+#zft-ironrot-workflow-window .zft-ir-gm-ruling-name.failed,#zft-ironrot-workflow-window .zft-ir-gm-ruling-roll.failed {color:var(--zft-theme-failure,#e69a9b);}
+#zft-ironrot-workflow-window .zft-ir-gm-ruling-name.pending,#zft-ironrot-workflow-window .zft-ir-gm-ruling-roll.pending {color:var(--zft-theme-muted,#c7ae92);}
+#zft-ironrot-workflow-window .zft-ir-gm-ruling-exhaustion.has-exhaustion :is(small,strong) {color:var(--zft-theme-failure,#e69a9b);}
+#zft-ironrot-workflow-window .zft-ir-gm-ruling-row.ruling-accept select {color:var(--zft-theme-success,#98caaa);border-color:color-mix(in srgb,var(--zft-theme-success,#98caaa) 65%,var(--zft-theme-border,#73593b));}
+#zft-ironrot-workflow-window .zft-ir-gm-ruling-row.ruling-exhaust select {color:var(--zft-theme-failure,#e69a9b);border-color:color-mix(in srgb,var(--zft-theme-failure,#e69a9b) 65%,var(--zft-theme-border,#73593b));}
+#zft-ironrot-workflow-window .zft-ir-gm-ruling-row.ruling-neutral select {color:var(--zft-theme-accent,#e3b37a);}
+#zft-ironrot-workflow-window .zft-ir-gm-ruling-row select option {background:var(--zft-theme-input,#211813);color:var(--zft-theme-text,#e9d8c3);}
+#zft-ironrot-workflow-window .zft-ir-gm-ruling-row .zft-ir-gm-saved {color:var(--zft-theme-success,#98caaa);}
+
+/* Live workflow status is always visible inside the current hex summary. */
+#zft-ironrot-log .zft-ir-hex-section > summary .zft-ir-hex-workflow-status {display:flex;flex-basis:100%;align-items:center;gap:6px;min-width:0;order:3;padding:3px 0 0 16px;color:var(--zft-theme-accent,#e3b37a);font-size:11px;line-height:1.35;font-weight:700;overflow-wrap:anywhere;}
+#zft-ironrot-log .zft-ir-hex-workflow-status i {flex:none;font-size:11px;}
+
+/* Selected option is themed in the closed control; native dropdown option
+   styling is supported on some browsers, ignored gracefully on others. */
+#zft-ironrot-workflow-window .zft-ir-gm-ruling-row select option.zft-ir-ruling-option-accept {color:var(--zft-theme-success,#98caaa);}
+#zft-ironrot-workflow-window .zft-ir-gm-ruling-row select option.zft-ir-ruling-option-exhaust {color:var(--zft-theme-failure,#e69a9b);}
+#zft-ironrot-workflow-window .zft-ir-gm-ruling-row select option.zft-ir-ruling-option-neutral {color:var(--zft-theme-accent,#e3b37a);}
+
+
+/* v0.4.0-dev.56: tighter overview, standalone non-scaling interface editor. */
+#zft-ironrot-console .zft-ir-progress-grid {grid-template-columns:repeat(2,minmax(0,1fr));row-gap:5px;}
+#zft-ir-scale-window {
+ position:fixed!important;z-index:85;width:min(320px,calc(100vw - 16px));max-width:calc(100vw - 16px);
+ box-sizing:border-box;border:2px solid var(--zft-theme-border,#98734e);border-radius:9px;
+ color:var(--zft-theme-text,#eadac3);background:var(--zft-theme-window,#211913);
+ font-family:var(--font-primary,sans-serif);font-size:12px;line-height:1.35;
+ box-shadow:0 12px 30px #000a;overflow:hidden;
+ transform:none!important;transform-origin:initial!important;zoom:1!important;
+}
+#zft-ir-scale-window, #zft-ir-scale-window * {box-sizing:border-box;}
+#zft-ir-scale-window .zft-ir-scale-window-head {
+ display:flex;justify-content:space-between;align-items:center;gap:12px;cursor:move;user-select:none;
+ padding:8px 10px;background:linear-gradient(90deg,var(--zft-theme-header,#3a291c),var(--zft-theme-headerEnd,#281d16));
+ border-bottom:1px solid var(--zft-theme-border,#8c6847);
+}
+#zft-ir-scale-window .zft-ir-scale-window-head strong {display:flex;align-items:center;gap:7px;font-size:14px;color:var(--zft-theme-heading,#f1d6a9);}
+#zft-ir-scale-window .zft-ir-scale-window-body {display:grid;gap:11px;padding:12px;background:var(--zft-theme-panel,#2b231c);}
+#zft-ir-scale-window .zft-ir-scale-heading {display:flex;justify-content:space-between;align-items:center;font-weight:700;font-size:12px;gap:8px;}
+#zft-ir-scale-window .zft-ir-scale-heading output {font-size:16px;font-weight:800;color:var(--zft-theme-accent,#e6bc82);font-variant-numeric:tabular-nums;}
+#zft-ir-scale-window .zft-ir-scale-control-row {display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px;align-items:center;}
+#zft-ir-scale-window .zft-ir-scale-step-picker,#zft-ir-scale-window .zft-ir-scale-adjust {display:flex;align-items:center;gap:4px;}
+#zft-ir-scale-window button {cursor:pointer;flex:none;border:1px solid var(--zft-theme-border,#846345);border-radius:5px;background:var(--zft-theme-button,#473524);color:var(--zft-theme-buttonText,#f2dcbb);min-width:30px;min-height:30px;padding:4px 8px;font-size:12px;font-weight:700;}
+#zft-ir-scale-window .zft-ir-scale-window-head button {min-height:25px;min-width:27px;padding:3px 7px;}
+#zft-ir-scale-window button[aria-pressed=true] {background:var(--zft-theme-accent,#e6bc82);color:var(--zft-theme-window,#211913);border-color:var(--zft-theme-accent,#e6bc82);}
+#zft-ir-scale-window button:is(:hover,:focus-visible) {border-color:var(--zft-theme-accent,#e6bc82);}
+#zft-ir-scale-window button:disabled {opacity:.45;cursor:not-allowed;}
+#zft-ir-scale-window .zft-ir-scale-foot {display:flex;justify-content:space-between;align-items:center;gap:8px;font-size:11px;color:var(--zft-theme-muted,#cbb49a);}
+#zft-ir-scale-window .zft-ir-scale-foot strong {color:var(--zft-theme-text,#eadac3);}
+#zft-ir-scale-window .zft-ir-scale-help {margin:-5px 0 0;font-size:11px;color:var(--zft-theme-muted,#cbb49a);}
+
+/* Active hex: concise title/time row, dedicated action strip, no repeated
+   Forced March count while expanded. All colors derive from theme tokens. */
+#zft-ironrot-log .zft-ir-day-group-events .zft-ir-hex-section > summary,
+#zft-ironrot-log[data-zft-theme-active] .zft-ir-day-group-events .zft-ir-hex-section > summary {
+ display:flex;flex-direction:column;flex-wrap:nowrap;align-items:stretch;justify-content:center;
+ gap:5px;min-height:40px;padding:8px 10px;
+}
+#zft-ironrot-log .zft-ir-hex-section > summary::before {position:static;float:none;align-self:flex-start;display:none;}
+#zft-ironrot-log .zft-ir-hex-head-main {display:flex;align-items:center;justify-content:space-between;gap:7px;min-width:0;width:100%;}
+#zft-ironrot-log .zft-ir-hex-head-main::before {content:'▸';flex:none;width:9px;color:var(--zft-theme-accent,#dfb36e);font-size:12px;}
+#zft-ironrot-log .zft-ir-hex-section[open] .zft-ir-hex-head-main::before {content:'▾';}
+#zft-ironrot-log .zft-ir-hex-head-main .zft-ir-history-label {display:inline-flex;align-items:center;justify-content:flex-start;gap:6px;flex:1 1 auto;min-width:0;font-size:13px;line-height:1.2;overflow-wrap:anywhere;}
+#zft-ironrot-log .zft-ir-hex-head-main .zft-ir-hex-header-meta {display:flex;flex:0 0 auto;justify-content:flex-end;gap:5px;margin-left:auto;font-size:11px;text-align:right;max-width:45%;}
+#zft-ironrot-log .zft-ir-hex-head-main .zft-ir-hex-header-meta strong {font-size:11px;white-space:nowrap;}
+#zft-ironrot-log .zft-ir-hex-section[open] .zft-ir-hex-collapsed-count {display:none;}
+#zft-ironrot-log .zft-ir-hex-section > summary .zft-ir-hex-workflow-status {
+ width:100%;display:flex;flex-basis:auto;align-items:center;gap:7px;order:initial;
+ margin:0;padding:6px 8px;min-width:0;border-radius:4px;
+ background:color-mix(in srgb,var(--zft-theme-accent,#e2b57a) 10%,var(--zft-theme-navigation,#2b363d));
+ border-left:2px solid var(--zft-theme-accent,#e2b57a);color:var(--zft-theme-accent,#e2b57a);
+ font-size:11px;line-height:1.25;font-weight:700;overflow-wrap:anywhere;
+}
+#zft-ironrot-log .zft-ir-hex-workflow-status i {font-size:12px;flex:none;}
+
+/* Tighter roster rows: text sets height, portraits fit rather than expand it. */
+#zft-ironrot-console .zft-ir-party-list {gap:4px;padding-top:6px;}
+#zft-ironrot-console .zft-ir-roster-refined {grid-template-columns:49px minmax(0,1fr);gap:7px;padding:4px 6px;align-items:center;min-height:0;}
+#zft-ironrot-console .zft-ir-roster-refined .zft-ir-portrait {width:49px;height:49px;min-width:49px;flex:0 0 49px;align-self:center;}
+#zft-ironrot-console .zft-ir-roster-refined .zft-ir-member-info {gap:1px 7px;grid-template-rows:auto auto auto;align-content:center;}
+#zft-ironrot-console .zft-ir-roster-refined .zft-ir-member-heading > strong {font-size:12px;line-height:1.16;}
+#zft-ironrot-console .zft-ir-roster-refined .zft-ir-role-tooltip {font-size:11px;line-height:1.14;}
+#zft-ironrot-console .zft-ir-roster-refined .zft-ir-member-bonuses {gap:1px!important;line-height:1.16!important;font-size:11px;}
+#zft-ironrot-console .zft-ir-roster-refined .zft-ir-member-bonuses strong {font-size:11px;}
+#zft-ironrot-console .zft-ir-roster-refined .zft-ir-member-exhaustion {align-self:center;gap:1px;}
+#zft-ironrot-console .zft-ir-roster-refined .zft-ir-member-condition {font-size:11px;line-height:1.16;}
+#zft-ironrot-console .zft-ir-roster-refined .zft-ir-member-penalty {font-size:10px;line-height:1.17;gap:0;margin-top:1px;}
+/* Keep the action strip inside narrow hex summaries, including its padding. */
+#zft-ironrot-log .zft-ir-hex-section > summary .zft-ir-hex-workflow-status {box-sizing:border-box;}
+
+
+/* dev.57: top-aligned condition column, matching the character name baseline.
+   The portrait and the compact row heights from dev.56 stay unchanged. */
+#zft-ironrot-console .zft-ir-roster-refined .zft-ir-member-exhaustion {
+  align-self:start;
+  justify-self:end;
+  margin-top:0;
+  text-align:right;
+}
+
+/* v0.4.0-dev.58: unified travel-stage dialogs; all surfaces inherit ZFT theme. */
+#zft-ironrot-workflow-window .zft-ir-travel-stage-content,
+#zft-ironrot-workflow-window .zft-ir-travel-stage {
+  min-width:0;color:var(--zft-theme-text,var(--zft-ir-text,#eadac3));background:var(--zft-theme-panel,var(--zft-ir-panel,#2c241d));
+  border:1px solid var(--zft-theme-border,var(--zft-ir-border,#80603c));border-radius:6px;
+}
+#zft-ironrot-workflow-window .zft-ir-travel-stage-content {background:transparent;border:0;}
+#zft-ironrot-workflow-window .zft-ir-travel-stage {padding:10px;display:grid;gap:9px;}
+#zft-ironrot-workflow-window .zft-ir-travel-stage-eyebrow {font-size:10px;font-weight:700;letter-spacing:.075em;color:var(--zft-theme-muted,var(--zft-ir-muted,#c3ae93));}
+#zft-ironrot-workflow-window .zft-ir-travel-stage :is(label,.zft-ir-travel-role-group) {min-width:0;}
+#zft-ironrot-workflow-window .zft-ir-travel-stage label {display:grid;gap:5px;font-size:12px;font-weight:650;color:var(--zft-theme-text,var(--zft-ir-text,#eadac3));}
+#zft-ironrot-workflow-window .zft-ir-travel-stage .zft-ir-travel-pace {grid-template-columns:70px minmax(0,1fr);align-items:center;}
+#zft-ironrot-workflow-window .zft-ir-travel-stage select,
+#zft-ironrot-workflow-window .zft-ir-travel-stage-content :is(select,input) {
+  background:var(--zft-theme-background,var(--zft-ir-bg,#1d1713))!important;border:1px solid var(--zft-theme-border,var(--zft-ir-border,#80603c))!important;
+  color:var(--zft-theme-text,var(--zft-ir-text,#eadac3))!important;border-radius:5px;min-height:33px;
+}
+#zft-ironrot-workflow-window .zft-ir-travel-role-groups {display:grid;gap:7px;}
+#zft-ironrot-workflow-window .zft-ir-travel-role-group {display:grid;gap:3px;padding:6px 0;border-bottom:1px solid var(--zft-theme-border,var(--zft-ir-border,#80603c));}
+#zft-ironrot-workflow-window .zft-ir-travel-role-group:last-child {border-bottom:0;}
+#zft-ironrot-workflow-window .zft-ir-travel-role-group h4 {margin:0 0 2px;font-size:12px;line-height:1.2;color:var(--zft-theme-heading,var(--zft-ir-parchment,#f2d4a0));font-weight:700;}
+#zft-ironrot-workflow-window .zft-ir-travel-role-line {display:grid;grid-template-columns:74px minmax(0,1fr) auto;align-items:baseline;gap:4px;font-size:11px;line-height:1.3;}
+#zft-ironrot-workflow-window .zft-ir-travel-role-line > span {color:var(--zft-theme-muted,var(--zft-ir-muted,#c3ae93));}
+#zft-ironrot-workflow-window .zft-ir-travel-role-line > strong {overflow-wrap:anywhere;color:var(--zft-theme-text,var(--zft-ir-text,#eadac3));}
+#zft-ironrot-workflow-window .zft-ir-travel-role-line > small {font-size:10px;color:var(--zft-theme-muted,var(--zft-ir-muted,#c3ae93));text-align:right;}
+#zft-ironrot-workflow-window .zft-ir-travel-help {font-size:11px;font-weight:400;line-height:1.35;margin:0;color:var(--zft-theme-muted,var(--zft-ir-muted,#c3ae93));}
+#zft-ironrot-workflow-window .zft-ir-navigation-result {display:grid;grid-template-columns:minmax(0,1fr) auto;gap:5px 8px;align-items:center;}
+#zft-ironrot-workflow-window .zft-ir-navigation-result > strong:first-child {font-size:13px;color:var(--zft-theme-heading,var(--zft-ir-parchment,#f2d4a0));overflow-wrap:anywhere;}
+#zft-ironrot-workflow-window .zft-ir-navigation-roll {display:inline-flex;gap:5px;align-items:center;justify-content:flex-end;font-size:11px;white-space:nowrap;}
+#zft-ironrot-workflow-window .zft-ir-navigation-result > .zft-ir-navigation-verdict {grid-column:1 / -1;font-size:12px;}
+#zft-ironrot-workflow-window .zft-ir-navigation-verdict.is-success {color:var(--zft-theme-success,var(--zft-ir-green,#9bccab));}
+#zft-ironrot-workflow-window .zft-ir-navigation-verdict.is-failure {color:var(--zft-theme-failure,var(--zft-ir-red,#e59698));}
+#zft-ironrot-workflow-window .zft-ir-navigation-secondary {font-size:11px;color:var(--zft-theme-muted,var(--zft-ir-muted,#c3ae93));}
+#zft-ironrot-workflow-window .zft-ir-navigation-ruling .zft-ir-travel-roller {padding-top:8px;border-top:1px solid var(--zft-theme-border,var(--zft-ir-border,#80603c));}
+@container (max-width:300px) {
+ #zft-ironrot-workflow-window .zft-ir-travel-role-line {grid-template-columns:65px minmax(0,1fr);}
+ #zft-ironrot-workflow-window .zft-ir-travel-role-line > small {grid-column:2;text-align:left;}
+ #zft-ironrot-workflow-window .zft-ir-navigation-result {grid-template-columns:1fr;}
+ #zft-ironrot-workflow-window .zft-ir-navigation-roll {justify-content:flex-start;}
+}
+
+/* Remaining v4.13 travel-stage forms use the same theme surface rather than
+   a blue/purple inline box. This rule deliberately excludes unrelated prompts. */
+#zft-ironrot-workflow-window .zft-ir-travel-stage-content > div[style] {
+  background:var(--zft-theme-panel,var(--zft-ir-panel,#2c241d))!important;
+  color:var(--zft-theme-text,var(--zft-ir-text,#eadac3))!important;
+  border:1px solid var(--zft-theme-border,var(--zft-ir-border,#80603c))!important;
+  border-radius:6px!important;
+}
+#zft-ironrot-workflow-window .zft-ir-travel-stage-content :is(label,strong,small,p) {line-height:1.35;}
+
+
+/* v0.4.0-dev.59: semantic roll outcomes are shared across all expedition
+   surfaces; native red dice artwork remains unchanged for legibility. */
+#zft-ironrot-log .zft-ir-result-success,
+#zft-ironrot-workflow-window .zft-ir-result-success {color:var(--zft-theme-success,#98caaa)!important;}
+#zft-ironrot-log .zft-ir-result-failure,
+#zft-ironrot-workflow-window .zft-ir-result-failure {color:var(--zft-theme-failure,#e69a9b)!important;}
+#zft-ironrot-log .zft-ir-result-pending,
+#zft-ironrot-workflow-window .zft-ir-result-pending {color:var(--zft-theme-muted,#c7ae92)!important;}
+#zft-ironrot-log .zft-ir-march-result-grid > .zft-ir-march-verdict.zft-ir-result-success {color:var(--zft-theme-success,#98caaa)!important;}
+#zft-ironrot-log .zft-ir-march-result-grid > .zft-ir-march-verdict.zft-ir-result-failure {color:var(--zft-theme-failure,#e69a9b)!important;}
+#zft-ironrot-log .zft-ir-march-result-grid .zft-ir-d20-total > strong,
+#zft-ironrot-workflow-window .zft-ir-navigation-roll .zft-ir-d20-total > strong {color:#fff!important;}
+#zft-ironrot-log .zft-ir-march-full .zft-ir-march-outcome {font-weight:650;}
+#zft-ironrot-log .zft-ir-hex-original-result {font-size:10px;font-weight:700;line-height:1.25;}
+#zft-ironrot-log .zft-ir-hex-guide-status small {color:var(--zft-theme-accent,#d9b17b);}
+#zft-ironrot-workflow-window .zft-ir-navigation-final-line {display:flex;flex-wrap:wrap;align-items:baseline;justify-content:space-between;gap:5px 10px;font-size:11px;border-top:1px solid var(--zft-theme-border,#7b5c40);padding-top:7px;color:var(--zft-theme-muted,#cab79e);}
+#zft-ironrot-workflow-window .zft-ir-navigation-final {font-weight:750;}
+#zft-ironrot-workflow-window .zft-ir-navigation-final.is-success {color:var(--zft-theme-success,#98caaa);}
+#zft-ironrot-workflow-window .zft-ir-navigation-final.is-failure {color:var(--zft-theme-failure,#e69a9b);}
+#zft-ironrot-workflow-window .zft-ir-navigation-ruling select.is-success {color:var(--zft-theme-success,#98caaa)!important;}
+#zft-ironrot-workflow-window .zft-ir-navigation-ruling select.is-failure {color:var(--zft-theme-failure,#e69a9b)!important;}
+#zft-ironrot-workflow-window .zft-ir-navigation-ruling select option {background:var(--zft-theme-background,#241b16);}
+#zft-ironrot-workflow-window .zft-ir-travel-role-groups {gap:8px;}
+#zft-ironrot-workflow-window .zft-ir-travel-role-group {
+ padding:9px 10px;gap:7px;border:1px solid var(--zft-theme-border,#80603c);border-radius:6px;
+ background:color-mix(in srgb,var(--zft-theme-panel,#2c241d) 85%,var(--zft-theme-heading,#f2d4a0) 15%);
+}
+#zft-ironrot-workflow-window .zft-ir-travel-role-group:last-child {border-bottom:1px solid var(--zft-theme-border,#80603c);}
+#zft-ironrot-workflow-window .zft-ir-travel-role-group h4 {margin:0;font-size:12px;display:flex;align-items:center;gap:7px;}
+#zft-ironrot-workflow-window .zft-ir-travel-role-group h4 i {font-size:12px;color:var(--zft-theme-accent,#d9b17b);}
+#zft-ironrot-workflow-window .zft-ir-travel-role-line {
+ display:grid;grid-template-columns:36px minmax(0,1fr) auto;gap:8px;align-items:center;
+ padding:3px 0;line-height:1.25;min-width:0;
+}
+#zft-ironrot-workflow-window .zft-ir-travel-role-line + .zft-ir-travel-role-line {border-top:1px solid color-mix(in srgb,var(--zft-theme-border,#80603c) 65%,transparent);padding-top:7px;}
+#zft-ironrot-workflow-window .zft-ir-travel-role-portrait {
+ width:36px;height:36px;box-sizing:border-box;object-fit:cover;border-radius:5px;
+ border:1px solid var(--zft-theme-border,#80603c);background:var(--zft-theme-roster,#2c211b);flex:none;
+}
+#zft-ironrot-workflow-window .zft-ir-travel-role-empty {display:grid;place-items:center;color:var(--zft-theme-muted,#c6b69c);}
+#zft-ironrot-workflow-window .zft-ir-travel-role-identity {display:flex;min-width:0;flex-direction:column;gap:2px;}
+#zft-ironrot-workflow-window .zft-ir-travel-role-identity .zft-ir-travel-role-label {color:var(--zft-theme-muted,#c5ac91);font-size:10px;font-weight:600;}
+#zft-ironrot-workflow-window .zft-ir-travel-role-identity strong {font-size:12px;line-height:1.25;color:var(--zft-theme-text,#eadac3);overflow-wrap:break-word;}
+#zft-ironrot-workflow-window .zft-ir-travel-role-line.is-guide .zft-ir-travel-role-label i {color:var(--zft-theme-success,#98caaa);margin-left:4px;}
+#zft-ironrot-workflow-window .zft-ir-travel-role-line > small {align-self:center;font-size:10px;text-align:right;line-height:1.35;max-width:116px;color:var(--zft-theme-muted,#c5ac91);}
+@container (max-width:300px) {
+ #zft-ironrot-workflow-window .zft-ir-travel-role-line {grid-template-columns:34px minmax(0,1fr);gap:5px 7px;}
+ #zft-ironrot-workflow-window .zft-ir-travel-role-portrait {width:34px;height:34px;grid-row:1 / span 2;}
+ #zft-ironrot-workflow-window .zft-ir-travel-role-line > small {grid-column:2;text-align:left;max-width:none;}
+}
+
+/* Generic ZFT travel results (native chat cards and the optional travel panel).
+   Keep status words meaningful even when the full expedition UI is closed. */
+.zft-zot-card .zft-zot-result-success,.zft-zot-form .zft-zot-result-success {color:var(--zft-theme-success,#85bfa3);font-weight:700;}
+.zft-zot-card .zft-zot-result-failure,.zft-zot-form .zft-zot-result-failure {color:var(--zft-theme-failure,#e5a09f);font-weight:700;}

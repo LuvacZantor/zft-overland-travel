@@ -7,7 +7,7 @@
 import { MODULE_ID, MODULE_TITLE } from "../../constants/module-constants.js";
 import { launchMountIronrot } from "./MountIronrot.js";
 import { ironrotD20Total, decorateLegacyIronrotDice } from "./IronrotDice.js";
-import { IRONROT_ACTIVITIES, IRONROT_NAVIGATION_SKILL } from "./IronrotRoles.js";
+import { IRONROT_ACTIVITIES, IRONROT_NAVIGATION_SKILL, EXPEDITION_PAIRS, EXPEDITION_ROLES } from "./IronrotRoles.js";
 import { ThemeManager } from "../../theme/ThemeManager.js";
 import { ThemeEditor } from "../../theme/ThemeEditor.js";
 
@@ -15,6 +15,11 @@ const STATE_KEY = "mountIronrotTravelV45";
 const SNAPSHOT_KEY = "ironrotConsoleSnapshot";
 const ATTENDANCE_KEY = "ironrotAttendance";
 const UI_KEY = "ironrotConsoleUi";
+const DEFAULT_INTERFACE_SCALE = 100;
+const interfaceScale = raw => {
+  const value = Number(raw);
+  return Number.isFinite(value) ? Math.min(150, Math.max(60, Math.round(value))) : DEFAULT_INTERFACE_SCALE;
+};
 const IDENTITY_KEY = "ironrotIdentity";
 const CARDS_KEY = "ironrotTravelCards";
 const SHOW_KEY = "ironrotShowPlayers";
@@ -170,7 +175,7 @@ export function registerIronrotSettings() {
   });
   game.settings.register(MODULE_ID, ROLE_KEY, {
     name: "Expedition role preferences", scope: "world", config: false,
-    type: Object, default: { navigatorUuid: "", secondaryUuid: "", activity: "none" },
+    type: Object, default: { navigatorUuid: "", secondaryUuid: "", activity: "none", assignments: {} },
     onChange: () => IronrotConsole.refresh()
   });
   game.settings.register(MODULE_ID, HEX_KEY, {
@@ -185,7 +190,7 @@ export function registerIronrotSettings() {
   });
   game.settings.register(MODULE_ID, LOG_KEY, {
     name: "Expedition log visibility", scope: "world", config: false,
-    type: Object, default: { epoch: 0, hiddenHistoryKeys: [], hiddenHourKey: "" },
+    type: Object, default: { epoch: 0, hiddenHistoryKeys: [], hiddenHourKey: "", recordedDays: [] },
     onChange: () => IronrotConsole.refresh()
   });
   game.settings.register(MODULE_ID, SHOW_KEY, {
@@ -194,8 +199,8 @@ export function registerIronrotSettings() {
     onChange: data => { if (!game.user?.isGM && data?.requestedAt) void IronrotConsole.showWorkspace(); }
   });
   game.settings.register(MODULE_ID, UI_KEY, {
-    name: "Mount Ironrot console layout", scope: "client", config: false,
-    type: Object, default: { mode: "hidden", left: 160, top: 80, logWidth: 540, logHeight: 650, logHeightManual: false, logDocked: true, logHidden: false, workflowWidth: 405, workflowDocked: true, workflowHidden: false }
+    name: "Overland Travel interface preferences", scope: "client", config: false,
+    type: Object, default: { mode: "hidden", left: 160, top: 80, logWidth: 540, logHeight: 650, logHeightManual: false, logDocked: true, logHidden: false, workflowWidth: 405, workflowDocked: true, workflowHidden: false, rosterCollapsed: false, interfaceScale: DEFAULT_INTERFACE_SCALE, interfaceScaleStep: 5 }
   });
 }
 
@@ -211,14 +216,15 @@ export function ironrotLogEpoch() {
   return Number(game.settings.get(MODULE_ID, LOG_KEY)?.epoch ?? 0);
 }
 export function ironrotRolePreferences() {
-  return game.settings.get(MODULE_ID, ROLE_KEY) ?? { navigatorUuid: "", secondaryUuid: "", activity: "none" };
+  return game.settings.get(MODULE_ID, ROLE_KEY) ?? { navigatorUuid: "", secondaryUuid: "", activity: "none", assignments: {} };
 }
 export async function rememberIronrotRoles(preferences) {
   if (!game.user?.isGM) return;
   await game.settings.set(MODULE_ID, ROLE_KEY, {
     navigatorUuid: String(preferences.navigatorUuid ?? ""),
     secondaryUuid: String(preferences.secondaryUuid ?? ""),
-    activity: String(preferences.activity ?? "none")
+    activity: String(preferences.activity ?? "none"),
+    assignments: Object.fromEntries(Object.entries(preferences.assignments ?? {}).filter(([key]) => key in EXPEDITION_ROLES).map(([key,uuid]) => [key,String(uuid ?? "")]))
   });
 }
 export async function rememberIronrotHex(totalHours, baseHexes) {
@@ -272,15 +278,36 @@ export async function clearIronrotExpeditionLog() {
     await game.settings.set(MODULE_ID, LOG_KEY, {
       epoch: Math.max(0, Number(old.epoch) || 0) + 1,
       hiddenHistoryKeys: [...hiddenHistoryKeys],
-      hiddenHourKey: `${st.day}:${st.hours}`
+      hiddenHourKey: `${st.day}:${st.hours}`,
+      recordedDays: []
     });
     await game.settings.set(MODULE_ID, CARDS_KEY, { cards: [] });
   });
 }
+/** Save only days that actually occurred in this expedition. No invented rolls,
+ * no fabricated calendar dates, and no automatic world-time advancement.
+ * The prior day is recorded on an explicit New Travel Day boundary even if it
+ * never produced a travel card or a Forced March entry. */
+async function recordExpeditionLogDays(day, phase = "") {
+  if (!game.user?.isGM) return;
+  const current = Number(day);
+  if (!Number.isSafeInteger(current) || current < 1) return;
+  const old = game.settings.get(MODULE_ID, LOG_KEY) ?? {};
+  const existing = Array.isArray(old.recordedDays) ? old.recordedDays : [];
+  const days = new Set(existing.filter(value => Number.isSafeInteger(value) && value >= 1));
+  days.add(current);
+  if (phase === "New travel day" && current > 1) days.add(current - 1);
+  if (days.size === existing.length && [...days].every(value => existing.includes(value))) return;
+  await game.settings.set(MODULE_ID, LOG_KEY, {
+    ...old, recordedDays: [...days].sort((a, b) => a - b)
+  });
+}
+
 /** Called on the GM only. No player privileges or socket endpoints needed. */
 export async function publishIronrotSnapshot(state, phase = "Travel status", detail = "") {
   if (!game.user?.isGM) return;
   await recordFoundryTravelDay(Number(state?.day));
+  await recordExpeditionLogDays(state?.day, phase);
   await game.settings.set(MODULE_ID, SNAPSHOT_KEY, {
     phase, detail, state: foundry.utils.deepClone(state), updatedAt: Date.now()
   });
@@ -305,10 +332,10 @@ export function presentRoster() {
 }
 
 const stateCard = (key, inner, className = "") => ({ key, html: `<article class="zft-ir-card ${className}" data-ir-card="${esc(key)}">${inner}</article>` });
-const spanStat = (label, value, color = "") => `<div class="zft-ir-stat"><span>${esc(label)}</span><strong ${color ? `class="${color}"` : ""}>${esc(value)}</strong></div>`;
+const spanStat = (label, value, color = "", state = "") => `<div class="zft-ir-stat${state ? ` zft-ir-hours-stat is-${state}` : ""}"><span>${esc(label)}</span><strong ${color ? `class="${color}"` : ""}>${esc(value)}</strong></div>`;
 
 // Roles and skills are shared with the travel engine, including future additions.
-const SKILL_ABILITY_FALLBACK = Object.freeze({sur:"wis",prc:"wis",arc:"int",inv:"int",ste:"dex",nat:"int"});
+const SKILL_ABILITY_FALLBACK = Object.freeze({sur:"wis",prc:"wis",arc:"int",inv:"int",ste:"dex",nat:"int",ath:"str",per:"cha"});
 function actorModifier(value) {
   const numeric = typeof value === "number" ? value : Number(value);
   return Number.isFinite(numeric) && value !== null && value !== undefined && value !== "" ? numeric : null;
@@ -318,9 +345,90 @@ function travelSkill(actor, key) {
   const data = actor.system?.skills?.[key] ?? {};
   const modifier = actorModifier(data.total ?? actor.getRollData?.()?.skills?.[key]?.total);
   const configuredLabel = CONFIG.DND5E?.skills?.[key]?.label;
-  const label = typeof configuredLabel === "string" ? (game.i18n?.localize?.(configuredLabel) ?? configuredLabel) : ({sur:"Survival",prc:"Perception",arc:"Arcana",inv:"Investigation",ste:"Stealth",nat:"Nature"}[key] ?? key.toUpperCase());
+  const label = typeof configuredLabel === "string" ? (game.i18n?.localize?.(configuredLabel) ?? configuredLabel) : ({sur:"Survival",prc:"Perception",arc:"Arcana",inv:"Investigation",ste:"Stealth",nat:"Nature",ath:"Athletics",per:"Persuasion"}[key] ?? key.toUpperCase());
   const ability = String(data.ability ?? CONFIG.DND5E?.skills?.[key]?.ability ?? SKILL_ABILITY_FALLBACK[key] ?? "").toUpperCase();
   return { label, ability, modifier };
+}
+function readExhaustion(actor) {
+  const raw = actor.system?.attributes?.exhaustion;
+  const value = Number(typeof raw === "object" ? raw?.value : raw);
+  return Number.isFinite(value) ? Math.min(6, Math.max(0, Math.trunc(value))) : 0;
+}
+// Lock duplicate exhaustion commands while a system update is in flight.
+const pendingExhaustionLevels = new Map();
+function exhaustionDisplayLevel(actor) {
+  // Both the menu and roster must use the SAME Actor instance. Reading from
+  // game.actors while the menu uses user.character caused mismatched levels.
+  const observed = readExhaustion(actor);
+  return observed;
+}
+/** D&D5e 5.x can retain a separate exhaustion status effect with its own
+ * level flag. Reconcile that source and the actor field before declaring success.
+ * Never alter any other conditions or custom effects. */
+function exhaustionStatusEffects(actor) {
+  return [...(actor.effects ?? [])].filter(effect =>
+    effect.statuses?.has?.("exhaustion") ||
+    effect.getFlag?.("core", "statusId") === "exhaustion" ||
+    effect.flags?.core?.statusId === "exhaustion");
+}
+/** In 5.x the canonical actor field is also reflected by the system's
+ * exhaustion condition. Leave creation/deletion of that system effect to
+ * D&D5e, not two independent ZFT writes which collide with Change Log hooks.
+ * Never swallow an update failure when the requested level was not persisted. */
+async function setExpeditionExhaustion(actor, level) {
+  if (!game.user?.isGM || actor.type !== "character" || !Number.isInteger(level) || level < 0 || level > 6)
+    throw new Error("Invalid or unauthorized exhaustion adjustment.");
+  if (readExhaustion(actor) === level) return level;
+  let updateError = null;
+  try {
+    // The D&D5e system is responsible for the condition. Do not call
+    // toggleStatusEffect or create an ActiveEffect with a fixed system ID.
+    await actor.update({ "system.attributes.exhaustion": level });
+  } catch (error) { updateError = error; }
+  let observed = readExhaustion(actor);
+  if (observed === level) {
+    // A third-party hook can throw after the Actor has actually been changed.
+    // Only report success if the local actor state is now correct.
+    if (updateError) console.warn("[ZFT][Ironrot] Actor persisted exhaustion, but an update hook reported an error", updateError);
+    return observed;
+  }
+  // An existing 5.x exhaustion condition may restore the previous level.
+  // Reconcile only its level flag; never fabricate a duplicate system effect.
+  const effects = exhaustionStatusEffects(actor);
+  if (effects.length === 1) {
+    try {
+      if (level > 0) {
+        await effects[0].update({ "flags.dnd5e.exhaustionLevel": level });
+      } else {
+        // Remove only the identified existing exhaustion condition on level 0.
+        await effects[0].delete();
+      }
+      await actor.update({ "system.attributes.exhaustion": level });
+    } catch (error) { updateError = error; }
+    observed = readExhaustion(actor);
+  }
+  if (observed !== level) {
+    console.warn("[ZFT][Ironrot] Exhaustion update not confirmed", {
+      actor: actor.uuid, requested: level, observed,
+      source: actor._source?.system?.attributes?.exhaustion,
+      effects: exhaustionStatusEffects(actor).map(e => ({ id:e.id, level:e.flags?.dnd5e?.exhaustionLevel })),
+      error: updateError?.message
+    });
+    throw updateError ?? new Error(`Actor reports Exhaustion ${observed} after update to ${level}`);
+  }
+  if (updateError) console.warn("[ZFT][Ironrot] Exhaustion corrected after hook warning", updateError);
+  return observed;
+}
+
+function exhaustionPenalty(level) {
+  if (!level) return "";
+  // In legacy-rules worlds use the 2014 exhaustion table.
+  let rulesVersion = "2024";
+  try {
+    if (game.settings.settings.has("dnd5e.rulesVersion")) rulesVersion = String(game.settings.get("dnd5e", "rulesVersion"));
+  } catch (error) { console.warn("[ZFT][Ironrot] Exhaustion rules setting unavailable", error); }
+  if (/2014|legacy/i.test(rulesVersion)) return ["", "Disadvantage on ability checks", "Speed halved", "Disadvantage on attacks and saves", "HP maximum halved", "Speed reduced to 0", "Death"][level];
+  return level >= 6 ? "Death" : `−${level*2} D20 Tests · −${level*5} ft. Speed`;
 }
 function conSaveBonus(actor) {
   const con = actor.system?.abilities?.con ?? {};
@@ -364,6 +472,119 @@ function compactIronrotHexResult(html) {
     `<div class="zft-ir-compact-dice-math">${dice.children[2].innerHTML}</div></div></div></div>`;
 }
 
+
+/**
+ * Presentation-only two-column breakdown of the existing saved stage card.
+ * Reuse the original evaluated d20 and d4 markup rather than reconstructing
+ * dice or modifying saved records. Older/nonstandard cards fall back to their
+ * complete original HTML, never a fabricated set of results.
+ */
+function hexTravelColumns(html, outcome) {
+  const template = document.createElement("template");
+  template.innerHTML = html;
+  const root = template.content.firstElementChild;
+  const blocks = [...(root?.children ?? [])];
+  const heading = blocks.findIndex(block => block.querySelector("[data-ir-stage-title]"));
+  if (heading < 0) return `<div class="zft-ir-travel-html">${html}</div>`;
+  const pace = blocks[heading + 1];
+  const guide = blocks[heading + 2];
+  if (!pace || !guide?.children?.length) return `<div class="zft-ir-travel-html">${html}</div>`;
+
+  const statusClass = /failure/i.test(outcome) ? "failure" : /success/i.test(outcome) ? "success" : "pending";
+  const metadata = guide.children[0]?.textContent?.replace(/\s+/g, " ").trim() ?? "Guide · Wisdom (Survival)";
+  const nameAndRoll = guide.cloneNode(true);
+  nameAndRoll.children[0]?.remove();
+  let guideName = "Guide awaiting roll";
+  // The first direct text node in the original Guide card holds the actor name.
+  // Only strip the name when the delimiter is present; leave every other result
+  // node (including the actual d20 icon and any GM override note) intact.
+  const firstText = [...nameAndRoll.childNodes].find(node => node.nodeType === 3 && node.textContent.trim());
+  const nameMatch = firstText?.textContent.match(/^\s*([^·]+?)\s*·\s*/);
+  if (nameMatch) {
+    guideName = nameMatch[1].trim();
+    firstText.textContent = firstText.textContent.slice(nameMatch[0].length);
+  }
+  const outcomeEl = [...nameAndRoll.children].find(node => node.matches?.("strong") && /SUCCESS|FAILURE/i.test(node.textContent));
+  const overrideEl = [...nameAndRoll.children].find(node => node.matches?.("em") && /GM override/i.test(node.textContent));
+  const statusText = outcomeEl?.textContent?.trim() ?? (/success/i.test(outcome) ? "SUCCESS" : /failure/i.test(outcome) ? "FAILURE" : "AWAITING RULING");
+  const overrideText = overrideEl?.textContent?.trim() ?? "";
+  const shownTotal = Number(nameAndRoll.querySelector(".zft-ir-d20-total > strong")?.textContent?.trim());
+  const recordedDC = Number(metadata.match(/DC\s*(\d+)/i)?.[1]);
+  const rawClass = Number.isFinite(shownTotal) && Number.isFinite(recordedDC) && recordedDC > 0
+    ? (shownTotal >= recordedDC ? "success" : "failure") : statusClass;
+  const rawVsFinal = rawClass !== statusClass && (rawClass === "success" || rawClass === "failure") && overrideText
+    ? `<span class="zft-ir-hex-original-result zft-ir-result-${rawClass}">Original roll: ${rawClass === "success" ? "Success" : "Failure"}</span>` : "";
+  outcomeEl?.remove();
+  overrideEl?.remove();
+  // Keep the original rolled d20 and DC comparison, but not the separator
+  // that previously introduced the now-separated outcome label.
+  const trailingText = [...nameAndRoll.childNodes].reverse().find(node => node.nodeType === 3 && node.textContent.trim());
+  if (trailingText) trailingText.textContent = trailingText.textContent.replace(/\s*·\s*$/, "");
+  // The d20 graphic shows a CHECK TOTAL, not a raw die face. Enlarge its
+  // existing system-owned die icon to match the visual prominence of d4 faces.
+  const guideRollHtml = nameAndRoll.innerHTML.trim() || '<span class="zft-ir-hex-awaiting">Navigation roll pending</span>';
+
+  const dice = blocks.find(block => /DICE ROLLED/i.test(block.children?.[0]?.textContent ?? ""));
+  const diceHeading = dice?.children?.[0]?.textContent?.replace(/\s+/g," ").trim() ?? "";
+  const diceFormula = diceHeading.match(/DICE ROLLED\s*·\s*(.+)/i)?.[1]?.trim() ?? "";
+  const diceFaces = dice?.children?.[1]?.innerHTML ?? "";
+  const diceMath = dice?.children?.[2]?.innerHTML ?? "";
+  const paceText = pace.textContent?.replace(/^\s*Pace:\s*/i," ").replace(/\s+/g," ").trim() ?? "";
+  const total = blocks.find(block => /TOTAL\s*·\s*ONE HEX/i.test(block.textContent ?? ""));
+  const totalHours = total?.textContent?.match(/(\d+)\s*hours?/i)?.[1] ?? null;
+  // An optional secondary legacy check still belongs to this saved hex. Show
+  // it in Navigation rather than silently omitting part of the original data.
+  const extra = blocks.find(block => /SECONDARY\s*·/i.test(block.children?.[0]?.textContent ?? ""));
+  const extraHtml = extra ? `<div class="zft-ir-hex-extra"><span>${extra.innerHTML}</span></div>` : "";
+
+  return `<div class="zft-ir-hex-detail zft-ir-travel-report" aria-label="Navigation, travel dice and duration">
+    <div class="zft-ir-hex-detail-grid">
+      <section class="zft-ir-hex-detail-nav" aria-label="Navigation check">
+        <h4><i class="fa-solid fa-compass" aria-hidden="true"></i> Navigation</h4>
+        <div class="zft-ir-hex-nav-line">
+          <div class="zft-ir-hex-nav-info">
+            <div class="zft-ir-hex-guide-meta">${esc(metadata)}</div>
+            <div class="zft-ir-hex-guide-name zft-ir-result-${rawClass}">${esc(guideName)}</div>
+          </div>
+          <div class="zft-ir-hex-nav-result">
+            <div class="zft-ir-hex-guide-roll zft-ir-result-${rawClass}">${guideRollHtml}</div>
+            <div class="zft-ir-hex-guide-status ${statusClass}">${esc(statusText)}${overrideText ? `<small>${esc(overrideText)}</small>` : ""}</div>
+            ${rawVsFinal}
+          </div>
+        </div>
+        ${extraHtml}
+      </section>
+      <section class="zft-ir-hex-detail-dice" aria-label="Travel dice and adjustments">
+        <h4><i class="fa-solid fa-dice" aria-hidden="true"></i> Travel Dice</h4>
+        <div class="zft-ir-hex-dice-line">
+          <div class="zft-ir-hex-dice-info">
+            <div class="zft-ir-hex-pace">Pace: <strong>${esc(paceText)}</strong></div>
+            ${dice ? `<div class="zft-ir-hex-dice-formula">${esc(diceFormula)}</div>` : ""}
+          </div>
+          ${dice ? `<div class="zft-ir-hex-dice-faces">${diceFaces}</div>`
+            : `<div class="zft-ir-hex-dice-pending">Travel dice awaiting GM confirmation</div>`}
+        </div>
+      </section>
+    </div>
+    ${dice ? `<div class="zft-ir-hex-detail-bottom" aria-label="Travel calculations and total time">
+      <div class="zft-ir-hex-detail-math" aria-label="Travel-hour calculation">
+        <span class="zft-ir-hex-math-title">TRAVEL HOURS</span>
+        <div class="zft-ir-hex-dice-math">${diceMath}</div>
+      </div>
+      ${totalHours !== null ? `<div class="zft-ir-hex-detail-total"><span>TOTAL · ONE HEX</span><strong>${esc(totalHours)} hours</strong></div>` : `<div class="zft-ir-hex-detail-total zft-ir-hex-total-pending"><span>TOTAL · ONE HEX</span><strong>Pending</strong></div>`}
+    </div>` : ""}
+  </div>`;
+}
+
+function expeditionRolesReferenceHtml() {
+  const roster = presentRoster();
+  return EXPEDITION_PAIRS.map(pair => `<section class="zft-ir-reference-group"><h4>${esc(pair.name)}</h4>${pair.roles.map(key => {
+    const role = EXPEDITION_ROLES[key];
+    const skill = travelSkill(roster[0] ?? {},role.skill);
+    return `<div class="zft-ir-reference-role"><strong>${esc(role.name)}</strong><span>${esc(skill.label)} (${esc(role.ability)})</span><p>${esc(role.tooltip ?? role.purpose)}</p></div>`;
+  }).join("")}</section>`).join("");
+}
+
 function makeCards(snapshot) {
   const s = snapshot.state ?? DEFAULT_LEDGER;
   const hours = num(s.hours);
@@ -379,202 +600,228 @@ function makeCards(snapshot) {
   const hexValid = pending > 0 && total >= pending && num(hexProgress.baseHexes) === num(s.hexes);
   const spent = hexValid ? total - pending : null;
   const next = pending ? (safeRemaining ? `Next: ${Math.min(safeRemaining, pending)} safe travel hour(s)` : `Next: Forced March · Hour ${nextHour} · CON DC ${10 + nextHour - 8}`) : "Next: Choose a new hex";
+  const hoursStatus = forced > 0 ? "red" : safeRemaining === 0 ? "amber" : "green";
+  const safeStatus = safeRemaining === 0 ? "amber" : "green";
+  const nextStatus = forced > 0 ? "is-forced" : safeRemaining === 0 && pending > 0 ? "is-warning" : "is-neutral";
   cards.push(stateCard("overview", `
-    <div class="zft-ir-stats">${spanStat("DAY", Math.max(1, num(s.day)))}${spanStat("HOURS TODAY", `${hours}/8`, hours > 8 ? "amber" : "green")}${spanStat("HEXES", num(s.hexes))}</div>
-    <div class="zft-ir-progress-label"><span>Safe travel hours</span><strong>${safe}/8h</strong></div>
-    <div class="zft-ir-progress"><div style="width:${Math.round(safe / 8 * 100)}%"></div></div>
-    ${hexValid ? `<div class="zft-ir-progress-label"><span>Current hex progress</span><strong>${spent}/${total}h</strong></div><div class="zft-ir-progress zft-ir-hex-progress"><div style="width:${total ? Math.round(spent / total * 100) : 0}%"></div></div>` : ""}
+    <div class="zft-ir-stats">${spanStat("DAY", Math.max(1, num(s.day)))}${spanStat("HOURS TODAY", `${hours}/8`, hoursStatus, forced > 0 ? "forced" : safeRemaining === 0 ? "limit" : "safe")}${spanStat("HEXES", num(s.hexes))}</div>
+    <div class="zft-ir-progress-label zft-ir-safe-label ${safeStatus}"><span>Safe travel hours</span><strong>${safe}/8h</strong></div>
+    <div class="zft-ir-progress zft-ir-safe-progress ${hoursStatus}"><div style="width:${Math.round(safe / 8 * 100)}%"></div></div>
+    ${hexValid ? `<div class="zft-ir-progress-label zft-ir-hex-label"><span>Current hex progress</span><strong>${spent}/${total}h</strong></div><div class="zft-ir-progress zft-ir-hex-progress"><div style="width:${total ? Math.round(spent / total * 100) : 0}%"></div></div>` : ""}
     <div class="zft-ir-progress-grid">
       <span>Traveled today <strong>${hours}h</strong></span>
-      <span>Safe time left <strong>${safeRemaining}h</strong></span>
-      <span>Forced travel <strong>${forced}h</strong></span>
-      <span>Current hex left <strong>${pending}h</strong></span>
+      <span class="zft-ir-safe-remaining ${safeStatus}">Safe time left <strong>${safeRemaining}h</strong></span>
+      <span class="zft-ir-forced-hours ${forced > 0 ? "red" : ""}">Forced travel <strong>${forced}h</strong></span>
       <span>Current hex spent <strong>${spent === null ? (pending ? "Not recorded" : "—") : `${spent}h`}</strong></span>
-      <span>Completed hexes <strong>${num(s.hexes)}</strong></span>
     </div>
-    <div class="zft-ir-next-step">${esc(next)}</div>`));
+    <div class="zft-ir-next-step ${nextStatus}">${esc(next)}</div>`));
   // Summary already states remaining hours and next action. No duplicate status panel.
-  // One timeline for ALL expedition event types. Saved hex HTML and saved
-  // march history remain untouched. The previous design reversed two separate
-  // lists, incorrectly placing recent Forced March events below old hexes.
+  // A day owns hex segments, each hex owns its explicitly associated checks.
+  // Existing records remain unchanged. Historical saves with no hexId stay in
+  // a clearly identified day-level legacy section; timestamps are NOT proof of
+  // which hex was traveled when the save was rolled.
   const travelCards = game.settings.get(MODULE_ID, CARDS_KEY)?.cards ?? [];
   const visibility = game.settings.get(MODULE_ID, LOG_KEY) ?? {};
   const hiddenHistory = new Set(visibility.hiddenHistoryKeys ?? []);
-  const timeline = [];
-  const marchEvents = (Array.isArray(s.marchHistory) ? s.marchHistory : [])
-    .filter(h => !hiddenHistory.has(`${h.day}:${h.hour}`));
-  for (const record of travelCards) {
-    if (!record?.id || !record?.html) continue;
-    const complete = record.stage === "complete";
-    const rolledHours = record.html.match(/>(\d+) hours<\/div>/)?.[1];
+  const hexRecords = travelCards.filter(record => record?.id && record?.html).map(record => {
+    const day = Number(record.day);
+    const decorated = decorateLegacyIronrotDice(record.html);
     const outcome = record.html.includes(">SUCCESS</strong>") ? "Navigation success"
       : record.html.includes(">FAILURE</strong>") ? "Navigation failure" : "Navigation resolved";
-    timeline.push({ kind: "hex", key: `hex:${record.id}`, record,
-      day: Number.isSafeInteger(record.day) && record.day > 0 ? record.day : null,
+    return { id: String(record.id), record, decorated, outcome,
+      day: Number.isSafeInteger(day) && day > 0 ? day : null,
       at: Number(record.completedAt ?? record.updatedAt) || 0,
-      complete, outcome, rolledHours });
-  }
-  for (const entry of marchEvents) {
-    const day = Number(entry.day);
-    timeline.push({ kind: "march", key: `history:${entry.day}:${entry.hour}`, entry,
-      day: Number.isSafeInteger(day) && day >= 1 ? day : null,
-      at: Number(entry.recordedAt) || 0,
-      complete: true });
-  }
-  // Dated events sort by recorded travel day, then actual completion time.
-  // Older records without a recorded day/date remain in Undated History rather
-  // than being incorrectly assigned today's date. Legacy march records retain
-  // their stored day and hour, without inventing timestamps.
-  timeline.sort((a,b) => {
-    if (a.day !== b.day) return (b.day ?? -1) - (a.day ?? -1);
-    if (a.at && b.at && a.at !== b.at) return b.at - a.at;
-    if (a.at !== b.at) return b.at - a.at;
-    if (a.kind === "march" && b.kind === "march") return num(b.entry.hour) - num(a.entry.hour);
-    return a.kind === "march" ? -1 : b.kind === "march" ? 1 : 0;
+      rolledHours: record.html.match(/>(\d+) hours<\/div>/)?.[1],
+      complete: record.stage === "complete" };
   });
-  // The 'complete' stage of a travel card means the *dice roll* finished,
-  // not that the party crossed the hex. The ledger marks a hex counted as soon
-  // as its hours are resolved. Keep the latest recorded hex on the current day
-  // identified as current until another hex starts (or a new day begins).
-  // When hours remain, the active hex can also span a travel-day boundary.
-  const newestHex = timeline.find(item => item.kind === "hex");
-  const activeHexKey = newestHex?.complete &&
-    (newestHex.day === num(s.day) || num(s.pending) > 0) ? newestHex.key : null;
-  const newestCurrentCompletedEventKey = timeline.find(item => item.day === num(s.day) && item.complete)?.key ?? null;
-  const logCards = [];
-  let lastDay = Symbol("initial");
-  for (const item of timeline) {
-    if (lastDay !== item.day) {
-      const label = item.day === null ? "Undated earlier travel" : `${dateAndDay(item.day)}${item.day === num(s.day) ? " · Current Day" : ""}`;
-      logCards.push(stateCard(`day:${item.day ?? "undated"}`, `<div class="zft-ir-day-divider"><i class="fa-solid fa-calendar-days" aria-hidden="true"></i> ${esc(label)}</div>`, "zft-ir-day-card"));
-      lastDay = item.day;
-    }
-    if (item.kind === "hex") {
-      const record = item.record;
-      const decorated = decorateLegacyIronrotDice(record.html);
-      // A day's header owns its date. Do not repeat it in each hex card.
-      const dateTag = item.day === null ? `<div class="zft-ir-hex-date">Date not recorded</div>` : "";
-      const resultClass = item.outcome === "Navigation failure" ? "zft-ir-history-failed" : "zft-ir-history-success";
-      const isCurrentHex = item.complete && item.key === activeHexKey;
-      const hasUnspentHours = isCurrentHex && num(s.pending) > 0;
-      const eventLabel = isCurrentHex ? "Current hex · In progress" : "Hex completed";
-      const eventIcon = isCurrentHex ? "fa-hourglass-half" : "fa-circle-check";
-      const timeSummary = item.rolledHours
-        ? (isCurrentHex ? `${item.rolledHours}h recorded` : `${item.rolledHours}h total`)
-        : "Travel time unavailable";
-      const summary = `${timeSummary} · ${item.outcome}`;
-      const remaining = hasUnspentHours ? `<span class="zft-ir-history-remaining">${num(s.pending)}h remaining</span>` : "";
-      // The log view can be redesigned without touching the world-setting HTML,
-      // dice rolls, or historic expedition snapshots.
-      const resultHtml = item.complete ? compactIronrotHexResult(decorated) : decorated;
-      logCards.push(stateCard(item.key, item.complete
-        ? `<details class="zft-ir-log-history ${resultClass} ${isCurrentHex ? "zft-ir-history-current" : ""}" data-ir-history ${item.key === newestCurrentCompletedEventKey ? "open" : ""}><summary><span class="zft-ir-history-label"><i class="fa-solid ${eventIcon}" aria-hidden="true"></i> ${esc(eventLabel)}</span><span class="zft-ir-history-summary">${esc(summary)}${remaining}</span></summary><div class="zft-ir-travel-html">${dateTag}${resultHtml}</div></details>`
-        : `<div class="zft-ir-travel-html">${dateTag}${decorated}</div>`, "zft-ir-hex-card"));
-    } else {
-      const entry = item.entry;
-      const rows = (entry.results ?? []).map(result => `<div class="zft-ir-result-row"><strong>${esc(result.name)}</strong><span class="${result.passed ? "green" : "red"}">${Number.isFinite(result.total) ? ironrotD20Total(result.total) : "—"} · ${result.passed ? "Passed" : "Failed"}${num(result.rerolls) ? ` · Rerolled ×${num(result.rerolls)}` : ""}</span><small>${esc(result.outcome ?? "GM resolved")}</small></div>`).join("");
-      const full = `<div class="zft-ir-march-full"><div class="zft-ir-card-title">Completed Forced March · Hour ${esc(entry.hour)} · CON DC ${esc(entry.dc)}</div>${rows || "<p>No entries</p>"}</div>`;
-      const results = Array.isArray(entry.results) ? entry.results : [];
-      const failed = results.filter(result => result.passed === false).length;
-      const compactResult = failed ? `${results.length} saves · ${failed} failed` : `${results.length} saves accepted`;
-      logCards.push(stateCard(item.key,
-        `<details class="zft-ir-log-history zft-ir-history-march" data-ir-history ${item.key === newestCurrentCompletedEventKey ? "open" : ""}><summary><span class="zft-ir-history-label"><i class="fa-solid fa-shield-halved" aria-hidden="true"></i> Forced March completed · Hour ${esc(entry.hour)}</span><strong>DC ${esc(entry.dc)} · ${esc(compactResult)}</strong></summary>${full}</details>`, "zft-ir-march-card"));
-    }
+  const numberedHexes = [...hexRecords].sort((a, b) =>
+    (Number(a.record.createdAt) || Number(a.record.updatedAt) || 0) -
+    (Number(b.record.createdAt) || Number(b.record.updatedAt) || 0) ||
+    hexRecords.indexOf(a) - hexRecords.indexOf(b));
+  const retainedCompletions = numberedHexes.filter(item => item.complete).length;
+  const earlierCompletions = Math.max(0, num(s.hexes) - retainedCompletions);
+  const hexNumberById = new Map(numberedHexes.map((item, index) => [item.id, earlierCompletions + index + 1]));
+  const hexById = new Map(hexRecords.map(item => [item.id, item]));
+  const linkedMarch = [];
+  const legacyMarch = [];
+  for (const entry of (Array.isArray(s.marchHistory) ? s.marchHistory : [])) {
+    if (hiddenHistory.has(`${entry.day}:${entry.hour}`)) continue;
+    const day = Number(entry.day);
+    const validDay = Number.isSafeInteger(day) && day > 0 ? day : null;
+    const record = entry.hexId ? hexById.get(String(entry.hexId)) : null;
+    const item = { entry, day: validDay, at: Number(entry.recordedAt) || 0 };
+    if (record) linkedMarch.push({ ...item, hexId: record.id });
+    else legacyMarch.push(item);
   }
-
-  // Keep dates and event order in one timeline, but collapse completed days
-  // rather than leaving long lists of old hexes at full height. The current
-  // day automatically collapses after Stop and re-expands on same-day resume.
-  const groupedLog = [];
-  let dayGroup = null;
-  const flushGroup = () => {
-    if (!dayGroup) return;
-    const day = dayGroup.day;
-    const isCurrent = day !== null && day === Number(s.day);
-    const stopped = ["Travel stopped", "Travel paused"].includes(snapshot.phase);
-    const initiallyOpen = isCurrent && !stopped;
-    const dayLabel = day === null ? "Undated earlier travel" : dateAndDay(day);
-    const status = isCurrent ? (stopped ? "Stopped / Paused" : "Current Day") : "Earlier Day";
-    const summary = `${dayGroup.hexes} hex${dayGroup.hexes === 1 ? "" : "es"} · ${dayGroup.marches} forced march`;
-    groupedLog.push(stateCard(dayGroup.key, `<details class="zft-ir-day-group" data-ir-day-group="${esc(day ?? "undated")}" ${initiallyOpen ? "open" : ""}><summary><span class="zft-ir-day-group-label"><i class="fa-solid fa-calendar-days" aria-hidden="true"></i> ${esc(dayLabel)} <small>${esc(status)}</small></span><span class="zft-ir-day-group-count">${esc(summary)}</span></summary><div class="zft-ir-day-group-events">${dayGroup.events.join("")}</div></details>`, "zft-ir-day-group-card"));
-    dayGroup = null;
+  const today = Math.max(1, Number(s.day) || 1);
+  const activeHexId = num(s.pending) > 0 && s.activeHexCardId && hexById.has(String(s.activeHexCardId))
+    ? String(s.activeHexCardId) : null;
+  const newestHex = [...hexRecords].sort((a,b) => b.at - a.at)[0];
+  // Old ledgers had no explicit active-hex ID. Preserve the original current
+  // hex label for display only; never attach old saves to it implicitly.
+  const legacyVisibleCurrentId = !activeHexId && num(s.pending) > 0 && newestHex?.complete
+    ? newestHex.id : null;
+  const days = new Map();
+  const ensureDay = day => {
+    const key = day === null ? "undated" : String(day);
+    if (!days.has(key)) days.set(key, { day, hexes: new Map(), legacyMarch: [] });
+    return days.get(key);
   };
-  for (const card of logCards) {
-    if (card.key.startsWith("day:")) {
-      flushGroup();
-      const raw = card.key.slice(4);
-      dayGroup = { key: card.key, day: raw === "undated" ? null : Number(raw), events: [], hexes: 0, marches: 0 };
-    } else if (dayGroup) {
-      dayGroup.events.push(card.html);
-      if (card.key.startsWith("hex:")) dayGroup.hexes++;
-      if (card.key.startsWith("history:")) dayGroup.marches++;
-    }
+  const ensureHex = (day, hexItem) => {
+    const group = ensureDay(day);
+    if (!group.hexes.has(hexItem.id)) group.hexes.set(hexItem.id, { hexItem, marches: [] });
+    return group.hexes.get(hexItem.id);
+  };
+  for (const item of hexRecords) ensureHex(item.day, item);
+  for (const item of linkedMarch) ensureHex(item.day, hexById.get(item.hexId)).marches.push(item);
+  for (const item of legacyMarch) ensureDay(item.day).legacyMarch.push(item);
+  // Explicitly observed days remain in the log even when no travel card or
+  // Forced March check exists. Preserve only actual registered days; never
+  // infer gaps or synthesize travel activity for skipped ledger day numbers.
+  for (const loggedDay of (Array.isArray(visibility.recordedDays) ? visibility.recordedDays : [])) {
+    if (Number.isSafeInteger(loggedDay) && loggedDay >= 1 && loggedDay <= today) ensureDay(loggedDay);
   }
-  flushGroup();
-  // An active new travel day must be visible even before its first result.
-  // Without this, the log can show Day 4 while the dashboard reads Day 5.
-  const currentDayKey = `day:${Math.max(1, Number(s.day) || 1)}`;
-  if (!groupedLog.some(card => card.key === currentDayKey)) {
-    const stopped = ["Travel stopped", "Travel paused"].includes(snapshot.phase);
-    const dayTitle = dateAndDay(s.day);
-    const emptyHint = game.user?.isGM
-      ? "No travel activity recorded for this day yet."
-      : "No travel activity has been recorded for this day yet.";
-    groupedLog.unshift(stateCard(currentDayKey,
-      `<details class="zft-ir-day-group zft-ir-day-empty" data-ir-day-group="${esc(s.day)}" ${stopped ? "" : "open"}><summary><span class="zft-ir-day-group-label"><i class="fa-solid fa-calendar-days" aria-hidden="true"></i> ${esc(dayTitle)} <small>${stopped ? "Stopped / Paused" : "Current Day"}</small></span><span class="zft-ir-day-group-count">0 events</span></summary><div class="zft-ir-day-group-events"><div class="zft-ir-day-empty-note"><i class="fa-solid fa-book-open" aria-hidden="true"></i><span><strong>No travel events recorded</strong><small>${esc(emptyHint)}</small></span></div></div></details>`,
-      "zft-ir-day-group-card"));
-  }
+  // A hex can span travel days. In that case each day's log shows its segment,
+  // with a link to the SAME saved hex record, not a fabricated second hex.
+  if (activeHexId) ensureHex(today, hexById.get(activeHexId));
+  else if (legacyVisibleCurrentId) ensureHex(today, hexById.get(legacyVisibleCurrentId));
+  ensureDay(today);
+
+  const latestMarch = [...linkedMarch, ...legacyMarch].sort((a,b) => (b.entry.recordedAt ?? 0) - (a.entry.recordedAt ?? 0))[0]?.entry;
+  const holdLatestMarch = ["Forced march decision", "Hour resolved", "Hex completed"].includes(String(snapshot.phase ?? ""));
+  const renderMarch = ({ entry }) => {
+    const holdOpen = holdLatestMarch && entry === latestMarch && entry.day === today && Number(entry.hour) === num(s.hours);
+
+    const rows = (entry.results ?? []).map(result => {
+      const tone = !Number.isFinite(result.total) ? "pending" : result.passed ? "success" : "failure";
+      const label = tone === "pending" ? "Unresolved" : result.passed ? "Passed" : "Failed";
+      const recordedOutcome = String(result.outcome ?? "GM resolved");
+      const rulingTone = /Exhaustion \+1/i.test(recordedOutcome) ? "failure" : /accepted|waived/i.test(recordedOutcome) ? "success" : "pending";
+      return `<div class="zft-ir-result-row zft-ir-march-result-grid"><strong class="zft-ir-march-character zft-ir-result-${tone}">${esc(result.name)}</strong>` +
+        `<span class="zft-ir-march-check zft-ir-result-${tone}">${Number.isFinite(result.total) ? ironrotD20Total(result.total) : "—"}</span>` +
+        `<span class="zft-ir-march-verdict zft-ir-result-${tone}">${label}</span>` +
+        `<small class="zft-ir-march-outcome zft-ir-result-${rulingTone}">${num(result.rerolls) ? `Rerolled ×${num(result.rerolls)} · ` : ""}${esc(recordedOutcome)}</small></div>`;
+    }).join("");
+    const failed = (entry.results ?? []).filter(result => result.passed === false).length;
+    const resultCount = (entry.results ?? []).length;
+    const compact = failed
+      ? `${resultCount} saves · <span class="zft-ir-result-failure">${failed} failed</span>`
+      : `<span class="zft-ir-result-success">${resultCount} saves accepted</span>`;
+    const full = `<div class="zft-ir-march-full"><div class="zft-ir-card-title">Forced March · Hour ${esc(entry.hour)} · CON DC ${esc(entry.dc)}</div>${rows || "<p>No entries</p>"}</div>`;
+    return stateCard(`history:${entry.day}:${entry.hour}`,
+      `<details class="zft-ir-log-history zft-ir-history-march zft-ir-march-event" data-ir-history data-ir-march-key="${esc(`${entry.day}:${entry.hour}:${entry.recordedAt ?? 0}`)}" ${holdOpen ? 'open data-ir-march-held="true"' : ''}><summary class="zft-ir-march-event-head"><span class="zft-ir-march-title"><i class="fa-solid fa-shield-halved" aria-hidden="true"></i> Forced March · Hour ${esc(entry.hour)}</span><span class="zft-ir-march-status zft-ir-march-status-completed">Completed</span><span class="zft-ir-march-event-meta">CON DC ${esc(entry.dc)} · ${compact}</span></summary>${full}</details>`, "zft-ir-march-card").html;
+  };
+  // Read-only progress label: derive the active workflow from existing public
+  // phase + staged hex record. Never create a second state machine.
+  const activeHexStatus = (record) => {
+    const phase = String(snapshot.phase ?? "");
+    const hour = hours + 1;
+    if (phase === "Forced march decision") return `Awaiting GM Decision · Forced March Hour ${hour}`;
+    if (phase === "GM review") return `Awaiting GM Rulings · Forced March Hour ${hour}`;
+    if (phase === "Saving throws") return `Awaiting CON Saves · Forced March Hour ${hour}`;
+    if (phase === "Rerolling") return `Awaiting CON Rerolls · Hour ${hour}`;
+    if (phase === "Forced march") return `Forced March In Progress · Hour ${hour}`;
+    const stage = String(record?.stage ?? "");
+    if (stage === "started") return "Awaiting Navigation Roll";
+    if (stage === "navigation") return "Navigation Complete · Awaiting Next Check";
+    if (stage === "secondary") return "Awaiting GM Navigation Ruling";
+    if (stage === "rolling") return "Awaiting Travel Dice";
+    if (stage === "complete" && pending > 0) return "Ready to Continue Travel";
+    return "Travel In Progress";
+  };
+  const renderHex = (segmentDay, { hexItem, marches }) => {
+    const { record, day: startingDay, outcome, id } = hexItem;
+    const isCurrent = (id === activeHexId || id === legacyVisibleCurrentId) && segmentDay === today && num(s.pending) > 0;
+    const isLatest = newestHex?.id === id && segmentDay === today;
+    const defaultOpen = isCurrent || isLatest;
+    const continued = segmentDay !== startingDay;
+    const number = hexNumberById.get(id);
+    const hexLabel = number ? `Hex ${number}` : "Hex";
+    const header = isCurrent ? `${hexLabel} · In progress` : hexItem.complete ? `${hexLabel} · Completed` : continued ? `${hexLabel} · Continued travel` : `${hexLabel} · In progress`;
+    // A revision changes only when the hex record or travel progress changes.
+    // Opening and closing a window or refreshing a player view does not change it.
+    const revision = [record.updatedAt ?? 0, record.stage, isCurrent ? `${hours}:${pending}` : "completed",
+      ...marches.map(item => `${item.entry.day}:${item.entry.hour}:${item.entry.recordedAt ?? 0}`)].join(":");
+    const time = hexItem.rolledHours ? `${hexItem.rolledHours}h total` : "Travel time unavailable";
+    const remaining = isCurrent ? `<strong class="zft-ir-history-remaining">${num(s.pending)}h left</strong>` : "";
+    const liveStatus = isCurrent ? `<span class="zft-ir-hex-workflow-status" role="status"><i class="fa-solid fa-circle-info" aria-hidden="true"></i> <span>${esc(activeHexStatus(record))}</span></span>` : "";
+    // Show the latest navigation result immediately, including the GM ruling
+    // stage before travel dice exist. Earlier hexes remain closed by default.
+    // syncCards honors a deliberate manual toggle until NEW recorded results
+    // supersede that choice for this hex.
+    // Hex expands directly into the complete two-column presentation. The
+    // evaluated dice, GM outcome, pace and total come from the saved card.
+    // No duplicate skim rows or second click for the latest hex.
+    const rolls = hexTravelColumns(hexItem.decorated, outcome);
+    const marchHtml = [...marches].sort((a,b) => b.entry.hour - a.entry.hour).map(renderMarch).join("");
+    const hasLiveMarch = isCurrent && hours >= 8 && ["Forced march decision", "Forced march", "Saving throws", "Rerolling", "GM review"].includes(String(snapshot.phase ?? ""));
+    const marchHeading = marches.length || hasLiveMarch
+      ? `<div class="zft-ir-hex-event-heading"><i class="fa-solid fa-shield-halved" aria-hidden="true"></i> Forced March checks</div>` : "";
+    const currentProgress = isCurrent && hexValid
+      ? (() => { const total = num(game.settings.get(MODULE_ID, HEX_KEY)?.totalHours); const spent = total-num(s.pending);
+        return `<div class="zft-ir-hex-progress-line"><span>Hex progress</span><strong>${spent}/${total}h</strong></div><div class="zft-ir-hex-progress-bar"><div style="width:${total ? Math.round(spent/total*100) : 0}%"></div></div>`; })() : "";
+    const childCount = marches.length ? `<small class="zft-ir-hex-collapsed-count">${marches.length} Forced March ${marches.length === 1 ? "check" : "checks"}</small>` : "";
+    return stateCard(`hex:${id}:day:${segmentDay ?? "undated"}`,
+      `<details class="zft-ir-log-history zft-ir-hex-section ${isCurrent ? "zft-ir-hex-active" : ""} ${hexItem.complete ? "zft-ir-hex-complete" : ""}" data-ir-history data-ir-hex-revision="${esc(revision)}" data-ir-hex-latest="${isLatest ? "true" : "false"}" ${defaultOpen ? "open" : ""}><summary><span class="zft-ir-hex-head-main"><span class="zft-ir-history-label"><i class="fa-solid ${isCurrent ? "fa-hourglass-half" : "fa-map-location-dot"}" aria-hidden="true"></i> ${esc(header)}</span><span class="zft-ir-hex-header-meta">${remaining}${childCount}</span></span>${liveStatus}</summary><div class="zft-ir-hex-contents">${currentProgress}<div class="zft-ir-hex-roll-container">${rolls}</div><div class="zft-ir-hex-events" data-ir-hex-events="${esc(id)}">${marchHeading}${marchHtml}</div></div></details>`,
+      "zft-ir-hex-card zft-ir-hex-parent-card").html;
+  };
+
+  const groupedLog = [...days.values()].sort((a,b) => (b.day ?? -1) - (a.day ?? -1)).map(group => {
+    const day = group.day;
+    const current = day === today;
+    const stopped = ["Travel stopped","Travel paused"].includes(snapshot.phase);
+    const open = current;
+    const ordered = [...group.hexes.values()].sort((a,b) => b.hexItem.at - a.hexItem.at);
+    const hexHtml = ordered.map(segment => renderHex(day, segment)).join("");
+    const legacyHtml = group.legacyMarch.length
+      ? `<section class="zft-ir-legacy-marches" aria-label="Historical Forced March checks without recorded hex association"><div class="zft-ir-legacy-label"><i class="fa-solid fa-clock-rotate-left" aria-hidden="true"></i> Earlier Forced March checks <small>Hex association not recorded</small></div>${[...group.legacyMarch].sort((a,b) => b.entry.hour-a.entry.hour).map(renderMarch).join("")}</section>` : "";
+    const events = hexHtml + legacyHtml || `<div class="zft-ir-day-empty-note"><i class="fa-solid fa-book-open" aria-hidden="true"></i><span><strong>No travel recorded</strong><small>${day === today ? "Travel activity will appear here." : "0 hours traveled · 0 hexes completed · 0 Forced March checks"}</small></span></div>`;
+    const numMarches = group.legacyMarch.length + ordered.reduce((n,item)=>n+item.marches.length,0);
+    // Display distinct completed/in-progress counts, rather than calling an
+    // unfinished hex a completed one. Continued hex segments retain their ID.
+    const inProgress = ordered.filter(({hexItem}) =>
+      !hexItem.complete || (day === today && num(s.pending) > 0 &&
+        (hexItem.id === activeHexId || hexItem.id === legacyVisibleCurrentId))).length;
+    const completed = ordered.length - inProgress;
+    const count = [completed ? `${completed} completed` : "", inProgress ? `${inProgress} in progress` : "",
+      !ordered.length ? "0 hexes" : "", `${numMarches} Forced March ${numMarches === 1 ? "check" : "checks"}`].filter(Boolean).join(" · ");
+    const status = current ? (stopped ? "Stopped / Paused" : "Current Day") : "Earlier Day";
+    return stateCard(`day:${day ?? "undated"}`, `<details class="zft-ir-day-group" data-ir-day-group="${esc(day ?? "undated")}" ${open ? "open" : ""}><summary><span class="zft-ir-day-group-label"><i class="fa-solid fa-calendar-days" aria-hidden="true"></i> ${esc(day === null ? "Undated earlier travel" : dateAndDay(day))} <small>${esc(status)}</small></span><span class="zft-ir-day-group-count">${esc(count)}</span></summary><div class="zft-ir-day-group-events">${events}</div></details>`, "zft-ir-day-group-card");
+  });
+  const currentDayKey = `day:${today}`;
   const roster = presentRoster();
   const roles = ironrotRolePreferences();
   const rosterHtml = roster.map(actor => {
-    const navigator = actor.uuid === roles.navigatorUuid;
-    const activity = actor.uuid === roles.secondaryUuid && roles.activity !== "none" ? IRONROT_ACTIVITIES[roles.activity] : null;
-    const assigned = navigator ? "Navigator" : (activity ? `Secondary · ${activity.name}` : "Available");
-    const skillKey = navigator ? IRONROT_NAVIGATION_SKILL : activity?.skill ?? null;
+    const assignment = Object.entries(roles.assignments ?? {}).find(([key, uuid]) => EXPEDITION_ROLES[key] && uuid === actor.uuid);
+    const legacyNavigator = actor.uuid === roles.navigatorUuid;
+    const legacyActivity = actor.uuid === roles.secondaryUuid && roles.activity !== "none" ? IRONROT_ACTIVITIES[roles.activity] : null;
+    const definedRole = assignment ? EXPEDITION_ROLES[assignment[0]] : null;
+    const assigned = definedRole?.name ?? (legacyNavigator ? "Guide" : (legacyActivity ? `Secondary · ${legacyActivity.name}` : "Available"));
+    const skillKey = definedRole?.skill ?? (legacyNavigator ? IRONROT_NAVIGATION_SKILL : legacyActivity?.skill ?? null);
     const check = skillKey ? travelSkill(actor, skillKey) : null;
     const checkInfo = check ? `<span class="zft-ir-member-skill" title="Assigned expedition check">${esc(check.label)}${check.ability ? ` (${esc(check.ability)})` : ""} <strong>${esc(signed(check.modifier))}</strong></span>` : "";
     const con = conSaveBonus(actor);
     const portrait = actor.img ? `<img src="${esc(actor.img)}" loading="lazy" alt="">` : `<i class="fa-solid fa-user" aria-hidden="true"></i>`;
-    const rawExhaustion = actor.system?.attributes?.exhaustion;
-    const exhaustion = Number(typeof rawExhaustion === "object" ? rawExhaustion?.value : rawExhaustion);
-    const status = Number.isFinite(exhaustion) && exhaustion > 0
-      ? `<span class="zft-ir-member-condition">Exhaustion ${Math.trunc(exhaustion)}</span>` : "";
-    return `<div class="zft-ir-party-member"><span class="zft-ir-portrait" data-ir-actor-sheet="${esc(actor.uuid)}" title="Double-click to open character sheet" role="button" tabindex="0" aria-label="Open ${esc(actor.name)} character sheet">${portrait}</span><span class="zft-ir-member-info"><strong>${esc(actor.name)}</strong><small>${esc(assigned)}</small><span class="zft-ir-member-bonuses">${checkInfo}<span class="zft-ir-member-con" title="Constitution saving throw bonus">CON Save <strong>${esc(signed(con))}</strong></span></span></span>${status}</div>`;
+    // The immediate GM correction is held until the actor's replicated state catches up.
+    const exhaustion = exhaustionDisplayLevel(actor);
+    const penalty = exhaustionPenalty(exhaustion);
+    const penaltyParts = penalty.split(/\s*·\s*/);
+    const status = exhaustion ? `<span class="zft-ir-member-exhaustion"><span class="zft-ir-member-condition">Exhaustion ${exhaustion}</span><small class="zft-ir-member-penalty">${penaltyParts.map(part => `<span>${esc(part)}</span>`).join("")}</small></span>` : "";
+    const description = definedRole?.tooltip ?? definedRole?.purpose ?? "";
+    const roleLabel = definedRole
+      ? `<small class="zft-ir-role-tooltip" tabindex="0" aria-label="${esc(assigned)}: ${esc(description)}"><span>${esc(assigned)}</span> <i class="fa-solid fa-circle-info" aria-hidden="true"></i><span class="zft-ir-role-tooltip-pop" role="tooltip">${esc(description)}<em>Primary check: ${esc(check?.label ?? "Ability check")} (${esc(definedRole.ability)})</em></span></small>`
+      : `<small>${esc(assigned)}</small>`;
+    return `<div class="zft-ir-party-member zft-ir-roster-refined" data-ir-party-actor="${esc(actor.uuid)}"><span class="zft-ir-portrait" data-ir-actor-sheet="${esc(actor.uuid)}" title="Double-click to open character sheet" role="button" tabindex="0" aria-label="Open ${esc(actor.name)} character sheet">${portrait}</span><span class="zft-ir-member-info"><span class="zft-ir-member-heading"><strong>${esc(actor.name)}</strong>${status}</span>${roleLabel}<span class="zft-ir-member-bonuses">${checkInfo}<span class="zft-ir-member-con" title="Constitution saving throw bonus">CON Save <strong>${esc(signed(con))}</strong></span></span></span></div>`;
   }).join("");
-  cards.push(stateCard("party", `<div class="zft-ir-card-title">Present Party · ${roster.length}</div><div class="zft-ir-party-list">${rosterHtml || "No party members selected"}</div>`));
+  const rosterCollapsed = game.settings.get(MODULE_ID, UI_KEY)?.rosterCollapsed === true;
+  cards.push(stateCard("party", `<div class="zft-ir-roster-header"><div class="zft-ir-card-title">Expedition Roster · ${roster.length}</div><div class="zft-ir-roster-header-actions"><button type="button" class="zft-ir-roster-toggle" data-ir-action="roster-toggle" aria-expanded="${!rosterCollapsed}" aria-controls="zft-ir-roster-members" aria-label="${rosterCollapsed ? "Expand" : "Collapse"} Expedition Roster" title="${rosterCollapsed ? "Expand" : "Collapse"} Expedition Roster"><i class="fa-solid fa-angles-${rosterCollapsed ? "down" : "up"}" aria-hidden="true"></i></button><button type="button" class="zft-ir-roles-open" data-ir-action="roles-reference" aria-label="Open expedition roles reference"><i class="fa-solid fa-book-open" aria-hidden="true"></i> Roles</button></div></div><div id="zft-ir-roster-members" class="zft-ir-party-list" ${rosterCollapsed ? "hidden" : ""}>${rosterHtml || "No party members selected"}</div>`));
 
   // Public forced-march briefing appears before the GM confirms continuing.
   // All clients use the same world snapshot; only the GM gets action controls.
   // An archived forced hour is represented solely by the completed timeline.
   const marchPhase = String(snapshot.phase ?? "");
-  const forcedBriefingPhases = new Set(["Forced march decision", "Forced march", "Saving throws", "Rerolling", "GM review"]);
-  const showBriefing = pending > 0 && hours >= 8 &&
-    forcedBriefingPhases.has(marchPhase) && visibility.hiddenHourKey !== `${s.day}:${s.hours}`;
-  if (showBriefing) {
-    const hour = hours + 1;
-    const dc = 10 + hour - 8;
-    const isDecision = marchPhase === "Forced march decision";
-    const isReview = marchPhase === "GM review";
-    const isReroll = marchPhase === "Rerolling";
-    const status = isDecision ? "Awaiting GM decision"
-      : isReview ? "Awaiting GM rulings"
-      : isReroll ? "Reroll in progress" : "Constitution saves required";
-    const statusClass = isDecision ? "zft-ir-briefing-decision"
-      : isReview ? "zft-ir-briefing-review" : "zft-ir-briefing-rolling";
-    const description = isDecision
-      ? `The party has completed ${hours} hour(s) of travel today. The GM is deciding whether to continue into hour ${hour} or stop for the day.`
-      : isReview ? "The party's saving throws have been submitted. The GM is reviewing the results and deciding the outcomes."
-      : isReroll ? "One or more characters are rerolling Constitution saves. Awaiting replacement results."
-      : `The party is pushing beyond 8 hours of normal travel. A Constitution saving throw is required at the end of hour ${hour}.`;
-    activeSaveCards.push(stateCard("forced-briefing", `
-      <section class="zft-ir-forced-briefing ${statusClass}" aria-label="Forced March information">
-        <div class="zft-ir-forced-briefing-head"><strong><i class="fa-solid fa-person-hiking" aria-hidden="true"></i> Forced March · Hour ${hour}</strong><span class="zft-ir-forced-stage">${esc(status)}</span></div>
-        <div class="zft-ir-forced-briefing-date">${esc(dateAndDay(s.day))}</div>
-        <div class="zft-ir-forced-briefing-stats"><span>Travel today <strong>${hours}h</strong></span><span>Current hex left <strong>${pending}h</strong></span><span>CON save <strong>DC ${dc}</strong></span></div>
-        <p>${esc(description)}</p>
-        <div class="zft-ir-forced-briefing-warning"><i class="fa-solid fa-triangle-exclamation" aria-hidden="true"></i> Failed save: 1 level of Exhaustion.</div>
-      </section>`, "zft-ir-forced-briefing-card"));
-  }
+  // A pending decision is already visible in the current hex header and GM
+  // Dashboard. Avoid a second, redundant Forced March event card below it.
   const rolls = s.hourRolls ?? {};
   const outcomes = s.hourOutcomes ?? {};
   const resolved = new Set(s.hourResolved ?? []);
@@ -582,7 +829,7 @@ function makeCards(snapshot) {
   if (hasSaves && visibility.hiddenHourKey !== `${s.day}:${s.hours}`) {
     const hour = hours + 1;
     const dc = 10 + hour - 8;
-    if (!showBriefing) activeSaveCards.push(stateCard("forced-header", `<div class="zft-ir-card-title">Forced March · Hour ${hour} · CON DC ${dc}</div><small>${esc(dateAndDay(s.day))}</small>`));
+    // Pending save rows use the existing "Forced March checks" section header.
     for (const actor of roster) {
       const value = rolls[actor.uuid];
       const hasRoll = Number.isFinite(value);
@@ -590,16 +837,38 @@ function makeCards(snapshot) {
       const outcome = resolved.has(actor.uuid) ? (outcomes[actor.uuid] || "GM resolved") : hasRoll ? "Awaiting GM ruling" : "Awaiting roll";
       const color = rerollPending || !hasRoll ? "amber" : value >= dc ? "green" : "red";
       const rerolls = num(s.hourRerolls?.[actor.uuid]);
-      const result = rerollPending ? "Rerolling · awaiting d20" : hasRoll ? `${ironrotD20Total(value)} · ${value >= dc ? "Passed" : "Failed"}` : "Pending";
+      const check = hasRoll && !rerollPending ? ironrotD20Total(value) : `<span class="zft-ir-march-no-roll">${rerollPending ? "↻" : "—"}</span>`;
+      const verdict = rerollPending ? "Rerolling" : hasRoll ? (value >= dc ? "Passed" : "Failed") : "Pending";
       const explanation = rerollPending
         ? `Reroll requested · ${hasRoll ? `previous result ${esc(value)}` : "awaiting result"}`
         : `${rerolls ? `Rerolled ×${rerolls} · ` : ""}${esc(outcome)}`;
-      activeSaveCards.push(stateCard(`save:${actor.uuid}`, `<div class="zft-ir-result"><strong>${esc(actor.name)}</strong><span class="${color}">${result}</span></div><p>${explanation}</p>`));
+      activeSaveCards.push(stateCard(`save:${actor.uuid}`, `<div class="zft-ir-live-save-row zft-ir-march-result-grid"><strong class="zft-ir-march-character zft-ir-result-${color === "green" ? "success" : color === "red" ? "failure" : "pending"}">${esc(actor.name)}</strong><span class="zft-ir-march-check zft-ir-result-${color === "green" ? "success" : color === "red" ? "failure" : "pending"}">${check}</span><span class="zft-ir-march-verdict ${color}">${verdict}</span><small>${explanation}</small></div>`));
     }
   }
-  // Active party rolls stay grouped and first. Reverse *entry groups*, never
-  // individual character results inside a group or the saved world history.
-  return [...cards, ...activeSaveCards, ...groupedLog];
+  // Display the live Forced March briefing and per-PC results INSIDE their
+  // owning travel day. It is presentation-only: the persistent timeline, rolls,
+  // events, and world settings retain their existing schema and order.
+  if (activeSaveCards.length) {
+    const currentIndex = groupedLog.findIndex(card => card.key === currentDayKey);
+    if (currentIndex !== -1) {
+      const group = groupedLog[currentIndex];
+      const activityLabel = marchPhase === "Forced march decision" ? "GM decision pending"
+        : marchPhase === "GM review" ? "GM rulings pending" : "Forced March in progress";
+      const active = `<section class="zft-ir-live-section" aria-label="${esc(activityLabel)}">${activeSaveCards.map(card => card.html).join("")}</section>`;
+      // Only an explicitly linked active hex owns the pending action. Legacy
+      // state with no ID shows it at day level without claiming a false link.
+      const target = activeHexId ? `<div class="zft-ir-hex-events" data-ir-hex-events="${esc(activeHexId)}">` : null;
+      if (target && group.html.includes(target)) {
+        const heading = `<div class="zft-ir-hex-event-heading"><i class="fa-solid fa-shield-halved" aria-hidden="true"></i> Forced March checks</div>`;
+        const withHeading = target + heading;
+        group.html = group.html.includes(withHeading)
+          ? group.html.replace(withHeading, `${withHeading}${active}`)
+          : group.html.replace(target, `${target}${heading}${active}`);
+      } else group.html = group.html.replace('<div class="zft-ir-day-group-events">', `<div class="zft-ir-day-group-events">${active}`);
+    }
+  }
+  // Only the overview and roster remain top-level dashboard cards.
+  return [...cards, ...groupedLog];
 }
 
 function syncCards(container, cards, dayOverrides = null, historyOverrides = null) {
@@ -615,6 +884,30 @@ function syncCards(container, cards, dayOverrides = null, historyOverrides = nul
       if (card.key.startsWith("day:") && dayOverrides?.has(card.key)) {
         const dayDetail = replacement.querySelector("details[data-ir-day-group]");
         if (dayDetail) dayDetail.open = dayOverrides.get(card.key);
+      }
+      // Preserve manual expansion of earlier checks when the day card rerenders.
+      // A newly processed latest check auto-opens until Continue / Pause; then
+      // its held open state is explicitly cleared in the shared render.
+      if (node) {
+        const oldMarches = new Map([...node.querySelectorAll("details[data-ir-march-key]")].map(el => [el.dataset.irMarchKey, el]));
+        for (const fresh of replacement.querySelectorAll("details[data-ir-march-key]")) {
+          const previous = oldMarches.get(fresh.dataset.irMarchKey);
+          if (!previous) continue;
+          if (fresh.hasAttribute("data-ir-march-held")) fresh.open = true;
+          else if (previous.hasAttribute("data-ir-march-held")) fresh.open = false;
+          else fresh.open = previous.open;
+        }
+      }
+      // A recorded result reopens the latest hex with its full two-column
+      // navigation and dice result; ordinary refreshes preserve manual state.
+      const latestNew = replacement.querySelector('.zft-ir-hex-section[data-ir-hex-latest="true"]');
+      const latestOld = node?.querySelector('.zft-ir-hex-section[data-ir-hex-latest="true"]');
+      if (latestNew && latestOld && historyOverrides &&
+          latestNew.dataset.irHexRevision !== latestOld.dataset.irHexRevision) {
+        const latestKey = latestNew.closest("[data-ir-card]")?.dataset.irCard;
+        if (latestKey) {
+          historyOverrides.delete(latestKey);
+        }
       }
       // The current day's latest completed event opens automatically. Only a
       // user's explicit summary click overrides that default on later renders.
@@ -664,7 +957,7 @@ class ExpeditionConsole {
     );
     let nativeMin = Infinity;
     for (const candidate of candidates) {
-      if (candidate.closest("#zft-ironrot-console, #zft-ironrot-log, #zft-ironrot-workflow-window, #zft-overland-theme-window")) continue;
+      if (candidate.closest("#zft-ironrot-console, #zft-ironrot-log, #zft-ironrot-workflow-window, #zft-ir-roles-popout, #zft-overland-theme-window, #zft-ir-scale-window")) continue;
       if (candidate.hidden || candidate.getAttribute("aria-hidden") === "true") continue;
       const style = getComputedStyle(candidate);
       if (style.display === "none" || style.visibility === "hidden") continue;
@@ -684,6 +977,8 @@ class ExpeditionConsole {
     // and third-party application dialogs. Do not change any native z-index.
     const themeWindow = document.getElementById('zft-overland-theme-window');
     if (themeWindow) themeWindow.style.zIndex = String(this.paneBaseZ + this.paneOrder.length);
+    const scaleWindow = document.getElementById("zft-ir-scale-window");
+    if (scaleWindow) scaleWindow.style.zIndex = String(this.paneBaseZ + this.paneOrder.length + 1);
   }
 
   focusExpeditionPane(pane) {
@@ -703,12 +998,151 @@ class ExpeditionConsole {
     return game.settings.get(MODULE_ID, UI_KEY) ?? { mode: "hidden", left: 160, top: 80, logWidth: 540, logHeight: 650, logHeightManual: false, logDocked: true, logHidden: false, workflowWidth: 405, workflowDocked: true, workflowHidden: false };
   }
   async remember(override) { await game.settings.set(MODULE_ID, UI_KEY, { ...this.state, ...override }); }
-  // Display scaling is suspended until the expedition layout is accepted.
-  // Ignore legacy per-client slider values without mutating other UI preferences.
-  applyDisplayScale() {
-    this.element?.style.setProperty("--zft-ir-dashboard-scale", "1");
-    this.workflowElement?.style.setProperty("--zft-ir-dashboard-scale", "1");
-    this.logElement?.style.setProperty("--zft-ir-log-scale", "1");
+  // Scale entire module panes as visual units from the upper left. Never
+  // apply CSS zoom to a child: zoom reflows text in a fixed-width window.
+  // Transform keeps the original internal layout and changes rendered size.
+  displayScale() { return interfaceScale(this.previewInterfaceScale ?? this.state.interfaceScale) / 100; }
+  applyDisplayScale(settings = this.state) {
+    const percent = interfaceScale(settings?.interfaceScale);
+    const factor = String(percent / 100);
+    for (const pane of [this.element, this.workflowElement, this.logElement,
+      this.themeEditor?.window, document.getElementById("zft-ir-roles-popout")].filter(Boolean)) {
+      pane.style.setProperty("--zft-ir-ui-scale", factor);
+    }
+    // Late-mounted ZFT popouts inherit only our scoped scale property.
+    document.documentElement.style.setProperty("--zft-zot-interface-scale", factor);
+    this.refreshScaleWindow();
+  }
+  // This separate editor never inherits --zft-ir-ui-scale. It is intentionally
+  // not docked, not part of the dashboard subtree, and never transformed.
+  refreshScaleWindow() {
+    const popup = document.getElementById("zft-ir-scale-window");
+    if (!popup) return;
+    const percent = interfaceScale(this.previewInterfaceScale ?? this.state.interfaceScale);
+    const label = popup.querySelector("[data-ir-interface-scale-value]");
+    if (label) label.textContent = `${percent}%`;
+    const step = [1, 5, 10].includes(Number(this.state.interfaceScaleStep)) ? Number(this.state.interfaceScaleStep) : 5;
+    // Read a freshly chosen increment from the popup first; client settings
+    // persistence may still be resolving when the next +/- click arrives.
+    const chosen = popup.querySelector('[data-ir-scale-step][aria-pressed="true"]');
+    const selectedStep = chosen ? Number(chosen.dataset.irScaleStep) : step;
+    for (const button of popup.querySelectorAll("[data-ir-scale-step]")) {
+      const active = Number(button.dataset.irScaleStep) === selectedStep;
+      button.classList.toggle("is-active", active);
+      button.setAttribute("aria-pressed", String(active));
+    }
+    const stepLabel = popup.querySelector("[data-ir-scale-step-value]");
+    if (stepLabel) stepLabel.textContent = `${selectedStep}%`;
+    for (const button of popup.querySelectorAll('[data-ir-action="scale-adjust"]')) {
+      button.disabled = Number(button.dataset.irScaleDirection) < 0 ? percent <= 60 : percent >= 150;
+    }
+  }
+  toggleScaleWindow() {
+    const existing = document.getElementById("zft-ir-scale-window");
+    if (existing) { existing.remove(); return; }
+    const popup = document.createElement("section");
+    popup.id = "zft-ir-scale-window";
+    popup.className = "zft-ir-scale-window";
+    popup.setAttribute("role", "dialog");
+    popup.setAttribute("aria-label", "ZFT Interface Scale");
+    popup.innerHTML = `
+      <header class="zft-ir-scale-window-head" data-ir-scale-drag>
+        <strong><i class="fa-solid fa-sliders" aria-hidden="true"></i> Interface Scale</strong>
+        <button type="button" data-ir-action="scale-close" aria-label="Close Interface Scale"><i class="fa-solid fa-xmark" aria-hidden="true"></i></button>
+      </header>
+      <div class="zft-ir-scale-window-body">
+        <div class="zft-ir-scale-heading"><span>Scale of ZFT windows</span><output data-ir-interface-scale-value aria-live="polite">100%</output></div>
+        <div class="zft-ir-scale-control-row">
+          <div class="zft-ir-scale-step-picker" role="group" aria-label="Scale adjustment increment">
+            <button type="button" data-ir-action="scale-step" data-ir-scale-step="1" aria-pressed="false" title="Adjust by 1 percent">1</button>
+            <button type="button" data-ir-action="scale-step" data-ir-scale-step="5" aria-pressed="false" title="Adjust by 5 percent">5</button>
+            <button type="button" data-ir-action="scale-step" data-ir-scale-step="10" aria-pressed="false" title="Adjust by 10 percent">10</button>
+          </div>
+          <div class="zft-ir-scale-adjust" role="group" aria-label="Change interface scale">
+            <button type="button" data-ir-action="scale-adjust" data-ir-scale-direction="-1" aria-label="Decrease interface scale by selected increment"><i class="fa-solid fa-minus" aria-hidden="true"></i></button>
+            <button type="button" data-ir-action="scale-adjust" data-ir-scale-direction="1" aria-label="Increase interface scale by selected increment"><i class="fa-solid fa-plus" aria-hidden="true"></i></button>
+          </div>
+        </div>
+        <div class="zft-ir-scale-foot"><span>Increment: <strong data-ir-scale-step-value>5%</strong></span><button type="button" data-ir-action="scale-reset" title="Reset interface scale to 100%">Reset</button></div>
+        <p class="zft-ir-scale-help">60% to 150% · This client only</p>
+      </div>`;
+    document.body.appendChild(popup);
+    const anchor = this.element?.getBoundingClientRect();
+    popup.style.left = `${Math.max(8, Math.min(window.innerWidth - popup.offsetWidth - 8, (anchor?.left ?? 100) + 80))}px`;
+    popup.style.top = `${Math.max(8, Math.min(window.innerHeight - popup.offsetHeight - 8, (anchor?.top ?? 100) + 55))}px`;
+    ThemeManager.apply();
+    this.updateExpeditionLayers();
+    const selected = [1,5,10].includes(Number(this.state.interfaceScaleStep)) ? Number(this.state.interfaceScaleStep) : 5;
+    const initial = popup.querySelector(`[data-ir-scale-step="${selected}"]`);
+    if (initial) initial.setAttribute("aria-pressed", "true");
+    this.refreshScaleWindow();
+    popup.addEventListener("pointerdown", () => this.updateExpeditionLayers(), {passive:true});
+    popup.addEventListener("click", event => {
+      const button = event.target.closest("button[data-ir-action]");
+      if (!button) return;
+      const action = button.dataset.irAction;
+      if (action === "scale-close") { popup.remove(); return; }
+      if (action === "scale-step") {
+        const step = Number(button.dataset.irScaleStep);
+        if (![1,5,10].includes(step)) return;
+        for (const choice of popup.querySelectorAll("[data-ir-scale-step]")) {
+          const active = Number(choice.dataset.irScaleStep) === step;
+          choice.classList.toggle("is-active",active);
+          choice.setAttribute("aria-pressed",String(active));
+        }
+        this.refreshScaleWindow();
+        void this.remember({interfaceScaleStep:step});
+      } else if (action === "scale-adjust") {
+        const direction = Number(button.dataset.irScaleDirection);
+        if (![-1,1].includes(direction)) return;
+        const step = Number(popup.querySelector('[data-ir-scale-step][aria-pressed="true"]')?.dataset.irScaleStep) || 5;
+        const percent = this.changeInterfaceScale(interfaceScale(this.previewInterfaceScale ?? this.state.interfaceScale) + direction * step);
+        void this.remember({interfaceScale:percent});
+      } else if (action === "scale-reset") {
+        this.changeInterfaceScale(DEFAULT_INTERFACE_SCALE);
+        void this.remember({interfaceScale:DEFAULT_INTERFACE_SCALE});
+      }
+    });
+    const header = popup.querySelector("[data-ir-scale-drag]");
+    header.addEventListener("pointerdown", event => {
+      if (event.button !== 0 || event.target.closest("button")) return;
+      const x = event.clientX, y = event.clientY, left = popup.offsetLeft, top = popup.offsetTop;
+      const move = e => {
+        popup.style.left = `${Math.max(0, Math.min(window.innerWidth - popup.offsetWidth, left + e.clientX - x))}px`;
+        popup.style.top = `${Math.max(0, Math.min(window.innerHeight - popup.offsetHeight, top + e.clientY - y))}px`;
+      };
+      const end = () => { document.removeEventListener("pointermove",move);document.removeEventListener("pointerup",end); };
+      document.addEventListener("pointermove",move);document.addEventListener("pointerup",end,{once:true});
+      event.preventDefault();
+    });
+  }
+  // Keep the visible GM group origin fixed while changing scale. For players,
+  // the Dashboard itself is the origin. Undocked panes remain independent.
+  reflowScaledDock(anchor = null) {
+    if (!this.element) return;
+    const cfg = this.state;
+    if (anchor && this.workflowElement && !this.workflowElement.hidden && cfg.workflowDocked !== false) {
+      const left = anchor.x + this.workflowElement.getBoundingClientRect().width + 6;
+      const top = anchor.y;
+      this.element.style.left = `${Math.round(left)}px`;
+      this.element.style.top = `${Math.round(top)}px`;
+    }
+    // Docked panes use the new transformed bounding rectangles, not offsetWidth.
+    this.positionWorkflow();
+    this.positionLog();
+    this.fitDashboardToViewport();
+    this.sizeLogToContent();
+  }
+  changeInterfaceScale(value) {
+    const percent = interfaceScale(value);
+    const workflow = this.workflowElement;
+    const anchor = workflow && !workflow.hidden && this.state.workflowDocked !== false
+      ? { x: workflow.getBoundingClientRect().left, y: workflow.getBoundingClientRect().top }
+      : null;
+    this.previewInterfaceScale = percent;
+    this.applyDisplayScale({ interfaceScale: percent });
+    this.reflowScaledDock(anchor);
+    return percent;
   }
   /** Automatic log height follows rendered history until the GM/player resizes it.
    * Legacy 650px was a default, not evidence of a deliberate user resize.
@@ -728,7 +1162,8 @@ class ExpeditionConsole {
     const feed = node.querySelector("[data-ir-cards]");
     const head = node.querySelector(".zft-ir-log-head");
     if (!scroller || !feed || !head) return;
-    const room = Math.max(160, Math.floor(window.innerHeight - node.getBoundingClientRect().top - 8));
+    const factor = this.displayScale();
+    const room = Math.max(160, Math.floor((window.innerHeight - node.getBoundingClientRect().top - 8) / factor));
     const minimum = Math.min(205, room);
     if (this.logHeightIsManual()) {
       const saved = Number(this.state.logHeight ?? this.state.height) || 650;
@@ -737,13 +1172,13 @@ class ExpeditionConsole {
     }
     const style = getComputedStyle(scroller);
     const pad = (parseFloat(style.paddingTop) || 0) + (parseFloat(style.paddingBottom) || 0);
-    const desired = Math.ceil(head.getBoundingClientRect().height + feed.scrollHeight + pad + 4);
+    const desired = Math.ceil(head.offsetHeight + feed.scrollHeight + pad + 4);
     node.style.height = `${Math.min(room, Math.max(minimum, desired))}px`;
   }
   fitDashboardToViewport() {
     if (!this.element) return;
     const top = this.element.getBoundingClientRect().top;
-    const available = Math.max(220, Math.floor(window.innerHeight - top - 12));
+    const available = Math.max(220, Math.floor((window.innerHeight - top - 12) / this.displayScale()));
     this.element.style.setProperty("--zft-ir-available-height", `${available}px`);
   }
   scrollToLatest() {
@@ -771,7 +1206,7 @@ class ExpeditionConsole {
   }
   async setMode(mode) {
     if (!["hidden", "expanded", "bubble"].includes(mode)) return;
-    if (mode === "hidden") this.themeEditor?.cancel();
+    if (mode === "hidden") { this.themeEditor?.cancel(); document.getElementById("zft-ir-scale-window")?.remove(); if (this.panel) this.togglePanel(this.panel); }
     if (mode !== "hidden") this.mount();
     if (this.element) {
       this.element.dataset.mode = mode;
@@ -826,6 +1261,7 @@ class ExpeditionConsole {
       <header class="zft-ir-head" data-ir-drag>
         <i class="fa-solid fa-mountain" aria-hidden="true"></i>
         <span class="zft-ir-title" data-ir-title>${esc(MODULE_TITLE)}<small>Expedition Dashboard</small></span>
+        <button type="button" data-ir-action="scale" title="Interface scale" aria-label="Adjust ZFT interface scale" aria-haspopup="dialog" aria-controls="zft-ir-scale-window"><i class="fa-solid fa-sliders" aria-hidden="true"></i></button>
         <button type="button" data-ir-action="theme" title="Interface color themes" aria-label="Customize interface colors"><i class="fa-solid fa-palette"></i></button>
         <button type="button" data-ir-action="log-visibility" title="Toggle Expedition Log"><i class="fa-solid fa-scroll"></i></button>
         <button type="button" data-ir-action="bubble" title="Collapse to floating button" aria-label="Collapse"><i class="fa-solid fa-minimize"></i></button>
@@ -842,7 +1278,7 @@ class ExpeditionConsole {
                 <div class="zft-ir-actions">
                   <button type="button" data-ir-action="travel"><i class="fa-solid fa-route"></i> Start / Continue</button>
                   <button type="button" data-ir-action="day"><i class="fa-solid fa-sun"></i> New Travel Day</button>
-                  <button type="button" data-ir-action="roles"><i class="fa-solid fa-user-gear"></i> Party Roles</button>
+                  <button type="button" data-ir-action="roles"><i class="fa-solid fa-user-gear"></i> Expedition Roles</button>
                   <button type="button" data-ir-action="attendance"><i class="fa-solid fa-users"></i> Party Attendance</button>
                   <button type="button" data-ir-action="manage"><i class="fa-solid fa-book-open"></i> Edit Travel Ledger</button>
                   <button type="button" data-ir-action="show-players"><i class="fa-solid fa-display"></i> Show to Players</button>
@@ -914,6 +1350,13 @@ class ExpeditionConsole {
       // handler as the original dashboard GM controls.
       workflowNode.addEventListener("click", event => this.click(event));
     }
+    node.addEventListener("contextmenu", event => {
+      if (!game.user?.isGM) return;
+      const row = event.target.closest("[data-ir-party-actor]");
+      if (!row || !node.contains(row)) return;
+      event.preventDefault();
+      this.showExhaustionMenu(row.dataset.irPartyActor,event.clientX,event.clientY);
+    });
     node.addEventListener("dblclick", event => this.openPartyActorSheet(event));
     node.addEventListener("keydown", event => {
       if (event.key !== "Enter" && event.key !== " ") return;
@@ -922,6 +1365,7 @@ class ExpeditionConsole {
       void this.openPartyActorSheet(event);
     });
     node.addEventListener("click", event => this.click(event));
+
     logNode.addEventListener("click", event => this.logClick(event));
     const scroller = logNode.querySelector(".zft-ir-scroll");
     // Only user-initiated scrolling updates follow mode. Programmatic scroll
@@ -973,21 +1417,21 @@ class ExpeditionConsole {
   }
   fitColumnsToViewport() {
     if (!this.element || !this.workflowElement || this.element.dataset.mode !== "expanded") return;
-    if (this.state.workflowDocked === false) return; // honor deliberately undocked controls
+    if (this.state.workflowDocked === false) return;
     const controlsWidth = this.workflowElement.getBoundingClientRect().width || 405;
     const dashboardWidth = this.element.getBoundingClientRect().width || 375;
     const logWidth = this.logElement && !this.logElement.hidden && this.state.logDocked !== false
       ? this.logElement.getBoundingClientRect().width : 0;
     const gap = 6;
-    const minimum = controlsWidth + gap + 8;
-    const maximum = window.innerWidth - dashboardWidth - (logWidth ? logWidth + gap : 0) - 8;
-    // Move the entire three-column workspace into view when it fits.
-    // Smaller screens retain independently scrollable columns; never change
-    // Foundry global UI positioning or block clicks outside our own windows.
-    if (maximum >= minimum) {
-      const current = this.element.offsetLeft;
-      this.element.style.left = `${Math.round(Math.max(minimum, Math.min(current, maximum)))}px`;
-    }
+    const total = controlsWidth + dashboardWidth + gap + (logWidth ? logWidth + gap : 0);
+    const maxAnchor = Math.max(8, window.innerWidth - total - 8);
+    // Keep the docked group visible when it fits. If it cannot fit, preserve
+    // the chosen scale instead of compressing the windows' text and controls.
+    const currentAnchor = this.element.offsetLeft - controlsWidth - gap;
+    const anchor = total <= window.innerWidth - 16
+      ? Math.max(8, Math.min(currentAnchor, maxAnchor))
+      : Math.max(8, currentAnchor);
+    this.element.style.left = `${Math.round(anchor + controlsWidth + gap)}px`;
   }
   positionLog() {
     if (!this.element || !this.logElement) return;
@@ -1003,7 +1447,7 @@ class ExpeditionConsole {
       const atRight = rect.right + 5;
       // Keep both usable on narrow screens. Allow rightward overflow only when
       // there is no alternative, without altering the dashboard width.
-      log.style.left = `${Math.round(Math.min(atRight, Math.max(0, window.innerWidth - 80)))}px`;
+      log.style.left = `${Math.round(atRight)}px`;
       log.style.top = `${Math.round(rect.top)}px`;
     }
     const label = log.querySelector("[data-ir-dock-label]");
@@ -1014,7 +1458,7 @@ class ExpeditionConsole {
     const node = this.workflowElement;
     if (!node || node.hidden) return;
     const top = node.getBoundingClientRect().top;
-    const available = Math.max(120, window.innerHeight - top - 12);
+    const available = Math.max(120, (window.innerHeight - top - 12) / this.displayScale());
     node.style.setProperty("--zft-ir-workflow-height-cap", `${Math.floor(available)}px`);
     // Clear even an inline height retained by a previous module build.
     node.style.height = "auto";
@@ -1032,7 +1476,7 @@ class ExpeditionConsole {
     } else {
       const dash = this.element.getBoundingClientRect();
       const width = node.getBoundingClientRect().width || 405;
-      node.style.left = `${Math.max(8, Math.round(dash.left - width - 6))}px`;
+      node.style.left = `${Math.round(dash.left - width - 6)}px`;
       node.style.top = `${Math.max(8, Math.min(Math.round(dash.top), window.innerHeight - 80))}px`;
     }
     const label = node.querySelector("[data-ir-workflow-dock-label]");
@@ -1157,15 +1601,16 @@ class ExpeditionConsole {
     event.preventDefault(); event.stopPropagation();
     const node = this.logElement;
     const rect = node.getBoundingClientRect();
-    const origin = { x:event.clientX, y:event.clientY, width:rect.width, height:rect.height };
+    const origin = { x:event.clientX, y:event.clientY, width:node.offsetWidth, height:node.offsetHeight };
     let resized = false;
     this.logResizeActive = true;
     const move = ev => {
       if (Math.abs(ev.clientX - origin.x) + Math.abs(ev.clientY - origin.y) > 3) resized = true;
-      const maxW = Math.max(330, window.innerWidth - node.offsetLeft - 8);
-      const maxH = Math.max(205, window.innerHeight - node.offsetTop - 8);
-      node.style.width = `${Math.round(Math.min(maxW, Math.max(330, origin.width + ev.clientX - origin.x)))}px`;
-      node.style.height = `${Math.round(Math.min(maxH, Math.max(205, origin.height + ev.clientY - origin.y)))}px`;
+      const factor = this.displayScale();
+      const maxW = Math.max(330, (window.innerWidth - node.offsetLeft - 8) / factor);
+      const maxH = Math.max(205, (window.innerHeight - node.offsetTop - 8) / factor);
+      node.style.width = `${Math.round(Math.min(maxW, Math.max(330, origin.width + (ev.clientX - origin.x) / factor)))}px`;
+      node.style.height = `${Math.round(Math.min(maxH, Math.max(205, origin.height + (ev.clientY - origin.y) / factor)))}px`;
     };
     const stop = () => {
       document.removeEventListener("pointermove", move);
@@ -1183,6 +1628,7 @@ class ExpeditionConsole {
   }
   refresh() {
     if (!this.element || !this.logElement) return;
+    this.closeExhaustionMenu();
     const summary = this.element.querySelector("[data-ir-summary-cards]");
     const dashboard = this.element.querySelector("[data-ir-dashboard-cards]");
     const log = this.logElement.querySelector("[data-ir-cards]");
@@ -1198,9 +1644,9 @@ class ExpeditionConsole {
       context.innerHTML = `<span class="zft-ir-context-details"><span class="zft-ir-context-eyebrow">${esc(eyebrow)}</span><strong><i class="fa-solid fa-map-location-dot" aria-hidden="true"></i> ${esc(regionText)}</strong>${campaignText}</span>${game.user.isGM ? `<button type="button" data-ir-action="identity" title="Edit expedition location"><i class="fa-solid fa-pen-to-square" aria-hidden="true"></i> Edit</button>` : ""}`;
     }
     const snapshot = getSnapshot();
-    const currentDayState = `${snapshot.state?.day ?? 1}:${["Travel stopped", "Travel paused"].includes(snapshot.phase) ? "stopped" : "active"}`;
-    if (this.lastDayState && this.lastDayState !== currentDayState) {
-      this.dayOpenOverrides.delete(`day:${snapshot.state?.day ?? 1}`);
+    const currentDayState = String(snapshot.state?.day ?? 1);
+    if (this.lastDayState !== null && this.lastDayState !== currentDayState) {
+      this.dayOpenOverrides.delete(`day:${currentDayState}`);
     }
     this.lastDayState = currentDayState;
     const cards = makeCards(snapshot);
@@ -1230,7 +1676,9 @@ class ExpeditionConsole {
     this.updateLatestButton();
     this.sizeLogToContent();
     this.logHasRendered = true;
-    if (this.panel && !this.workflowElement?.querySelector("[data-ir-editor] input")) this.renderPanel();
+    // The independent role editor owns its own inputs. An unrelated dashboard
+    // refresh must never destroy unsaved assignments in that pop-out.
+    if (this.panel && this.panel !== "roles" && !this.workflowElement?.querySelector("[data-ir-editor] input")) this.renderPanel();
   }
   /** Restore only the local module windows hidden for a particular native roll. */
   restoreExpeditionRollDialog(application) {
@@ -1330,9 +1778,21 @@ class ExpeditionConsole {
     form.append(heading);
     const content = document.createElement("div");
     content.className = "zft-ir-prompt-content";
+    // The original day/forced-march prompts carry legacy inline blue panel
+    // colors. Harmonize their surface with GM Controls without changing data.
+    const stageTitle = String(options.window?.title ?? "");
+    if (/Start New Travel Day|Forced March/.test(stageTitle)) content.classList.add("zft-ir-gm-decision-content");
+    if (/Hex Travel|Navigation Ruling|Roll$|Edit Saved|Manage Saved/.test(stageTitle))
+      content.classList.add("zft-ir-travel-stage-content");
     content.innerHTML = options.content ?? "";
     const actions = document.createElement("div");
     actions.className = "zft-ir-prompt-actions";
+    // The adjudication dialog gets a paired, two-line footer; other GM
+    // decisions keep the shared standard action layout.
+    const isForcedRuling = /Party CON DC/i.test(String(options.window?.title ?? ""));
+    const isForcedHourChoice = /Forced March · Hour/i.test(String(options.window?.title ?? ""));
+    if (isForcedRuling) actions.classList.add("zft-ir-forced-decision-actions");
+    if (isForcedHourChoice) actions.classList.add("zft-ir-march-choice-actions");
     const defs = options.buttons ?? [];
     for (const option of defs) {
       const button = document.createElement("button");
@@ -1342,7 +1802,26 @@ class ExpeditionConsole {
       if (option.default) button.classList.add("zft-ir-prompt-default");
       if (option.action === "reset" || option.action === "exhaust") button.classList.add("zft-ir-danger");
       if (option.icon) { const icon = document.createElement("i"); icon.className = option.icon; button.append(icon, " "); }
-      button.append(document.createTextNode(option.label ?? option.action ?? "Continue"));
+      if (isForcedRuling && ["apply", "pause"].includes(option.action)) {
+        // Keep accessible labels and all existing DialogV2 callback/action wiring.
+        button.setAttribute("aria-label", option.label ?? option.action);
+        const primary = document.createElement("span");
+        primary.className = "zft-ir-action-primary";
+        primary.textContent = option.action === "apply" ? "Process Party" : "Pause / Exit";
+        const secondary = document.createElement("span");
+        secondary.className = "zft-ir-action-secondary";
+        secondary.textContent = option.action === "apply" ? "Decisions" : "Saves Progress";
+        button.append(primary, secondary);
+      } else if (isForcedHourChoice && ["continue", "cancel"].includes(option.action)) {
+        button.setAttribute("aria-label", option.label ?? option.action);
+        const primary = document.createElement("span");
+        primary.className = "zft-ir-action-primary";
+        primary.textContent = option.action === "continue" ? "Continue" : "Pause / Exit";
+        const secondary = document.createElement("span");
+        secondary.className = "zft-ir-action-secondary";
+        secondary.textContent = option.action === "continue" ? `Hour ${String(options.window?.title ?? "").match(/Hour (\d+)/)?.[1] ?? ""}` : "Save Progress";
+        button.append(primary, secondary);
+      } else button.append(document.createTextNode(option.label ?? option.action ?? "Continue"));
       actions.append(button);
     }
     if (!defs.some(option => /cancel|pause|exit|stop/i.test(`${option.action ?? ""} ${option.label ?? ""}`))) {
@@ -1351,6 +1830,24 @@ class ExpeditionConsole {
       cancel.dataset.irPromptCancel = "true";
       cancel.textContent = "Cancel / Exit";
       actions.append(cancel);
+    }
+    if (isForcedRuling) {
+      const refreshRulingRow = (select) => {
+        const row = select.closest("[data-ir-ruling-row]");
+        if (!row) return;
+        const current = Number(row.dataset.irCurrentExhaustion) || 0;
+        const outcome = select.value;
+        row.classList.remove("ruling-exhaust", "ruling-accept", "ruling-neutral");
+        row.classList.add(outcome === "exhaust" ? "ruling-exhaust" : outcome === "accept" ? "ruling-accept" : "ruling-neutral");
+        const projected = outcome === "exhaust" ? Math.min(6, current + 1) : current;
+        row.querySelector("[data-ir-projected-exhaustion]").textContent =
+          outcome === "exhaust" ? `${current} → ${projected}` : String(current);
+        row.querySelector(".zft-ir-gm-ruling-exhaustion")?.classList.toggle("has-exhaustion", projected > 0);
+      };
+      content.addEventListener("change", event => {
+        if (event.target.matches("[data-ir-gm-ruling-select]")) refreshRulingRow(event.target);
+      });
+      for (const select of content.querySelectorAll("[data-ir-gm-ruling-select]")) refreshRulingRow(select);
     }
     // Workflow-specific actions belong after the decision form and review list.
     // This preserves the existing buttons, callbacks and cancellation logic.
@@ -1415,62 +1912,70 @@ class ExpeditionConsole {
     editor.hidden = !this.panel;
     editor.replaceChildren();
     if (this.panel) this.renderPanel();
+    this.constrainWorkflowHeight();
   }
   renderPanel() {
     const editor = this.workflowElement?.querySelector("[data-ir-editor]");
     if (!editor || !this.panel) return;
     const st = getLedger();
+    editor.dataset.irPanel = this.panel;
     const buttons = (save, label="Save") => `<div class="zft-ir-actions"><button type="button" data-ir-action="${save}">${label}</button><button type="button" data-ir-action="panel-cancel">Cancel</button></div>`;
     if (this.panel === "roles") {
       const roster = presentRoster();
       const current = ironrotRolePreferences();
-      const currentNav = roster.find(actor => actor.uuid === current.navigatorUuid)?.uuid ?? "";
-      const currentActivity = IRONROT_ACTIVITIES[current.activity] ? current.activity : "none";
-      const currentSecondary = roster.find(actor => actor.uuid === current.secondaryUuid && actor.uuid !== currentNav)?.uuid ?? "";
-      const navOptions = `<option value="">Choose Navigator</option>` + roster.map(actor => `<option value="${esc(actor.uuid)}" ${actor.uuid === currentNav ? "selected" : ""}>${esc(actor.name)}</option>`).join("");
-      const secondaryOptions = `<option value="">Choose Secondary PC</option>` + roster.map(actor => `<option value="${esc(actor.uuid)}" ${actor.uuid === currentSecondary ? "selected" : ""}>${esc(actor.name)}</option>`).join("");
-      const activityOptions = Object.entries(IRONROT_ACTIVITIES).map(([key,info]) => `<option value="${esc(key)}" ${key === currentActivity ? "selected" : ""}>${esc(info.name)}${info.skill ? ` · ${esc(travelSkill(roster[0] ?? {}, info.skill).label)}` : ""}</option>`).join("");
-      editor.innerHTML = `<div class="zft-ir-card-title">Party Role Assignments</div>
-        <p>Save once for the expedition. Start / Continue reuses these roles for each new hex.</p>
-        <div class="zft-ir-fields zft-ir-roles-fields">
-          <label>Navigator<select name="roleNavigator">${navOptions}</select></label>
-          <label>Secondary Activity<select name="roleActivity">${activityOptions}</select></label>
-          <label data-ir-role-secondary>Secondary Character<select name="roleSecondary">${secondaryOptions}</select></label>
-        </div>
-        <p class="zft-ir-role-note">The Navigator uses Survival (WIS). Secondary checks depend on the activity. The same character cannot hold both roles. Offline assigned PCs remain selectable when present.</p>
-        ${buttons("roles-save", "Save Party Roles")}`;
-      const nav = editor.querySelector("select[name='roleNavigator']");
-      const activity = editor.querySelector("select[name='roleActivity']");
-      const secondary = editor.querySelector("select[name='roleSecondary']");
-      const row = editor.querySelector("[data-ir-role-secondary]");
-      const sync = () => {
-        const chosenNav = nav.value;
-        for (const option of secondary.options) {
-          option.disabled = !!chosenNav && option.value === chosenNav;
+      const existing = { ...(current.assignments ?? {}) };
+      // Older worlds stored only navigator and secondary assignments.
+      if (!existing.guide && current.navigatorUuid) existing.guide = current.navigatorUuid;
+      const oldSecondary = { scout: "scout", conceal: "scout", investigate: "tracker", nature: "forager", arcane: "tracker" }[current.activity];
+      if (oldSecondary && !existing[oldSecondary]) existing[oldSecondary] = current.secondaryUuid;
+      const sections = EXPEDITION_PAIRS.map(pair => `<fieldset class="zft-ir-role-pair"><legend>${esc(pair.name)}</legend>${pair.roles.map(key => {
+        const role = EXPEDITION_ROLES[key];
+        const options = `<option value="">Unassigned</option>` + roster.map(actor => `<option value="${esc(actor.uuid)}" ${existing[key] === actor.uuid ? "selected" : ""}>${esc(actor.name)}</option>`).join("");
+        return `<label><strong class="zft-ir-role-assignment-name">${esc(role.name)}</strong><span class="zft-ir-role-assignment-skill">${esc(travelSkill(roster[0] ?? {},role.skill).label)} (${esc(role.ability)})</span><select data-ir-expedition-role="${esc(key)}">${options}</select></label>`;
+      }).join("")}</fieldset>`).join("");
+      editor.innerHTML = `<div class="zft-ir-card-title">Expedition Roles</div>
+        <p>One role per character. Unassigned roles may be left empty.</p>
+        <div class="zft-ir-roles-scroll"><div class="zft-ir-fields zft-ir-roles-fields">${sections}</div></div>
+        ${buttons("roles-save", "Save Expedition Roles")}`;
+      const roleSelects = [...editor.querySelectorAll("select[data-ir-expedition-role]")];
+      // Every character can be assigned to just one role. Disable assigned PCs
+      // in the other dropdowns immediately; saving still validates the rule.
+      const refreshRoleOptions = () => {
+        const taken = new Set();
+        for (const select of roleSelects) {
+          if (select.value && taken.has(select.value)) select.value = "";
+          if (select.value) taken.add(select.value);
         }
-        if (secondary.value === chosenNav) secondary.value = "";
-        row.hidden = activity.value === "none";
-        secondary.disabled = activity.value === "none";
+        for (const select of roleSelects) {
+          const others = new Set(roleSelects.filter(other => other !== select).map(other => other.value).filter(Boolean));
+          for (const option of select.options) {
+            option.disabled = !!option.value && others.has(option.value);
+            option.classList.toggle("zft-ir-role-unavailable", option.disabled);
+            option.title = option.disabled ? "Already assigned to another expedition role" : "";
+          }
+        }
       };
-      nav.addEventListener("change", sync);
-      activity.addEventListener("change", sync);
-      sync();
+      for (const select of roleSelects) select.addEventListener("change", refreshRoleOptions);
+      refreshRoleOptions();
     } else if (this.panel === "attendance") {
       const excluded = new Set(attendanceConfig().excludedActorUuids ?? []);
       const options = assignedRoster().map(actor => `<label><input type="checkbox" data-ir-actor="${esc(actor.uuid)}" ${excluded.has(actor.uuid) ? "" : "checked"}> <span>${esc(actor.name)}</span></label>`).join("");
-      editor.innerHTML = `<div class="zft-ir-card-title">Choose Present Party Members</div><p>Offline assigned PCs remain eligible.</p><div class="zft-ir-members">${options || "No assigned PCs."}</div>${buttons("attendance-save", "Save Attendance")}`;
+      editor.innerHTML = `<div class="zft-ir-card-title"><i class="fa-solid fa-users" aria-hidden="true"></i> Party Attendance</div><p>Offline assigned PCs remain eligible.</p><div class="zft-ir-members">${options || "No assigned PCs."}</div>${buttons("attendance-save", "Save Attendance")}`;
     } else if (this.panel === "manage") {
-      editor.innerHTML = `<div class="zft-ir-card-title">Edit Travel Ledger</div><p>Saving a manual correction clears hourly roll history and forced-march checkpoints.</p><div class="zft-ir-fields">
-      <label>Expedition Day<input name="day" type="number" min="1" step="1" value="${num(st.day)}"></label>
-      <label>Hours Today<input name="hours" type="number" min="0" step="1" value="${num(st.hours)}"></label>
-      <label>Unfinished Hex Hours<input name="pending" type="number" min="0" step="1" value="${num(st.pending)}"></label>
-      <label>Completed Hexes<input name="hexes" type="number" min="0" step="1" value="${num(st.hexes)}"></label></div>${buttons("manage-save", "Save Ledger")}`;
+      editor.innerHTML = `<div class="zft-ir-card-title"><i class="fa-solid fa-book-open" aria-hidden="true"></i> Edit Travel Ledger</div>
+        <div class="zft-ir-fields zft-ir-ledger-fields">
+          <label><span>Expedition Day</span><input name="day" type="number" min="1" step="1" value="${num(st.day)}"></label>
+          <label><span>Hours Today</span><input name="hours" type="number" min="0" step="1" value="${num(st.hours)}"></label>
+          <label><span>Unfinished Hex Hours</span><input name="pending" type="number" min="0" step="1" value="${num(st.pending)}"></label>
+          <label><span>Completed Hexes</span><input name="hexes" type="number" min="0" step="1" value="${num(st.hexes)}"></label>
+        </div><p class="zft-ir-editor-warning"><i class="fa-solid fa-triangle-exclamation" aria-hidden="true"></i> Saving clears hourly roll history and Forced March checkpoints.</p>
+        ${buttons("manage-save", "Save Ledger")}`;
     } else if (this.panel === "reset") {
-      editor.innerHTML = `<div class="zft-ir-reset-inline"><div class="zft-ir-card-title red"><i class="fa-solid fa-triangle-exclamation"></i> Permanent Expedition Reset</div><p>Clear all saved travel hours, hexes, pending time, forced-march rulings, and current expedition results. This cannot be undone. Actor Exhaustion is not changed.</p><label>Type RESET to confirm<input name="confirmation" type="text" autocomplete="off" placeholder="RESET"></label></div>${buttons("reset-save", "Permanently Reset")}`;
+      editor.innerHTML = `<div class="zft-ir-reset-inline"><div class="zft-ir-card-title red"><i class="fa-solid fa-triangle-exclamation" aria-hidden="true"></i> Reset Travel</div><p>Clear all saved travel hours, hexes, pending time, forced-march rulings, and current expedition results. This cannot be undone. Actor Exhaustion is not changed.</p><label>Type RESET to confirm<input name="confirmation" type="text" autocomplete="off" placeholder="RESET"></label></div>${buttons("reset-save", "Permanently Reset")}`;
       editor.querySelector("[data-ir-action='reset-save']")?.classList.add("zft-ir-danger");
     } else if (this.panel === "identity") {
       const id = ironrotIdentity();
-      editor.innerHTML = `<div class="zft-ir-card-title">Region &amp; Expedition Details</div>
+      editor.innerHTML = `<div class="zft-ir-card-title"><i class="fa-solid fa-location-dot" aria-hidden="true"></i> Expedition Details</div>
       <p>Set the travel location so it is prominent in the dashboard and travel logs.</p>
       <div class="zft-ir-fields zft-ir-identity-fields">
         <label class="zft-ir-region-field">Region / Location<input name="region" type="text" maxlength="100" placeholder="Where is the party traveling?" value="${esc(id.region)}"></label>
@@ -1482,9 +1987,84 @@ class ExpeditionConsole {
       <p>Dates come from the active calendar and remain recorded for past days. If this day's date was captured with an incorrect year in an earlier build, synchronize only the current day.</p>
       <button type="button" data-ir-action="sync-date"><i class="fa-solid fa-calendar-check"></i> Re-sync Current Travel Date</button></div>`;
     } else if (this.panel === "clear-log") {
-      editor.innerHTML = `<div class="zft-ir-reset-inline"><div class="zft-ir-card-title red">Clear Expedition Log for Everyone</div><p>This permanently removes expedition result cards from the GM and player log windows, including saved visual history. It does not delete Foundry Chat messages, change travel hours, or alter effects.</p><label>Type CLEAR LOG to confirm<input name="confirmation" type="text" autocomplete="off" placeholder="CLEAR LOG"></label></div>${buttons("clear-log-save", "Clear Expedition Log")}`;
+      editor.innerHTML = `<div class="zft-ir-reset-inline"><div class="zft-ir-card-title red"><i class="fa-solid fa-trash" aria-hidden="true"></i> Clear Expedition Log</div><p>This permanently removes expedition result cards from the GM and player log windows, including saved visual history. It does not delete Foundry Chat messages, change travel hours, or alter effects.</p><label>Type CLEAR LOG to confirm<input name="confirmation" type="text" autocomplete="off" placeholder="CLEAR LOG"></label></div>${buttons("clear-log-save", "Clear Expedition Log")}`;
       editor.querySelector("[data-ir-action='clear-log-save']")?.classList.add("zft-ir-danger");
     }
+  }
+  openRolesReference() {
+    const existing = document.getElementById("zft-ir-roles-popout");
+    if (existing) { existing.remove(); return; }
+    const windowEl = document.createElement("section");
+    windowEl.id = "zft-ir-roles-popout";
+    windowEl.className = "zft-ir-roles-popout";
+    windowEl.innerHTML = `<header class="zft-ir-roles-popout-header"><strong><i class="fa-solid fa-book-open"></i> Expedition Roles</strong><button type="button" aria-label="Close role reference"><i class="fa-solid fa-xmark"></i></button></header><div class="zft-ir-roles-popout-body">${expeditionRolesReferenceHtml()}</div>`;
+    document.body.append(windowEl);
+    windowEl.style.setProperty("--zft-ir-ui-scale", String(this.displayScale()));
+    const bounds = this.element?.getBoundingClientRect();
+    windowEl.style.left = `${Math.min(Math.max(8, (bounds?.right ?? 200) + 10), Math.max(8, window.innerWidth - windowEl.offsetWidth - 8))}px`;
+    windowEl.style.top = `${Math.min(Math.max(8, bounds?.top ?? 80), Math.max(8, window.innerHeight - windowEl.offsetHeight - 8))}px`;
+    windowEl.querySelector("header button").addEventListener("click", () => windowEl.remove());
+    const header = windowEl.querySelector("header");
+    header.addEventListener("pointerdown", event => {
+      if (event.button !== 0 || event.target.closest("button")) return;
+      const x0=event.clientX,y0=event.clientY,left=windowEl.offsetLeft,top=windowEl.offsetTop;
+      const move = e => {
+        windowEl.style.left = `${Math.max(0,Math.min(window.innerWidth-windowEl.offsetWidth,left+e.clientX-x0))}px`;
+        windowEl.style.top = `${Math.max(0,Math.min(window.innerHeight-windowEl.offsetHeight,top+e.clientY-y0))}px`;
+      };
+      const stop=()=>{document.removeEventListener("pointermove",move);document.removeEventListener("pointerup",stop)};
+      document.addEventListener("pointermove",move);document.addEventListener("pointerup",stop,{once:true});
+      event.preventDefault();
+    });
+  }
+  closeExhaustionMenu() {
+    this.exhaustionMenu?._closeController?.abort();
+    this.exhaustionMenu?.remove();
+    this.exhaustionMenu = null;
+  }
+  showExhaustionMenu(uuid, x, y) {
+    if (!game.user?.isGM) return;
+    const actor = presentRoster().find(pc => pc.uuid === uuid);
+    if (!actor) return;
+    this.closeExhaustionMenu();
+    const current = exhaustionDisplayLevel(actor);
+    const isPending = pendingExhaustionLevels.has(actor.uuid);
+    const menu = document.createElement("div");
+    menu.className = "zft-ir-exhaustion-menu";
+    menu.setAttribute("role", "menu");
+    menu.innerHTML = `<div class="zft-ir-exhaustion-menu-head">Set Exhaustion · ${esc(actor.name)}${isPending ? " · Saving…" : ""}</div>` +
+      Array.from({length:7},(_,i) => `<button type="button" role="menuitemradio" aria-checked="${i === current}" data-ir-level="${i}" ${isPending ? "disabled" : ""}>${i===current ? "✓ " : ""}Level ${i}${i===0 ? " · None" : ""}</button>`).join("");
+    document.body.append(menu);
+    this.exhaustionMenu = menu;
+    const rect = menu.getBoundingClientRect();
+    menu.style.left = `${Math.max(4,Math.min(x,window.innerWidth-rect.width-4))}px`;
+    menu.style.top = `${Math.max(4,Math.min(y,window.innerHeight-rect.height-4))}px`;
+    const controller = new AbortController();
+    menu._closeController = controller;
+    document.addEventListener("pointerdown",event => {if(!menu.contains(event.target))this.closeExhaustionMenu();},{capture:true,signal:controller.signal});
+    document.addEventListener("keydown",event => {if(event.key === "Escape")this.closeExhaustionMenu();},{signal:controller.signal});
+    menu.addEventListener("click",async event => {
+      const button = event.target.closest("button[data-ir-level]");
+      if(!button || !game.user?.isGM || pendingExhaustionLevels.has(actor.uuid))return;
+      const level = Number(button.dataset.irLevel);
+      if(!Number.isInteger(level)||level<0||level>6)return;
+      this.closeExhaustionMenu();
+      try {
+        pendingExhaustionLevels.set(actor.uuid,level);
+        // No optimistic level. Display only the stored actor value until the
+        // full system update has been confirmed.
+        await setExpeditionExhaustion(actor, level);
+        pendingExhaustionLevels.delete(actor.uuid);
+        this.refresh();
+        ui.notifications.info(`${actor.name}: Exhaustion set to ${level}.`);
+      } catch(error) {
+        pendingExhaustionLevels.delete(actor.uuid);
+        this.refresh();
+        console.error("[ZFT][Ironrot] Exhaustion correction failed",error);
+        ui.notifications.error(`Could not adjust exhaustion for ${actor.name}.`);
+      }
+    });
+    menu.querySelector(`[data-ir-level="${current}"]`)?.focus();
   }
   async openPartyActorSheet(event) {
     const portrait = event.target.closest?.("[data-ir-actor-sheet]");
@@ -1530,16 +2110,28 @@ class ExpeditionConsole {
     if (!container) return;
     const pending = [...this.pendingRolls.values()];
     container.hidden = pending.length === 0;
-    container.innerHTML = pending.map(({ key, actorName, label, rollerName, attempt }) => `
-      <div class="zft-ir-pending-roll" data-ir-pending-key="${esc(key)}">
-        <div class="zft-ir-pending-roll-title"><i class="fa-solid fa-rotate" aria-hidden="true"></i> Awaiting ${esc(actorName)} · ${esc(label)}</div>
-        <div class="zft-ir-pending-roll-note">Sent to ${esc(rollerName)} · Attempt ${Number(attempt)}. If the player reloaded, resend after they reconnect.</div>
-        <div class="zft-ir-pending-roll-actions">
-          <button type="button" data-ir-roll-recovery="resend" data-ir-key="${esc(key)}"><i class="fa-solid fa-paper-plane" aria-hidden="true"></i> Resend Prompt</button>
-          <button type="button" data-ir-roll-recovery="gm" data-ir-key="${esc(key)}">Roll as GM</button>
-          <button type="button" data-ir-roll-recovery="cancel" data-ir-key="${esc(key)}">Cancel Request</button>
-        </div>
-      </div>`).join("");
+    const sharedLabel = pending.every(item => item.label === pending[0]?.label) ? pending[0]?.label : null;
+    const sentTo = [...new Set(pending.map(item => item.rollerName))];
+    const subhead = [sharedLabel, sentTo.length === 1 ? `Sent to ${sentTo[0]}` : null].filter(Boolean).join(" · ");
+    container.innerHTML = `<div class="zft-ir-pending-group">
+      <div class="zft-ir-pending-head"><strong><i class="fa-solid fa-dice-d20" aria-hidden="true"></i> Pending Player Rolls</strong><span>${pending.length} awaiting</span></div>
+      ${subhead ? `<div class="zft-ir-pending-context">${esc(subhead)}</div>` : ""}
+      <div class="zft-ir-pending-rows">${pending.map(({ key, actorName, label, rollerName, attempt }) => `
+        <div class="zft-ir-pending-roll" data-ir-pending-key="${esc(key)}">
+          <div class="zft-ir-pending-identity"><strong title="${esc(actorName)}">${esc(actorName)}</strong><small title="Sent to ${esc(rollerName)} · Attempt ${Number(attempt)}">${sharedLabel ? "Awaiting player" : esc(label)} · Attempt ${Number(attempt)}</small></div>
+          <div class="zft-ir-pending-roll-actions" role="group" aria-label="Roll recovery for ${esc(actorName)}">
+            <button type="button" data-ir-roll-recovery="resend" data-ir-key="${esc(key)}" title="Resend Prompt · ${esc(actorName)}" aria-label="Resend Prompt for ${esc(actorName)}"><i class="fa-solid fa-paper-plane" aria-hidden="true"></i></button>
+            <button type="button" data-ir-roll-recovery="gm" data-ir-key="${esc(key)}" title="Roll as GM · ${esc(actorName)}" aria-label="Roll as GM for ${esc(actorName)}"><i class="fa-solid fa-dice-d20" aria-hidden="true"></i></button>
+            <button type="button" data-ir-roll-recovery="cancel" data-ir-key="${esc(key)}" title="Cancel Request · ${esc(actorName)}" aria-label="Cancel Request for ${esc(actorName)}"><i class="fa-solid fa-xmark" aria-hidden="true"></i></button>
+          </div>
+        </div>`).join("")}</div>
+      <div class="zft-ir-pending-legend" aria-label="Pending roll action legend">
+        <span><i class="fa-solid fa-paper-plane" aria-hidden="true"></i> Resend Prompt</span>
+        <span><i class="fa-solid fa-dice-d20" aria-hidden="true"></i> Roll as GM</span>
+        <span><i class="fa-solid fa-xmark" aria-hidden="true"></i> Cancel Request</span>
+      </div>
+      <div class="zft-ir-pending-help">Resend if a player reconnects. Actions affect only their row.</div>
+    </div>`;
     this.constrainWorkflowHeight();
   }
   handleRollRecovery(event) {
@@ -1559,10 +2151,27 @@ class ExpeditionConsole {
     return true;
   }
   async click(event) {
+    if (event.target.closest('[data-ir-action="roles-reference"]')) {
+      this.openRolesReference();
+      return;
+    }
     if (this.handleRollRecovery(event)) return;
     const button = event.target.closest("button[data-ir-action]");
-    if (!button || !(this.element?.contains(button) || this.workflowElement?.contains(button))) return;
+    if (!button || !(this.element?.contains(button) || this.workflowElement?.contains(button) || false)) return;
     const action = button.dataset.irAction;
+    if (action === "roster-toggle") {
+      const collapsed = button.getAttribute("aria-expanded") === "true";
+      const list = this.element?.querySelector("#zft-ir-roster-members");
+      if (list) list.hidden = collapsed;
+      button.setAttribute("aria-expanded", String(!collapsed));
+      const chevron = button.querySelector("i");
+      if (chevron) chevron.className = `fa-solid fa-angles-${collapsed ? "down" : "up"}`;
+      button.title = `${collapsed ? "Expand" : "Collapse"} Expedition Roster`;
+      button.setAttribute("aria-label", button.title);
+      void this.remember({ rosterCollapsed: collapsed });
+      return;
+    }
+    if (action === "scale") { this.toggleScaleWindow(); return; }
     if (action === "expanded" && this.dragMoved) { this.dragMoved = false; return; }
     if (["expanded", "bubble", "hidden"].includes(action)) return void this.setMode(action);
     if (action === "log-visibility") return void this.toggleLogVisibility();
@@ -1598,15 +2207,27 @@ class ExpeditionConsole {
           if (Number(state.pending) > 0 || (state.hourResolved?.length ?? 0) || Object.keys(state.hourRolls ?? {}).length)
             return ui.notifications.warn("Finish the current hex or forced-march resolution before changing roles.");
           const roster = presentRoster();
-          const nav = editor.querySelector("select[name='roleNavigator']")?.value ?? "";
-          const activity = editor.querySelector("select[name='roleActivity']")?.value ?? "none";
-          const secondary = editor.querySelector("select[name='roleSecondary']")?.value ?? "";
-          if (!roster.some(actor => actor.uuid === nav)) return ui.notifications.warn("Select an attending Navigator.");
-          if (!IRONROT_ACTIVITIES[activity]) return ui.notifications.warn("Select a supported secondary activity.");
-          if (activity !== "none" && (!roster.some(actor => actor.uuid === secondary) || secondary === nav))
-            return ui.notifications.warn("Select a different attending PC for the secondary activity.");
-          await rememberIronrotRoles({ navigatorUuid: nav, secondaryUuid: activity === "none" ? "" : secondary, activity });
-          ui.notifications.info("Party roles saved for subsequent hexes. Start / Continue will use these assignments.");
+          const selections = [...editor.querySelectorAll("select[data-ir-expedition-role]")];
+          const assignments = Object.fromEntries(selections.map(select => [select.dataset.irExpeditionRole, select.value]));
+          const filled = Object.values(assignments).filter(Boolean);
+          if (!assignments.guide || !roster.some(actor => actor.uuid === assignments.guide))
+            return ui.notifications.warn("Select an attending Guide.");
+          if (new Set(filled).size !== filled.length)
+            return ui.notifications.warn("Each character may hold only one expedition role.");
+          if (filled.some(uuid => !roster.some(actor => actor.uuid === uuid)))
+            return ui.notifications.warn("Assigned characters must be present.");
+          // Retain the legacy secondary setting only when its existing PC remains
+          // assigned to an expedition role. Do not invent unsupported roll mappings.
+          const previous = ironrotRolePreferences();
+          const keepSecondary = filled.includes(previous.secondaryUuid) && previous.secondaryUuid !== assignments.guide &&
+            IRONROT_ACTIVITIES[previous.activity] && previous.activity !== "none";
+          await rememberIronrotRoles({
+            navigatorUuid: assignments.guide,
+            secondaryUuid: keepSecondary ? previous.secondaryUuid : "",
+            activity: keepSecondary ? previous.activity : "none",
+            assignments
+          });
+          ui.notifications.info("Expedition roles saved. Assigned roles appear in the party list.");
         } else if (action === "attendance-save") {
           const state = getLedger();
           if ((state.hourResolved?.length ?? 0) || Object.keys(state.hourRolls ?? {}).length) return ui.notifications.warn("Resolve the active forced-march hour before changing attendance.");
@@ -1626,7 +2247,7 @@ class ExpeditionConsole {
           this.dismissPrompt();
           this.activeTravelTicket += 1;
           this.travelActive = false;
-          const state = { ...values, hourResolved: [], hourRolls: {}, hourDecisions: {}, hourOutcomes: {}, hourRerolls: {}, marchHistory: [] };
+          const state = { ...values, activeHexCardId: null, hourResolved: [], hourRolls: {}, hourDecisions: {}, hourOutcomes: {}, hourRerolls: {}, marchHistory: [] };
           await game.settings.set("world", STATE_KEY, state);
           await game.settings.set(MODULE_ID, HEX_KEY, { totalHours: 0, baseHexes: 0 });
           await publishIronrotSnapshot(state, "Ledger corrected", "GM manually corrected expedition progress.");
@@ -1638,14 +2259,14 @@ class ExpeditionConsole {
           this.dismissPrompt();
           this.activeTravelTicket += 1;
           this.travelActive = false;
-          const state = { ...DEFAULT_LEDGER, hourResolved: [], hourRolls: {}, hourDecisions: {}, hourOutcomes: {}, hourRerolls: {}, marchHistory: [] };
+          const state = { ...DEFAULT_LEDGER, activeHexCardId: null, hourResolved: [], hourRolls: {}, hourDecisions: {}, hourOutcomes: {}, hourRerolls: {}, marchHistory: [] };
           await game.settings.set("world", STATE_KEY, state);
           await game.settings.set(MODULE_ID, CARDS_KEY, EMPTY_CARDS);
           // A new expedition gets fresh Foundry calendar dates, not stale dates
           // recorded during the previous expedition.
           await game.settings.set(MODULE_ID, CALENDAR_KEY, { datesByDay: {} });
           await game.settings.set(MODULE_ID, HEX_KEY, { totalHours: 0, baseHexes: 0 });
-          await game.settings.set(MODULE_ID, LOG_KEY, { epoch: ironrotLogEpoch() + 1, hiddenHistoryKeys: [], hiddenHourKey: "" });
+          await game.settings.set(MODULE_ID, LOG_KEY, { epoch: ironrotLogEpoch() + 1, hiddenHistoryKeys: [], hiddenHourKey: "", recordedDays: [] });
           await publishIronrotSnapshot(state, "Travel reset", "Expedition travel statistics were reset by the GM.");
           ui.notifications.info("Expedition travel and result cards reset. Actor Exhaustion unchanged.");
         } else if (action === "identity-save") {

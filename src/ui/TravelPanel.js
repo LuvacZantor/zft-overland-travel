@@ -128,7 +128,7 @@ export class TravelPanel {
         <div class="zft-zot-form">
           <p>Enter the final role-check totals after players roll. Use comma-separated values, optionally prefixed by role.</p>
           <label>Roll Totals<input name="rolls" type="text" placeholder="guide=18, scout=14, 11, 22" autofocus></label>
-          <p class="hint">Strong Success = DC+5 (2 successes); Success = meets DC; Failure = misses by 1–4; Major Failure = misses by 5+ (2 failures).</p>
+          <p class="hint"><span class="zft-zot-result-success">Strong Success</span> = DC+5 (2 successes); <span class="zft-zot-result-success">Success</span> = meets DC; <span class="zft-zot-result-failure">Failure</span> = misses by 1–4; <span class="zft-zot-result-failure">Major Failure</span> = misses by 5+ (2 failures).</p>
         </div>
       `,
       ok: { label: "Resolve Hex", icon: "fa-solid fa-check" }
@@ -156,7 +156,7 @@ export class TravelPanel {
     await postChat(
       "Overland Travel: Hex Resolved",
       `<p><strong>Travel Quality:</strong> ${escapeHtml(hex.travelQuality)}</p>
-       <p><strong>Tally:</strong> ${hex.successes} successes / ${hex.failures} failures</p>
+       <p><strong>Tally:</strong> <span class="zft-zot-result-success">${hex.successes} successes</span> / <span class="zft-zot-result-failure">${hex.failures} failures</span></p>
        <p><strong>Momentum:</strong> ${escapeHtml(hex.momentumBefore)} → ${escapeHtml(hex.momentumAfter)}</p>
        <p><strong>Event:</strong> ${escapeHtml(hex.baseEvent)} → <strong>${escapeHtml(hex.resolvedEvent)}</strong></p>`
     );
@@ -200,7 +200,7 @@ export class TravelPanel {
         "Quiet Travel: Recover",
         `<p><strong>Long Rest Chance:</strong> ${result.chance}% (${result.baseChance}% ${result.modifier >= 0 ? "+" : ""}${result.modifier}%)</p>
          <p><strong>Roll:</strong> ${result.roll}</p>
-         <p><strong>Result:</strong> ${result.success ? "Long Rest succeeds" : "No Long Rest benefits"}</p>
+         <p><strong>Result:</strong> <span class="zft-zot-result-${result.success ? "success" : "failure"}">${result.success ? "Long Rest succeeds" : "No Long Rest benefits"}</span></p>
          <p>The party avoids exhaustion from travel.</p>`
       );
       return;

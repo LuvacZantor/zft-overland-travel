@@ -1,12 +1,16 @@
 # ZFT Overland Travel
 
-Current development package: `0.4.0-dev.28` for Foundry V13 (live validation pending). The Foundry module ID remains `zft-overland-travel`.
+Current local test package: `0.4.0-dev.59` for Foundry V13 (live validation pending). The Foundry module ID remains `zft-overland-travel`.
 
 Foundry VTT module implementing Zantor's hex-based overland travel and independent encounter-generation framework.
 
 ## Version
 
-Current module build: **`0.4.0-dev.28`** (development only). The original generic framework was developed as `0.3.1`; its earlier notes remain below for historical context.
+Current module build: **`0.4.0-dev.59`** (development only). The original generic framework was developed as `0.3.1`; its earlier notes remain below for historical context.
+
+## Expedition roles (feature branch)
+
+The GM **Expedition Roles** panel groups six role assignments into three paired activities: Navigation (Guide + Tracker), Reconnaissance (Scout + Vanguard), and Expedition Support (Forager + Coordinator). Each actor may hold at most one expedition assignment. Their assignments appear in the GM/player Present Party roster. The cooperative resolution rules (both succeed = strong; one = partial; neither = failed) are documented design and are **not yet executed by the existing hex roll workflow**. Existing navigation, duration, forced march and Constitution calculations are unchanged. Live Foundry V13 verification remains pending.
 
 ## Canonical terminology
 
@@ -68,6 +72,8 @@ game.zftOverlandTravel.panel
 
 The module folder name must be exactly `zft-overland-travel`. That must match the module `id` in `module.json`.
 
+**Do not install the unmodified GitHub branch source ZIP as a Foundry module.** GitHub names its extracted top-level folder after the repository and branch. For a packaged module ZIP, the archive must contain `zft-overland-travel/module.json` at its root, not `zft-overland-travel-feature-overland-framework/module.json`.
+
 ## Development
 
 The repository follows the authoritative ZFT development and release policy in `zft-standards`. The **`develop` branch** holds the latest in-progress module source; `main` remains the accepted/stable branch and must not receive this dev build without separate approval.
@@ -75,7 +81,7 @@ The repository follows the authoritative ZFT development and release policy in `
 - [Development status and live acceptance checklist](docs/DEVELOPMENT_STATUS.md)
 - [Interface theme configuration](docs/THEMES.md)
 
-The current codebase includes both the original generic framework and the **Mount Ironrot-specific travel implementation**. Keep the Mount Ironrot engine and persistence isolated until a separately approved generalization effort. There is no automatic world-clock advancement from the New Travel Day control.
+The feature branch is consolidating the original generic framework and the Mount Ironrot expedition interface into a unified workflow. Existing Mount Ironrot hex calculations and persistence remain intact during the transition. There is no automatic world-clock advancement from the New Travel Day control.
 
 
 ## Rules documentation
@@ -302,10 +308,55 @@ While a GM is waiting on a Midi-QOL player skill check or Constitution save, GM 
 - Themes do not change Foundry UI, Action HUD, dice art/semantic dice colors, calendar, actor effects, GM travel workflow, existing travel history, shared expedition settings, or ZFT Tools.
 - All validations are static/simulated only until tested live in Foundry V13.
 
-### v0.4.0-dev.28: Independent interface theme window (local test build)
+### v0.4.0-dev.34: Independent interface theme window (local test build)
 
 - Use the **single palette button in the Dashboard header**. The duplicate palette button has been removed from the Expedition Log.
 - The theme editor is now an independent, draggable, resizable, modeless floating window (not an inline Dashboard panel). On desktop it presents preset swatches in a left column and 22 color controls in a two-column layout on the right; smaller viewports stack the groups and scroll inside the window.
 - Preview, preset/hex editing, Save, Cancel, Escape-to-cancel and client-only theme persistence remain. Closing the main Dashboard discards an unsaved preview.
 - The editor stays above ZFT panes but yields to regular Foundry/Midi-QOL windows. No global stacking changes or transparent overlays are added.
 - This update makes **no changes** to the Mount Ironrot rules, world-clock behavior, travel state, roll recovery, or saved log data. Live Foundry V13 GM/player testing remains required.
+
+### v0.4.0-dev.30 (local UI fix, unverified in Foundry)
+
+- Expedition Roles editor immediately disables a character already selected in another role.
+- Corrects duplicate assignments found when opening previously saved role preferences.
+- Existing save-time uniqueness check, role list, navigation, hex duration, and Forced March remain unchanged.
+- Feature-branch repository update requires separate approval.
+
+### v0.4.0-dev.34 (local test build)
+
+- Start/Continue no longer displays the legacy Navigator or Secondary assignment controls. It displays the three paired Expedition Role groups and takes the Guide from saved Expedition Roles.
+- The existing Guide Survival and hex-duration calculation are retained, with no legacy secondary roll. All other cooperative checks remain unimplemented and must not be mistaken for executed rolls.
+- New assignment editing stays in GM Expedition Roles. This build is not yet live verified.
+
+### Local 0.4.0-dev.34 regression repair
+
+Restores dashboard/log rendering by implementing the missing exhaustion-menu cleanup method. Completes the planned GM roster context menu, exhaustion penalty labels and role hover descriptions. This build requires live Foundry V13 validation.
+
+### Local 0.4.0-dev.37 (not committed)
+
+- Expedition Roles assignments now open in their own movable window, fully sized on ordinary monitors with scrolling only when viewport height requires it; role names and skill checks are on separate lines.
+- Used party members are disabled and visually muted in other role dropdowns.
+- Roles Reference groups have subtle shaded panels and separators.
+- Right-align the exhaustion level and penalty lines; synchronize context menu selection with the same displayed actor value and block simultaneous edits.
+- Increase dashboard travel-metric text slightly.
+- This is a local test package. Pair-resolution engine is not yet implemented; hex calculations and Forced March remain unchanged.
+
+
+### Local 0.4.0-dev.37 (unverified GM test build)
+
+- Reconcile D&D5e 5.x exhaustion status flags and the actor attribute before accepting a manual adjustment; report an actual readback mismatch rather than pretending the correction succeeded.
+- Expedition Roles assignment window opens below GM Expedition Controls. Small viewports may scroll inside the separate window.
+- Consistent GM controls headings, warning treatment, action button sizing and themes; compact four-field Edit Travel Ledger.
+- Existing travel/hex-duration formulas and Forced March decisions are unchanged. This build has not passed live Foundry V13 testing.
+
+### Local 0.4.0-dev.38 (V13 testing pending)
+
+Expedition Roles assignments return to the inline pop-down within GM Expedition Controls. The two-column, three-group editor retains separate name/skill/select lines and prevents duplicate character assignments. The separate Roles Reference is unchanged. The exhaustion correction now primarily uses the native actor field and verifies it after updating; prior duplicate-effect errors during Change Log module hooks need live verification. Right-aligned exhaustion information and context-aware color cues for safe hours, Forced March, and hex progress are added. No travel-duration rules were changed.
+
+### Local 0.4.0-dev.39 (V13 testing pending)
+
+- The Hours Today dashboard stat now has a theme-aware amber shaded border/background at exactly 8/8 safe hours, red at 9/8 or more. Safe travel retains a neutral card background. The existing number/progress/warning colors are unchanged.
+- For Forced March party-CON adjudication, a failed save preselects **Apply +1 Exhaustion**; success still defaults to **Accept success**. Unrolled checks remain unresolved, and any previously saved GM choice is preserved. Nothing applies until the GM selects **Process Party Decisions**. Reroll results are re-evaluated under the same default rules while other recorded choices persist.
+- The Forced March ruling footer has two equal-width, two-line actions (**Process Party / Decisions**, **Pause / Exit / Saves Progress**) and stacks on narrow screens. Existing action callbacks and save checkpoints remain intact.
+- No changes to navigation, hex duration, forced-hour DC, outcomes, or the legacy source file. Static tests only; live GM/player Foundry verification pending.

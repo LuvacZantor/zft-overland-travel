@@ -69,6 +69,12 @@ return (async () => {
       day: Math.max(1, Number(value.day) || 1),
       hours: Math.max(0, Number(value.hours) || 0),
       pending: Math.max(0, Number(value.pending) || 0),
+      // dev.41 stored the stable hex-card ID, but omitted it from this
+      // hydration path. Losing it on Start/Continue or New Travel Day caused
+      // subsequent Forced March checks to be archived as unlinked history.
+      // Keep an absent/invalid ID absent rather than inferring one from time.
+      activeHexCardId: typeof value.activeHexCardId === "string" && value.activeHexCardId.length
+        ? value.activeHexCardId : null,
       hourResolved: Array.isArray(value.hourResolved) ? value.hourResolved : [],
       hourRolls: value.hourRolls && typeof value.hourRolls === "object" ? value.hourRolls : {},
       hourDecisions: value.hourDecisions && typeof value.hourDecisions === "object" ? value.hourDecisions : {},
@@ -112,8 +118,8 @@ return (async () => {
   }
 
 
-  if (!game.user.isGM) return warn("Mount Ironrot travel must be started by a GM.");
-  if (game.system.id !== "dnd5e") return warn("Mount Ironrot travel requires the D&D 5e system.");
+  if (!game.user.isGM) return warn("Overland Travel must be started by a GM.");
+  if (game.system.id !== "dnd5e") return warn("Overland Travel requires the D&D 5e system.");
   const midiModule = game.modules.get("midi-qol");
   if (!midiModule?.active || typeof globalThis.MidiQOL?.socket !== "function") {
     return warn("This macro requires active Midi-QOL with its socket API.");
@@ -125,7 +131,7 @@ return (async () => {
   // A reset invalidates the old generation, allowing a fresh workflow even
   // while a suspended legacy dialog remains open. Its callbacks cannot write.
   const locked = globalThis[LOCK];
-  if (locked === true || locked?.generation === launchEpoch) return warn("An Ironrot travel roll is already in progress on this GM client.");
+  if (locked === true || locked?.generation === launchEpoch) return warn("An expedition travel roll is already in progress on this GM client.");
 
   // Main campaign roster is still discovered from Player Configuration, including
   // offline players. Optional, GM-saved attendance excludes only absent PCs.
@@ -188,14 +194,14 @@ return (async () => {
       }
       await saveState({ day: result.day, hours: result.hours, pending: result.pending, hexes: result.hexes, hourResolved: [], hourRolls: {}, hourDecisions: {}, hourOutcomes: {}, hourRerolls: {}, marchHistory: [] });
       await publishStatus(loadState(), "Ledger corrected", "GM manually updated the travel ledger.");
-      ui.notifications.info("Mount Ironrot travel ledger corrected. Run macro again to continue.");
+      ui.notifications.info("Overland Travel ledger corrected. Run macro again to continue.");
       return;
     }
     const confirmation = await promptWait({
       window: { title: `${identity().name} | Confirm Full Reset` },
       position: { width: 480 },
       render: colorButtons,
-      content: `<div class="zft-ir-reset-confirm"><h3><i class="fa-solid fa-triangle-exclamation"></i> Permanent Expedition Reset</h3><p><strong style="color:${UI.red};">Erase the complete saved Mount Ironrot travel ledger?</strong></p><p>This resets Day to 1, hours to 0, unfinished hex to 0, completed hexes to 0, and clears all stored hourly rolls, completed forced-march history, pending decisions, and resolution checkpoints. <strong>This cannot be undone.</strong> It does not change character Exhaustion.</p><label>Type <strong style="color:${UI.amber};">RESET</strong> to confirm:<input name="confirmation" type="text" autocomplete="off"></label></div>`,
+      content: `<div class="zft-ir-reset-confirm"><h3><i class="fa-solid fa-triangle-exclamation"></i> Permanent Expedition Reset</h3><p><strong style="color:${UI.red};">Erase the complete saved Overland Travel ledger?</strong></p><p>This resets Day to 1, hours to 0, unfinished hex to 0, completed hexes to 0, and clears all stored hourly rolls, completed forced-march history, pending decisions, and resolution checkpoints. <strong>This cannot be undone.</strong> It does not change character Exhaustion.</p><label>Type <strong style="color:${UI.amber};">RESET</strong> to confirm:<input name="confirmation" type="text" autocomplete="off"></label></div>`,
       buttons: [
         { action: "reset", label: "Permanently Reset", callback: (_event, button) => button.form.elements.confirmation.value.trim() },
         { action: "cancel", label: "Cancel", default: true, callback: () => null }
@@ -204,7 +210,7 @@ return (async () => {
     if (confirmation !== "RESET") return warn("Full travel reset canceled. No data changed.");
     await saveState({ day: 1, hours: 0, pending: 0, hexes: 0, hourResolved: [], hourRolls: {}, hourDecisions: {}, hourOutcomes: {}, hourRerolls: {}, marchHistory: [] });
     await publishStatus(loadState(), "Travel reset", "Expedition travel statistics were reset by the GM.");
-    ui.notifications.info("Mount Ironrot stored travel stats fully reset to Day 1.");
+    ui.notifications.info("Overland Travel statistics fully reset to Day 1.");
   }
   // The GM Console exposes these top-level actions. Keep the familiar daily
   // ledger dialog available for legacy/script callers using action="menu".
@@ -245,13 +251,13 @@ return (async () => {
       ], close: () => false
     });
     if (!newDayConfirmed) {
-      ui.notifications.info("Mount Ironrot: New travel day canceled. Ledger unchanged.");
+      ui.notifications.info("Overland Travel: New travel day canceled. Ledger unchanged.");
       return;
     }
     travelState = { ...travelState, day: travelState.day + 1, hours: 0, hourResolved: [], hourRolls: {}, hourDecisions: {}, hourOutcomes: {} };
     await saveState(travelState);
     await publishStatus(travelState, "New travel day", "Daily travel hours reset. The GM handles rests and game time.");
-    ui.notifications.info(`Mount Ironrot: Day ${travelState.day} started. Continue traveling in this session.`);
+    ui.notifications.info(`Overland Travel: Day ${travelState.day} started. Continue traveling in this session.`);
     travelMenu = "travel";
   }
   const resuming = travelState.pending > 0;
@@ -272,32 +278,34 @@ return (async () => {
     + `<option value="gm">GM (me)</option>`
     + eligiblePlayers(actor).map(u => `<option value="${esc(u.id)}">${esc(u.name)}</option>`).join("");
 
-  const actorOptions = actors.map(a => `<option value="${esc(a.uuid)}">${esc(a.name)}</option>`).join("");
-  // A navigator may not also take the optional secondary activity.
-  // Keep that PC out of the secondary dropdown rather than showing an invalid choice.
-  const secondaryOptions = navigatorUuid => actors
-    .filter(actor => actor.uuid !== navigatorUuid)
-    .map(actor => `<option value="${esc(actor.uuid)}">${esc(actor.name)}</option>`)
-    .join("");
-  const activityOptions = Object.entries(ACTIONS).map(([id, info]) =>
-    `<option value="${esc(id)}" ${id !== "none" && actors.length < 2 ? "disabled" : ""}>${esc(info.name)}${info.skill ? ` (${esc(CONFIG.DND5E.skills[info.skill]?.label ?? info.skill)})` : ""}</option>`
-  ).join("");
+  // Expedition roles are assigned exclusively through GM Expedition Roles.
+  // The existing guide's Survival roll continues to determine hex duration.
   const rolePrefs = globalThis.ZFTMountIronrotConsole?.rolePreferences?.() ?? {};
-  // Never silently substitute a character whose saved assignment is absent.
-  // The GM can correct the assignment using Party Roles before beginning.
-  if (!resuming && rolePrefs.navigatorUuid && !actors.some(actor => actor.uuid === rolePrefs.navigatorUuid))
-    return warn("Saved Navigator is not in the present party. Update Party Roles before starting travel.");
-  if (!resuming && rolePrefs.activity && rolePrefs.activity !== "none" && !ACTIONS[rolePrefs.activity])
-    return warn("Saved secondary activity is no longer available. Update Party Roles before starting travel.");
-  if (!resuming && rolePrefs.activity && rolePrefs.activity !== "none" &&
-      (!actors.some(actor => actor.uuid === rolePrefs.secondaryUuid) || rolePrefs.secondaryUuid === rolePrefs.navigatorUuid))
-    return warn("Saved secondary character is unavailable or duplicates the Navigator. Update Party Roles before starting travel.");
-  const savedRolesReady = !!rolePrefs.navigatorUuid && actors.some(actor => actor.uuid === rolePrefs.navigatorUuid);
-  const initialNav = actors.find(actor => actor.uuid === rolePrefs.navigatorUuid) ?? actors[0];
-  const initialSecondary = actors.find(actor => actor.uuid === rolePrefs.secondaryUuid && actor.uuid !== initialNav.uuid)
-    ?? actors.find(actor => actor.uuid !== initialNav.uuid) ?? initialNav;
-  const savedActivity = actors.length > 1 && ACTIONS[rolePrefs.activity] && (rolePrefs.activity === "none" || initialSecondary.uuid === rolePrefs.secondaryUuid)
-    ? rolePrefs.activity : "none";
+  const assignments = rolePrefs.assignments ?? {};
+  const guideUuid = assignments.guide || rolePrefs.navigatorUuid || "";
+  const guideActor = actors.find(actor => actor.uuid === guideUuid);
+  if (!resuming && !guideActor)
+    return warn("Assign a present Guide in Expedition Roles before starting travel.");
+  const expeditionGroups = [
+    ["Navigation", [["Guide", "guide", "Survival (WIS)"], ["Tracker", "tracker", "Investigation (INT)"]]],
+    ["Reconnaissance", [["Scout", "scout", "Stealth (DEX)"], ["Vanguard", "vanguard", "Athletics (STR)"]]],
+    ["Expedition Support", [["Forager", "forager", "Survival (WIS)"], ["Coordinator", "coordinator", "Persuasion (CHA)"]]]
+  ];
+  // One theme-aware, gently raised surface per paired activity. Portraits
+  // identify the actual assigned PC; only the Guide is currently rolled.
+  const groupIcon = {Navigation:"fa-compass", Reconnaissance:"fa-eye", "Expedition Support":"fa-people-group"};
+  const expeditionSummary = expeditionGroups.map(([heading, roles]) =>
+    `<section class="zft-ir-travel-role-group" aria-label="${esc(heading)} roles">` +
+    `<h4><i class="fa-solid ${groupIcon[heading]}" aria-hidden="true"></i> ${esc(heading)}</h4>` +
+    roles.map(([label,key,skill]) => {
+      const actor = actors.find(a => a.uuid === (assignments[key] || (key === "guide" ? guideUuid : "")));
+      const portrait = actor?.img ? `<img class="zft-ir-travel-role-portrait" src="${esc(actor.img)}" alt="" loading="lazy">`
+        : `<span class="zft-ir-travel-role-portrait zft-ir-travel-role-empty"><i class="fa-solid fa-user" aria-hidden="true"></i></span>`;
+      return `<div class="zft-ir-travel-role-line${key === "guide" ? " is-guide" : ""}">` +
+        `${portrait}<div class="zft-ir-travel-role-identity"><span class="zft-ir-travel-role-label">${esc(label)}${key === "guide" ? ' <i class="fa-solid fa-dice-d20" title="Active Navigation roll" aria-label="Active Navigation roll"></i>' : ""}</span>` +
+        `<strong>${actor ? esc(actor.name) : "Unassigned"}</strong></div><small>${esc(skill)}</small></div>`;
+    }).join("") + `</section>`
+  ).join("");
 
   // Persist the complete untraveled segment before any hour is processed.
   // Checkpoint each adjudicated PC to avoid repeated Exhaustion on rerun.
@@ -324,19 +332,30 @@ return (async () => {
       });
       // Both fulfillment and rejection are handled for abandoned promises.
       // Never apply the result from an attempt superseded by the GM.
+      // Capture only the awaited actor's native roll message on this GM client;
+      // Midi versions that omit message IDs can still expose one via the hook.
+      let observedMessageId = null;
+      const rollHook = typeof Hooks?.on === "function" ? Hooks.on("createChatMessage", message => {
+        const author = message?.user?.id ?? message?.author?.id;
+        if (message?.isRoll && message?.speaker?.actor === actor.id && author === roller.id)
+          observedMessageId = message.id;
+      }) : null;
       const remote = Promise.resolve().then(() => {
         ensureCurrent();
         return midiSocket.executeAsUser("rollAbility", roller.id, makeArgs());
       }).then(value => ({ type: "result", value }), error => ({ type: "error", error }));
       let result;
       try { result = await Promise.race([remote, choice]); }
-      finally { globalThis.ZFTMountIronrotConsole?.unregisterPendingRoll?.(key, recoveryToken); }
+      finally {
+        if (rollHook !== null) Hooks.off("createChatMessage", rollHook);
+        globalThis.ZFTMountIronrotConsole?.unregisterPendingRoll?.(key, recoveryToken);
+      }
       ensureCurrent();
       if (result?.type === "resend") continue;
       if (result?.type === "gm") { roller = game.user; continue; }
       if (result?.type === "cancel") return { cancelled: true };
       if (result?.type === "error") return { error: result.error };
-      return { value: result?.value, roller };
+      return { value: result?.value, roller, observedMessageId };
     }
   }
 
@@ -362,6 +381,7 @@ return (async () => {
         `CON saving throw · DC ${dc}`, `con:${travelState.day}:${travelState.hours + 1}`);
       if (request.cancelled) return null;
       if (request.error) throw request.error;
+      await waitForNativeRollPresentation(request.value, request.observedMessageId);
       return totalFromRemote(request.value);
     } catch (error) {
       if (error?.name === "IronrotWorkflowCanceled") throw error;
@@ -418,32 +438,38 @@ return (async () => {
         const failed = hasRoll && total < dc;
         const oldEx = Number(foundry.utils.getProperty(actor, "system.attributes.exhaustion")) || 0;
         const verdict = done ? "Resolved" : hasRoll ? (failed ? "Failed" : "Passed") : "No result";
+        // Default only NEW unresolved rulings. Preserve deliberate GM choices
+        // saved before a pause or another character's reroll.
         const selected = !done && ["choose", "accept", "exhaust"].includes(state.hourDecisions[id])
-          ? state.hourDecisions[id] : (hasRoll && !failed ? "accept" : "choose");
+          ? state.hourDecisions[id] : !hasRoll ? "choose" : failed ? "exhaust" : "accept";
         const choices = hasRoll ? [
           ["choose", "Choose action"], ["accept", failed ? "Accept / waive Exhaustion" : "Accept success"],
           ["exhaust", "Apply +1 Exhaustion"], ["reroll", "Reroll CON"]
         ] : [["choose", "No result · choose a response"], ["reroll", "Request CON roll"]];
-        const decision = done ? `<span style="color:${UI.green};">Saved</span>` :
-          `<select name="decision-${esc(id)}">${choices.map(([v, label]) =>
-            `<option value="${v}" ${v === selected ? "selected" : ""}>${label}</option>`).join("")}</select>`;
-        const rollColor = done ? UI.blue : !hasRoll ? UI.amber : failed ? UI.red : UI.green;
-        const exhaustionColor = oldEx > 0 ? UI.red : UI.muted;
-        return `<div class="zft-ir-gm-ruling-row"><div class="zft-ir-gm-ruling-identity"><strong>${esc(actor.name)}</strong>` +
-          `<span style="color:${rollColor};">${hasRoll ? total : "—"} · ${verdict}</span></div>` +
-          `<div class="zft-ir-gm-ruling-choice"><span style="color:${exhaustionColor};">Exhaustion ${oldEx}${!done && selected === "exhaust" ? ` → ${Math.min(6,oldEx+1)}` : ""}</span>${decision}</div></div>`;
+        const decision = done ? `<span class="zft-ir-gm-saved">Saved</span>` :
+          `<select name="decision-${esc(id)}" aria-label="GM ruling for ${esc(actor.name)}" data-ir-gm-ruling-select>${choices.map(([v, label]) =>
+            `<option value="${v}" class="zft-ir-ruling-option-${v === "exhaust" ? "exhaust" : v === "accept" ? "accept" : "neutral"}" ${v === selected ? "selected" : ""}>${label}</option>`).join("")}</select>`;
+        const verdictClass = !hasRoll ? "pending" : failed ? "failed" : "passed";
+        const rulingClass = selected === "exhaust" ? "ruling-exhaust" : selected === "accept" ? "ruling-accept" : "ruling-neutral";
+        const projected = !done && selected === "exhaust" ? Math.min(6,oldEx+1) : oldEx;
+        return `<div class="zft-ir-gm-ruling-row ${rulingClass}" data-ir-current-exhaustion="${oldEx}" data-ir-ruling-row>` +
+          `<div class="zft-ir-gm-ruling-identity"><strong class="zft-ir-gm-ruling-name ${verdictClass}">${esc(actor.name)}</strong>` +
+          `<span class="zft-ir-gm-ruling-roll ${verdictClass}">${hasRoll ? total : "—"} · ${verdict}</span></div>` +
+          `<div class="zft-ir-gm-ruling-exhaustion ${projected > 0 ? "has-exhaustion" : ""}"><small>Exhaustion</small><strong data-ir-projected-exhaustion>${oldEx}${!done && selected === "exhaust" ? ` → ${Math.min(6,oldEx+1)}` : ""}</strong></div>` +
+          `<div class="zft-ir-gm-ruling-choice">${decision}</div></div>`;
       }).join("");
       await publishStatus(state, "GM review", `Hour ${hour}: waiting for GM rulings.`);
       const answer = await promptWait({
         window: { title: `${identity().name} | Day ${state.day} · Hour ${hour} · Party CON DC ${dc}` },
         render: colorButtons,
         position: { width: 760 },
-        content: `<div style="background:#232b32;color:#eeeaf1;padding:10px;display:grid;gap:9px;">
-          <div style="display:flex;gap:7px;flex-wrap:wrap;">${stat("DAY", state.day, UI.blue)}${stat("TRAVEL HOUR", hour, UI.blue)}${stat("CON SAVE DC", dc, UI.amber)}</div>
-          <div>All PCs are shown here. Select a ruling for each unresolved PC. Rerolls are processed together, then this panel reopens with updated totals. Other selected decisions are preserved.</div>
+        content: `<section class="zft-ir-march-review">
+          <div class="zft-ir-march-review-heading"><strong>Forced March · Hour ${hour}</strong><span>Day ${state.day} · CON DC ${dc} · ${actors.length} saves</span></div>
+          <p class="zft-ir-march-review-note">Review each character's save and choose a GM ruling. Rerolls retain other decisions.</p>
+          <div class="zft-ir-gm-ruling-head" aria-hidden="true"><span>Character / Save</span><span>Exhaustion</span><span>GM Ruling</span></div>
           <div class="zft-ir-gm-ruling-list" aria-label="Party Constitution save rulings">${rows}</div>
-          <small>Fate Coins and Inspiration are handled manually. Applying +1 updates the character sheet; confirmed rulings are saved to the world ledger. No time advances until all PCs have been resolved.</small>
-        </div>`,
+          <small class="zft-ir-march-review-footnote" title="Fate Coins and Inspiration are managed manually. Exhaustion updates the actor only when party decisions are confirmed. No travel time advances until the whole party is resolved.">Fate Coins / Inspiration: manual · No exhaustion applied until processed.</small>
+        </section>`,
         buttons: [
           { action: "apply", label: "Process Party Decisions", default: true, callback: (_event,button) => {
             const f = button.form.elements;
@@ -515,6 +541,9 @@ return (async () => {
     state.marchHistory ??= [];
     state.marchHistory.push({
       day: state.day, hour, dc, recordedAt: Date.now(),
+      // A stored hex ID is the authoritative association. Never infer the
+      // owning hex from an old entry's date, hour, or timestamp.
+      ...(state.activeHexCardId ? { hexId: state.activeHexCardId } : {}),
       results: actors.map(actor => ({
         uuid: actor.uuid, name: actor.name,
         total: Number.isFinite(state.hourRolls?.[actor.uuid]) ? state.hourRolls[actor.uuid] : null,
@@ -531,7 +560,10 @@ return (async () => {
     state.hourOutcomes = {};
     state.hourRerolls = {};
     state.hourRerollPending = [];
-    if (state.pending === 0) state.hexes += 1;
+    if (state.pending === 0) {
+      state.hexes += 1;
+      state.activeHexCardId = null;
+    }
     await saveState(state);
     await reportLedger(state, `Completed forced-march hour ${hour}, DC ${dc}.`);
     return true;
@@ -544,6 +576,9 @@ return (async () => {
     if (!isResume) {
       ensureCurrent();
       await globalThis.ZFTMountIronrotConsole?.hexStarted?.(hours, state.hexes);
+      // Only a newly rolled hex gets an ID. Legacy unfinished travel with no
+      // saved ID remains unassociated rather than being linked by guesswork.
+      state.activeHexCardId = hexCardId;
       state.pending = hours;
       state.hourResolved = [];
       state.hourRolls = {};
@@ -560,7 +595,10 @@ return (async () => {
     if (safe > 0) {
       state.hours += safe;
       state.pending -= safe;
-      if (state.pending === 0) state.hexes += 1;
+      if (state.pending === 0) {
+        state.hexes += 1;
+        state.activeHexCardId = null;
+      }
       await saveState(state);
       await reportLedger(state, `${safe} safe travel hour(s) completed.`);
     }
@@ -573,38 +611,39 @@ return (async () => {
       // A separate public log briefing will update as the hour progresses.
       if (!inProgress) await publishStatus(state, "Forced march decision", `Hour ${nextHour}: GM deciding whether to continue (CON DC ${dc}).`);
       const choice = inProgress ? "continue" : await promptWait({
-        window: { title: `${identity().name} | Forced March · Hour ${nextHour}` },
+        window: { title: `Forced March · Hour ${nextHour}` },
         render: colorButtons,
-        position: { width: 455 },
-        content: `<div style="padding:10px;background:#232b32;color:#eeeaf1;display:grid;gap:8px;">
-          <div style="display:flex;gap:7px;flex-wrap:wrap;">${stat("DAY", state.day, UI.blue)}${stat("NEXT HOUR", nextHour, UI.blue)}${stat("CON SAVE DC", dc, UI.amber)}</div>
-          <div>Today completed: ${tint(`${state.hours} h`, state.hours >= 8 ? UI.amber : UI.green)} · Remaining in hex: ${tint(`${state.pending} h`, UI.amber)}</div>
-          <div>Continue for ${tint(`hour ${nextHour}`, UI.blue)}? Every PC makes a ${tint(`CON save DC ${dc}`, UI.amber)} at the end of the hour.</div>
-          <small>Stop and carry ${state.pending} unfinished hour(s) to the following day, or advance one hour and resolve saves. You will be prompted again for the next hour.</small>
+        position: { width: 440 },
+        content: `<div class="zft-ir-forced-choice" role="group" aria-label="Forced March decision">
+          <div class="zft-ir-forced-choice-stats">
+            <span><small>TRAVELED</small><strong>${state.hours}h</strong></span>
+            <span><small>HEX LEFT</small><strong>${state.pending}h</strong></span>
+            <span class="zft-ir-forced-choice-dc"><small>CON SAVE</small><strong>DC ${dc}</strong></span>
+          </div>
+          <p>Continue into hour ${nextHour}? Each character makes a CON save at the end of the hour.</p>
         </div>`,
         buttons: [
           { action: "continue", label: `Continue Hour ${nextHour}`, default: true, callback: () => "continue" },
-          { action: "store", label: "Stop · Carry to Next Day", callback: () => "store" },
           { action: "cancel", label: "Cancel / Exit", callback: () => "cancel" }
         ], close: () => "cancel"
       });
       if (choice === "cancel" || !choice) {
         await publishStatus(state, "Travel paused", `GM paused on Day ${state.day}; ${state.pending} unfinished hour(s) preserved.`);
-        ui.notifications.info(`Mount Ironrot: Prompt canceled. Ledger preserved on Day ${state.day}; ${state.pending} hour(s) remain in this hex.`);
+        ui.notifications.info(`Overland Travel: Travel paused. Ledger preserved on Day ${state.day}; ${state.pending} hour(s) remain in this hex.`);
         return false;
       }
       if (choice === "store") {
         await publishStatus(state, "Travel stopped", `Party stops on Day ${state.day}; ${state.pending} hour(s) deferred.`);
-        ui.notifications.info(`Mount Ironrot: ${state.pending} unfinished hour(s) saved. Start next day when ready.`);
+        ui.notifications.info(`Overland Travel: ${state.pending} unfinished hour(s) saved. Start next day when ready.`);
         return true;
       }
       await publishStatus(state, "Forced march", `Party chose to continue hour ${nextHour}.`);
       if (!(await forcedHour(state))) {
-        ui.notifications.warn(`Mount Ironrot: Hour ${nextHour} paused. Resume the macro to finish unresolved CON saves before traveling further.`);
+        ui.notifications.warn(`Overland Travel: Hour ${nextHour} paused. Resume the macro to finish unresolved CON saves before traveling further.`);
         return false;
       }
     }
-    ui.notifications.info(`Mount Ironrot: hex complete; Day ${state.day} travel ${state.hours} hours.`);
+    ui.notifications.info(`Overland Travel: hex complete; Day ${state.day} travel ${state.hours} hours.`);
     return true;
   }
 
@@ -618,96 +657,34 @@ return (async () => {
   const input = await promptWait({
     window: { title: `${identity().name} | Hex Travel` },
     position: { width: 440 },
-    content: `<div style="background:#232b32;border-left:4px solid #9984aa;border-radius:5px;padding:10px;color:#eeeaf1;display:grid;gap:7px;">
-      <div style="font-size:11px;letter-spacing:1.1px;color:#d6c4e0;">${esc(identity().name)} · ONE HEX</div>
-      <label style="display:grid;grid-template-columns:90px 1fr;gap:6px;align-items:center;">Pace
+    content: `<section class="zft-ir-travel-stage zft-ir-hex-setup">
+      <div class="zft-ir-travel-stage-eyebrow">${esc(identity().name)} · ONE HEX</div>
+      <label class="zft-ir-travel-pace"><span>Pace</span>
         <select name="pace"><option value="fast">Fast (75%)</option><option selected value="normal">Normal (100%)</option><option value="slow">Slow (150%)</option></select></label>
-      <div data-ir-saved-role-summary ${savedRolesReady ? "" : "hidden"} style="background:#312a22;border:1px solid #9b794e;border-radius:5px;padding:9px;display:grid;gap:5px;">
-        <strong style="color:#eac389;">Saved Party Roles</strong>
-        <span>Navigator: ${esc(initialNav.name)} · Survival (WIS)</span>
-        <span>Secondary: ${savedActivity === "none" ? "None" : `${esc(initialSecondary.name)} · ${esc(ACTIONS[savedActivity]?.name ?? savedActivity)}`}</span>
-        <button type="button" data-ir-change-roles style="width:fit-content;">Change Roles for This Hex</button>
-      </div>
-      <div data-ir-role-choices ${savedRolesReady ? "hidden" : ""} style="display:grid;gap:7px;">
-      <label style="display:grid;grid-template-columns:90px 1fr;gap:6px;align-items:center;">Navigator
-        <select name="navigator">${actorOptions.replace(`value="${esc(initialNav.uuid)}"`, `value="${esc(initialNav.uuid)}" selected`)}</select></label>
-      <label style="display:grid;grid-template-columns:90px 1fr;gap:6px;align-items:center;">Rolls on
-        <select name="navRoller">${rollerOptions(initialNav)}</select></label>
-      <div style="border-top:1px solid #4f515d;margin-top:2px;"></div>
-      <label style="display:grid;grid-template-columns:90px 1fr;gap:6px;align-items:center;">Secondary
-        <select name="activity">${activityOptions.replace(`value="${esc(savedActivity)}"`, `value="${esc(savedActivity)}" selected`)}</select></label>
-      <label data-ironrot-secondary style="display:none;grid-template-columns:90px 1fr;gap:6px;align-items:center;">Secondary PC
-        <select name="secondary">${secondaryOptions(initialNav.uuid).replace(`value="${esc(initialSecondary.uuid)}"`, `value="${esc(initialSecondary.uuid)}" selected`)}</select></label>
-      <label data-ironrot-secondary style="display:none;grid-template-columns:90px 1fr;gap:6px;align-items:center;">Rolls on
-        <select name="secRoller">${rollerOptions(initialSecondary)}</select></label>
-      <div data-ironrot-secondary style="display:none;font-size:11px;color:#cdb9d7;">The secondary PC must be different from the navigator. The same user may roll for either PC if authorized.</div>
-      </div>
-      <div style="font-size:11px;color:#bac9cb;">Midi-QOL prompts the roller directly. No time roll until checks finish.</div>
-    </div>`,
-    render: (event, dialog) => {
-      colorButtons(event, dialog);
-      const form = dialog.element.querySelector("form");
-      if (!form) return;
-      const f = form.elements;
-      const sync = () => {
-        const navigator = roster.get(f.navigator.value)?.actor;
-        if (navigator) {
-          const prior = f.navRoller.value;
-          f.navRoller.innerHTML = rollerOptions(navigator);
-          if ([...f.navRoller.options].some(o => o.value === prior)) f.navRoller.value = prior;
-        }
-        // Always filter out the navigator when building the secondary PC list.
-        // Preserve the GM's secondary selection where it is still eligible.
-        const priorSecondary = f.secondary.value;
-        f.secondary.innerHTML = secondaryOptions(f.navigator.value);
-        if ([...f.secondary.options].some(option => option.value === priorSecondary)) {
-          f.secondary.value = priorSecondary;
-        }
-        if (f.activity.value !== "none" && !f.secondary.options.length) f.activity.value = "none";
-        const active = f.activity.value !== "none";
-        for (const row of form.querySelectorAll("[data-ironrot-secondary]")) {
-          row.style.display = active ? "grid" : "none";
-        }
-        if (active) {
-          const secondary = roster.get(f.secondary.value)?.actor;
-          if (secondary) {
-            const prior = f.secRoller.value;
-            f.secRoller.innerHTML = rollerOptions(secondary);
-            if ([...f.secRoller.options].some(o => o.value === prior)) f.secRoller.value = prior;
-          }
-        }
-      };
-      for (const fieldName of ["navigator", "activity", "secondary"]) f[fieldName].addEventListener("change", sync);
-      form.querySelector("[data-ir-change-roles]")?.addEventListener("click", () => {
-        form.querySelector("[data-ir-saved-role-summary]").hidden = true;
-        form.querySelector("[data-ir-role-choices]").hidden = false;
-        sync();
-      });
-      sync();
-    },
+      <div class="zft-ir-travel-role-groups">${expeditionSummary}</div>
+      <label class="zft-ir-travel-roller"><span>Guide roll requested from</span>
+        <select name="navRoller">${rollerOptions(guideActor)}</select></label>
+      <p class="zft-ir-travel-help" title="Other paired expedition checks are not yet executed; established Guide navigation and hex-time rules remain unchanged.">Role assignments are managed in Expedition Roles. Guide determines navigation and hex travel time.</p>
+    </section>`,
+    render: (event, dialog) => colorButtons(event, dialog),
     buttons: [
-      { action: "start", label: "Prompt Rolls", icon: "fas fa-dice-d20", default: true,
-        callback: (event, button) => {
-          const f = button.form.elements;
-          return { pace: f.pace.value, nav: f.navigator.value, navRoller: f.navRoller.value,
-            activity: f.activity.value, secondary: f.secondary.value, secRoller: f.secRoller.value };
-        } },
+      { action: "start", label: "Prompt Guide Roll", icon: "fas fa-dice-d20", default: true,
+        callback: (event, button) => ({ pace: button.form.elements.pace.value, navRoller: button.form.elements.navRoller.value }) },
       { action: "cancel", label: "Cancel", callback: () => null }
     ], close: () => null
   });
   if (!input) return;
   const pace = PACES[input.pace];
-  const action = ACTIONS[input.activity];
-  const nav = roster.get(input.nav)?.actor;
-  const secondary = input.activity === "none" ? null : roster.get(input.secondary)?.actor;
-  const navRoller = nav && resolveRoller(nav, input.navRoller);
-  const secRoller = secondary && resolveRoller(secondary, input.secRoller);
-  if (!pace || !action || !nav || !navRoller || (secondary && !secRoller)) {
-    return warn("Invalid selection or the selected roller is not online / lacks Owner permission.");
-  }
-  if (secondary?.uuid === nav.uuid) return warn("The navigator cannot take the secondary activity. Select another character or None.");
+  // Preserve the current dice pipeline's 'none' secondary action, but eliminate
+  // legacy secondary-role prompts and prevent overwriting Expedition Roles.
+  const action = ACTIONS.none;
+  const nav = guideActor;
+  const secondary = null;
+  const navRoller = resolveRoller(nav, input.navRoller);
+  const secRoller = null;
+  if (!pace || !navRoller)
+    return warn("Invalid pace or the selected Guide roller is offline / lacks Owner permission.");
   ensureCurrent();
-  await globalThis.ZFTMountIronrotConsole?.rememberRoles?.({ navigatorUuid: nav.uuid, secondaryUuid: secondary?.uuid ?? "", activity: input.activity });
 
   // For the navigation skill check, environmental disadvantage is always present.
   // At slow pace Survival advantage cancels it. The native Midi dialog remains editable.
@@ -750,6 +727,20 @@ return (async () => {
     };
   }
 
+  // Midi-QOL owns native roll/chat presentation. If its socket result provides
+  // a message identifier, wait for that Dice So Nice animation before sharing
+  // a total in the ZFT world snapshot. Do not guess an unrelated chat message.
+  async function waitForNativeRollPresentation(value, observedMessageId = null) {
+    if (!game.modules.get("dice-so-nice")?.active || typeof game.dice3d?.waitFor3DAnimationByMessageID !== "function") return;
+    const first = Array.isArray(value) ? value[0] : value;
+    const raw = first?.messageId ?? first?.messageID ?? first?.chatMessageId ?? first?.chatMessage?.id ?? observedMessageId;
+    const messageId = typeof raw === "string" ? raw : null;
+    if (!messageId || !game.messages?.get(messageId)) return;
+    try { await game.dice3d.waitFor3DAnimationByMessageID(messageId); }
+    catch (error) { console.warn("Mount Ironrot | Native dice animation failed", error); }
+    ensureCurrent();
+  }
+
   function totalFromRemote(value) {
     if (Array.isArray(value)) return value.length ? totalFromRemote(value[0]) : null;
     if (!value || typeof value !== "object") return null;
@@ -764,6 +755,7 @@ return (async () => {
     let currentRoller = roller;
     while (true) {
       let returned;
+      let observedMessageId = null;
       let failure;
       try {
         const request = await recoverableRemoteRoll(actor, currentRoller,
@@ -772,6 +764,7 @@ return (async () => {
           isNavigation ? "navigation" : "secondary");
         if (request.cancelled) return null;
         returned = request.value;
+        observedMessageId = request.observedMessageId;
         currentRoller = request.roller ?? currentRoller;
         if (request.error) throw request.error;
       } catch (err) {
@@ -780,7 +773,10 @@ return (async () => {
         console.error("Mount Ironrot | Midi remote roll error", err);
       }
       const total = totalFromRemote(returned);
-      if (total !== null) return { total, roller: currentRoller };
+      if (total !== null) {
+        await waitForNativeRollPresentation(returned, observedMessageId);
+        return { total, roller: currentRoller };
+      }
       const choice = await promptWait({
         window: { title: `${identity().name} | ${actor.name} Roll` },
         render: colorButtons,
@@ -825,20 +821,20 @@ return (async () => {
     const navStatus = navResult
       ? `${ironrotD20Total(navResult.total)} vs DC ${DC} · ` +
         (success === null ? `<span style="color:#dec7e5;">Pending GM confirmation</span>`
-          : `<strong style="color:${success ? "#b5ddc3" : "#efb3a4"};">${success ? "SUCCESS" : "FAILURE"}</strong>` +
+          : `<strong class="zft-ir-roll-outcome zft-ir-result-${success ? "success" : "failure"}">${success ? "SUCCESS" : "FAILURE"}</strong>` +
             (decision !== "roll" ? ` <em style="font-size:11px;">(GM override)</em>` : ""))
       : `<span style="color:#c2b9ca;">Awaiting ${esc(navRoller.name)}'s roll</span>`;
-    const navBlock = smallBox("Navigation · Wisdom (Survival) · DC 15",
+    const navBlock = smallBox("Guide · Wisdom (Survival) · DC 15",
       `${esc(nav.name)} · ${navStatus}`);
     const secBlock = !secondary
-      ? `<div style="font-size:11px;color:#b9bec9;">Secondary · None</div>`
+      ? ``
       : smallBox(`Secondary · ${action.name} · ${CONFIG.DND5E.skills[action.skill]?.label ?? action.skill}`,
         `${esc(secondary.name)} · ${secResult ? `${ironrotD20Total(secResult.total)} <span style="color:#b9bec9;">(GM adjudicates)</span>`
         : `<span style="color:#c2b9ca;">${navResult ? "Awaiting" : "Queued for"} ${esc(secRoller.name)}'s roll</span>`}`);
     const travelBlock = !dice
       ? `<div style="border:1px solid #5b5166;background:#302b39;border-radius:5px;padding:8px;font-size:12px;` +
         `color:#c6bdce;">TRAVEL DICE · ${stage === "rolling" ?
-          `Rolling ${success ? "2d4" : "2d4 + 1d4 + 2"} …` : "Pending both checks and GM confirmation"}</div>`
+          `Rolling ${success ? "2d4" : "2d4 + 1d4 + 2"} …` : "Pending Guide check and GM confirmation"}</div>`
       : `<div style="border:1px solid #746580;background:#302b39;border-radius:5px;padding:8px;">` +
           `<div style="font-size:10px;letter-spacing:1px;color:#e3cee9;margin-bottom:5px;">DICE ROLLED · ${success ? "2d4" : "2d4 + 1d4 + 2"}</div>` +
           `<div style="display:flex;flex-wrap:wrap;align-items:center;gap:10px;font-size:11px;">` +
@@ -866,16 +862,17 @@ return (async () => {
 
   async function publishStage(stageInfo, options={}) {
     ensureCurrent();
-    // One keyed card evolves from pending skill rolls through the final travel
-    // dice and result. This does not create a Foundry ChatMessage.
-    await globalThis.ZFTMountIronrotConsole?.stage?.(hexCardId, renderStage(stageInfo), stageInfo.stage, launchLogEpoch, { day: travelState.day, travelHour: travelState.hours });
-    currentCard = hexCardId;
-    // Preserve Dice So Nice animation for native evaluated travel dice, while
-    // no longer emitting a separate custom hex result chat message.
+    // The evaluated result is private until the presentation animation finishes.
+    // With Dice So Nice disabled/unavailable, evaluated rolls publish immediately.
+    // Never duplicate dice in chat or ask the player to roll a second time.
     if (options.roll && game.modules.get("dice-so-nice")?.active && typeof game.dice3d?.showForRoll === "function") {
       try { await game.dice3d.showForRoll(options.roll, game.user, true); }
       catch (error) { console.warn("Mount Ironrot | Dice So Nice animation failed", error); }
+      ensureCurrent();
     }
+    // The progress card remains at "Rolling…" for all clients during animation.
+    await globalThis.ZFTMountIronrotConsole?.stage?.(hexCardId, renderStage(stageInfo), stageInfo.stage, launchLogEpoch, { day: travelState.day, travelHour: travelState.hours });
+    currentCard = hexCardId;
     ensureCurrent();
   }
   async function setRollingStage(stageInfo) {
@@ -906,16 +903,32 @@ return (async () => {
     const autoSuccess = navResult.total >= DC;
     const decision = await promptWait({
       window: { title: `${identity().name} | Navigation Ruling` },
-      render: colorButtons,
+      render: (event, dialog) => {
+        colorButtons(event, dialog);
+        const select = dialog.element.querySelector('select[name="ruling"]');
+        const preview = dialog.element.querySelector('[data-ir-final-navigation]');
+        const update = () => {
+          if (!select || !preview) return;
+          const actual = select.value === "roll";
+          const finalSuccess = actual ? autoSuccess : select.value === "success";
+          preview.className = `zft-ir-navigation-final ${finalSuccess ? "is-success" : "is-failure"}`;
+          preview.textContent = `${finalSuccess ? "Success" : "Failure"}${actual ? " · matches roll" : " · GM override"}`;
+          select.classList.toggle("is-success",finalSuccess);
+          select.classList.toggle("is-failure",!finalSuccess);
+        };
+        select?.addEventListener("change",update);
+        update();
+      },
       position: { width: 380 },
-      content: `<div style="padding:9px;background:#252d35;color:#efe9f1;border-left:3px solid #ac91bc;display:grid;gap:8px;">
-        <div><strong>${esc(nav.name)}</strong> · Survival ${ironrotD20Total(navResult.total)} vs ${tint(`DC ${DC}`, UI.amber)} · ${tint(autoSuccess ? "SUCCESS" : "FAILURE", autoSuccess ? UI.green : UI.red)}</div>
-        ${secondary ? `<div style="font-size:12px;">${esc(secondary.name)} · ${esc(action.name)} ${ironrotD20Total(secResult.total)} (GM adjudicates)</div>` : ""}
-        <label>Navigation outcome
+      content: `<section class="zft-ir-travel-stage zft-ir-navigation-ruling">
+        <div class="zft-ir-navigation-result"><strong class="zft-ir-result-${autoSuccess ? "success" : "failure"}">${esc(nav.name)}</strong><span class="zft-ir-navigation-roll zft-ir-result-${autoSuccess ? "success" : "failure"}">Survival ${ironrotD20Total(navResult.total)} vs <strong>DC ${DC}</strong></span><strong class="zft-ir-navigation-verdict ${autoSuccess ? "is-success" : "is-failure"}">ROLLED ${autoSuccess ? "SUCCESS" : "FAILURE"}</strong></div>
+        ${secondary ? `<div class="zft-ir-navigation-secondary">${esc(secondary.name)} · ${esc(action.name)} ${ironrotD20Total(secResult.total)} (GM adjudicates)</div>` : ""}
+        <label class="zft-ir-travel-roller"><span>Navigation outcome</span>
           <select name="ruling"><option value="roll">Use roll (${autoSuccess ? "Success" : "Failure"})</option>
-          <option value="success">Override: Success</option><option value="failure">Override: Failure</option></select></label>
-        <small>Travel time is rolled only when you confirm.</small>
-      </div>`,
+          <option class="zft-ir-result-success" value="success">Override: Success</option><option class="zft-ir-result-failure" value="failure">Override: Failure</option></select></label>
+        <div class="zft-ir-navigation-final-line">Final navigation outcome: <strong data-ir-final-navigation class="zft-ir-navigation-final ${autoSuccess ? "is-success" : "is-failure"}">${autoSuccess ? "Success" : "Failure"} · matches roll</strong></div>
+        <small class="zft-ir-travel-help">Travel time is rolled only when you confirm.</small>
+      </section>`,
       buttons: [
         { action: "confirm", label: "Roll Travel Time", icon: "fas fa-dice", default: true,
           callback: (event, button) => button.form.elements.ruling.value },
@@ -956,6 +969,6 @@ return (async () => {
 })().catch(err => {
   if (err?.name === "IronrotWorkflowCanceled") return;
   console.error("Mount Ironrot | v4.13 Hourly Forced March", err);
-  ui.notifications.error("Mount Ironrot travel stopped. Open F12 for details; unfinished progress card was removed.");
+  ui.notifications.error("Overland Travel stopped. Open F12 for details; unfinished progress card was removed.");
 });
 }
