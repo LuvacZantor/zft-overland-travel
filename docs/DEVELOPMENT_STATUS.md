@@ -1,3 +1,9 @@
+# 0.4.0-dev.79 | Role-group swap only (local test build)
+
+Derived directly from the complete `0.4.0-dev.77` installable ZIP. Swap Tracker and Vanguard between the paired categories only: Navigation is Guide (WIS Survival) + Vanguard (STR Athletics); Reconnaissance is Scout (DEX Stealth) + Tracker (INT Investigation); Expedition Support remains Forager (WIS Survival) + Coordinator (CHA Persuasion). All six original skill definitions, Actor role IDs, saved assignments, and core travel/Forced March mechanics remain unchanged. No situational-roll workflow is included. GitHub not modified; live acceptance pending.
+
+---
+
 # Development status | ZFT Overland Travel
 
 **Latest local test package:** `0.4.0-dev.67` (uncommitted, derived from local .66; the GitHub `develop` branch remains on .62).

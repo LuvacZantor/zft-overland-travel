@@ -521,8 +521,8 @@ return (async () => {
   if (!resuming && !guideActor)
     return warn("Assign a present Guide in Expedition Roles before starting travel.");
   const expeditionGroups = [
-    ["Navigation", [["Guide", "guide", "Survival (WIS)"], ["Tracker", "tracker", "Investigation (INT)"]]],
-    ["Reconnaissance", [["Scout", "scout", "Stealth (DEX)"], ["Vanguard", "vanguard", "Athletics (STR)"]]],
+    ["Navigation", [["Guide", "guide", "Survival (WIS)"], ["Vanguard", "vanguard", "Athletics (STR)"]]],
+    ["Reconnaissance", [["Scout", "scout", "Stealth (DEX)"], ["Tracker", "tracker", "Investigation (INT)"]]],
     ["Expedition Support", [["Forager", "forager", "Survival (WIS)"], ["Coordinator", "coordinator", "Persuasion (CHA)"]]]
   ];
   // One theme-aware, gently raised surface per paired activity. Portraits

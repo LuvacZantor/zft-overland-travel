@@ -1,3 +1,16 @@
+## 0.4.0-dev.79 | Role grouping only, live acceptance pending
+
+1. In Expedition Roles, verify Navigation = Guide Survival (WIS) + Vanguard Athletics (STR).
+2. Verify Reconnaissance = Scout Stealth (DEX) + Tracker Investigation (INT).
+3. Verify Expedition Support = Forager Survival (WIS) + Coordinator Persuasion (CHA).
+4. Save assignments; reopen and confirm the same Actor UUIDs remain assigned to their named roles. Check GM and player roster / Roles Reference.
+5. Start/Continue on a new hex; Guide should still request only Survival and retain its original dice, navigation delay, and travel hours.
+6. Verify New Travel Day, unfinished hex confirmation, world-clock toggle, Forced March CON saves, log, and theme unaffected.
+
+No other roll mechanics or skill selection UI was added. Automated checks are not live Foundry verification.
+
+---
+
 ## v0.4.0-dev.51 | Roster collapse, Forced March alignment and interface scale
 
 1. Collapse and expand Expedition Roster using its heading. Ensure the Roles reference button remains visible. Refresh the dashboard and reopen it: the per-client state must persist without affecting other players.

@@ -1,16 +1,20 @@
 # ZFT Overland Travel
 
-Current local test package: `0.4.0-dev.77` for Foundry V13 (live validation pending). The Foundry module ID remains `zft-overland-travel`.
+Current local test package: `0.4.0-dev.79` for Foundry V13 (live validation pending). The Foundry module ID remains `zft-overland-travel`.
 
 Foundry VTT module implementing Zantor's hex-based overland travel and independent encounter-generation framework.
 
 ## Version
 
-Current module build: **`0.4.0-dev.77`** (development only). The original generic framework was developed as `0.3.1`; its earlier notes remain below for historical context.
+Current module build: **`0.4.0-dev.79`** (development only). The original generic framework was developed as `0.3.1`; its earlier notes remain below for historical context.
+
+## 0.4.0-dev.79 | Role-pair grouping correction
+
+Only Vanguard and Tracker have exchanged activity groups. Vanguard remains STR (Athletics), Tracker remains INT (Investigation), and the other four roles retain their original fixed checks. The existing Guide navigation roll, hex duration, travel log, and Forced March rules are unchanged. No new situational roll dialog, variable skill choices, or automatic cooperative checks are added.
 
 ## Expedition roles (feature branch)
 
-The GM **Expedition Roles** panel groups six role assignments into three paired activities: Navigation (Guide + Tracker), Reconnaissance (Scout + Vanguard), and Expedition Support (Forager + Coordinator). Each actor may hold at most one expedition assignment. Their assignments appear in the GM/player Present Party roster. The cooperative resolution rules (both succeed = strong; one = partial; neither = failed) are documented design and are **not yet executed by the existing hex roll workflow**. Existing navigation, duration, forced march and Constitution calculations are unchanged. Live Foundry V13 verification remains pending.
+The GM **Expedition Roles** panel groups six role assignments into three paired activities: Navigation (Guide + Vanguard), Reconnaissance (Scout + Tracker), and Expedition Support (Forager + Coordinator). Each actor may hold at most one expedition assignment. Their assignments appear in the GM/player Present Party roster. The cooperative resolution rules (both succeed = strong; one = partial; neither = failed) are documented design and are **not yet executed by the existing hex roll workflow**. Existing navigation, duration, forced march and Constitution calculations are unchanged. Live Foundry V13 verification remains pending.
 
 ## Canonical terminology
 

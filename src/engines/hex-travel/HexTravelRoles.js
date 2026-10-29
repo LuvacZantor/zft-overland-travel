@@ -16,8 +16,8 @@ export const HEX_TRAVEL_ACTIVITIES = Object.freeze({
 /** Expedition role assignment model. Paired checks are a design checkpoint;
  * existing hex-duration, navigation and forced-march mechanics remain intact. */
 export const EXPEDITION_PAIRS = Object.freeze([
-  Object.freeze({ name: "Navigation", roles: ["guide", "tracker"] }),
-  Object.freeze({ name: "Reconnaissance", roles: ["scout", "vanguard"] }),
+  Object.freeze({ name: "Navigation", roles: ["guide", "vanguard"] }),
+  Object.freeze({ name: "Reconnaissance", roles: ["scout", "tracker"] }),
   Object.freeze({ name: "Expedition Support", roles: ["forager", "coordinator"] })
 ]);
 export const EXPEDITION_ROLES = Object.freeze({
