@@ -1,3 +1,81 @@
+## 0.4.0-dev.86 | Dashboard tile label wording (live Foundry acceptance pending)
+
+1. Open the Expedition Dashboard and confirm tile labels DAY, TRAVEL HOURS TODAY, HEXES COMPLETE, TRAVEL HOURS LEFT, in that order.
+2. Confirm four tiles remain on the same row at normal dashboard width without increasing tile height. At narrow sizes preserve existing responsive layout with no overlap or overflow.
+3. During an unfinished hex verify the last tile still displays pending hours. With no active unfinished hex, verify it displays an em dash.
+4. Verify safe-hours and current-hex progress bars, NEXT message, world clock, Force March transitions, Expedition Log, dice, saved history, and themes are unchanged.
+5. Repeat as GM and player in the intended Foundry test world; automated/browser layout checks are not live acceptance.
+
+---
+
+## 0.4.0-dev.85 | Dashboard overview consolidation (live acceptance pending)
+
+1. With a pending hex and Forced March underway (e.g. Day 1, 10h traveled, 2 hexes complete, 3h pending), confirm the four tiles show Day 1 / Travel Today 10h / Hexes Complete 2 / Hex Remaining 3h.
+2. Confirm the duplicated text-only lines (Traveled today, Safe hours remaining, Forced March hours, Current hex remaining) no longer appear below the progress bars.
+3. Confirm both original progress bars retain their labels, numeric fractions, fill, warnings, and calculations. NEXT, sunrise/sunset, and estimated arrival remain present.
+4. Finish a hex: Hex Remaining displays a dash, not 0h implying an active hex. Start a new hex: actual remaining hours display as before.
+5. Resize the Dashboard, test at interface scales and themes, and verify four tiles in a row at normal width and two-by-two in narrow windows, with no horizontal overflow.
+6. Verify the Expedition Log, current and historical Forced March panels, GM rulings, world clock, and all travel mechanics are unaffected. Test GM/player views. Live Foundry testing pending.
+
+---
+
+## 0.4.0-dev.84 | Compact confirmation and single-open Forced March (live verification pending)
+
+1. With an unfinished hex containing safe hours, open Start / Continue: verify compact remaining/safe summary and **Continue Traveling**. Cancel must preserve ledger and world time.
+2. At 8 safe hours used with travel remaining, reopen: verify **Review Forced March** action, correct warning, and the existing post-confirmation GM Forced March decision. Cancel leaves pending hours, ledger and clock untouched. With a changed ledger while the prompt is open, stale confirmation must be rejected.
+3. Complete Forced March Hour 9 while hex is still pending: Hour 9 may expand automatically. Begin Hour 10: Hour 9 collapses. Complete Hour 10 with pending hex travel: only Hour 10 expands. Once the hex is completed, **all** completed Forced March hours collapse and remain individually available for manual review.
+4. Manually open an older hour: confirm no second completed hour stays expanded. Check current/past day groups, refresh/reopen the log, reconnect a player, and the original detail rows and GM outcomes.
+5. Verify Navigation/Travel Time spacing is slightly denser at 280/340/540px while the original d20/d4 faces, DC, overrides, all hour math, total, and expandable Original roll detail stay readable.
+6. Regression: original travel pace, exhaustion, Forced March DC and saves, 8-hour safe cap, clock sync, day change, hex history, roles/events placeholders, customized themes, GM/player visibility. Static tests are NOT live Foundry acceptance.
+
+---
+
+## 0.4.0-dev.83 | Summary-first Hex Travel report (live acceptance pending)
+
+1. With both Navigation roles assigned, verify the pending and complete Guide/Vanguard rows at normal and narrow log sizes, including GM overrides and long character names.
+2. Verify final travel hours are prominent; every existing base/delay d4 face appears next to its saved calculation, with pace and exact totals unchanged.
+3. Expand Original roll detail to compare the original dice faces and math against the compact rows; collapse the disclosure again.
+4. Verify Guide-only, both roles failed, long hex spanning two days, old historical/secondary cards, theme selection, and GM versus player clients.
+5. Recheck Forced March, Exhaustion, dice animation, travel clock, resume confirmation, day transitions, window docking, and Travel/Roles/Events tabs. This is a presentation-only change; no stored travel record is migrated.
+
+---
+
+## 0.4.0-dev.82 | Navigation report alignment only (live Foundry check pending)
+
+1. Open an in-progress hex with both Guide and Vanguard rolls awaiting GM adjudication. Check both checks show equivalent rows, with labels, character names, d20 totals, DCs and statuses aligned.
+2. Approve mixed success/failure and test overridden results. Both statuses and original roll totals should remain clear, and Travel Dice should display below with the correct hours.
+3. Try long character names, narrowed/undocked log, all configured themes, GM and player clients, and old pre-Vanguard travel cards.
+4. Ensure Navigation delay dice, GM rulings, ledger, Forced March, and clock behavior remain identical to dev.81.
+
+Only the view renderer and scoped CSS are changed at runtime. No stored history is rewritten. Browser live validation pending.
+
+---
+
+## 0.4.0-dev.81 | Cooperative Guide + Vanguard Navigation (live acceptance pending)
+
+1. Assign two present, distinct Actors to Guide and Vanguard; confirm Guide = Survival (WIS), Vanguard = Athletics (STR), and their assigned players receive roll prompts together. Both use the GM-selected DC.
+2. Check all four pass/fail combinations, including GM overrides: 2d4 base, plus one d4 for each failure. The former fixed +2 Guide delay must be absent. Fast 75%, Normal 100% and Slow 150% still round base hours up before adding delay dice.
+3. Confirm the travel log shows both role results and the separate delays. Check the role data survive reopening and a new travel day. Older saved log cards must remain unchanged.
+4. Unassign Vanguard or mark their Actor absent and verify Guide-only Navigation without an extra failure or Vanguard prompt.
+5. Cancel a GM ruling and ensure neither hex time nor world clock advance; retry/recover GM/player roll prompts. Verify that same player controlling both PCs does not cause a stalled or swapped roll.
+6. Start a hex that spills into the next day, pause, resume and finish: no repeated Guide/Vanguard rolls or delay dice. Test Forced March, CON saves, exhaustion, clock sync and tab switching.
+7. Check both GM and player clients, themes, narrow Expedition Log width, with and without Dice So Nice. Run on Foundry V13 / the installed D&D5e and Midi-QOL versions; static tests do not certify live Foundry compatibility.
+
+---
+
+## 0.4.0-dev.80 | Expedition Log tabs, live acceptance pending
+
+1. Open Expedition Dashboard and confirm the Expedition Log defaults to Travel with all existing day/hex history and newest/Latest behavior intact.
+2. Select Roles and Events. Each shows only the explanatory placeholder and no new event records; switch back to Travel and verify the original cards remain unchanged.
+3. In Travel, scroll back and expand an older day/hex; switch tabs and return to verify scroll position, open cards and history. Test newest/Latest behavior separately.
+4. Test a travel result while Roles or Events is displayed, then return to Travel to verify the result is correctly logged, with normal travel hours and day history.
+5. Verify tab keyboard navigation (Left/Right/Home/End), dock/undock, hide/show, resizing, interface scale and both GM/player views.
+6. Verify no new dice roll or expedition state mutation occurs when changing tabs. Test rollover, an unfinished hex and Forced March as regressions.
+
+Static checks are not live Foundry testing. No new event engine wiring or data storage is claimed.
+
+---
+
 ## 0.4.0-dev.79 | Role grouping only, live acceptance pending
 
 1. In Expedition Roles, verify Navigation = Guide Survival (WIS) + Vanguard Athletics (STR).

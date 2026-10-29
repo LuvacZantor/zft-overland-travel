@@ -310,7 +310,8 @@ export async function publishHexTravelCard(cardId, html, stage = "started", epoc
       completedAt: stage === "complete" ? (earlier?.completedAt ?? now) : earlier?.completedAt,
       day,
       travelHour: Number.isFinite(Number(metadata.travelHour)) ? Number(metadata.travelHour) : (earlier?.travelHour ?? null),
-      difficulty: metadata.difficulty ? foundry.utils.deepClone(metadata.difficulty) : (earlier?.difficulty ?? null)
+      difficulty: metadata.difficulty ? foundry.utils.deepClone(metadata.difficulty) : (earlier?.difficulty ?? null),
+      navigation: metadata.navigation ? foundry.utils.deepClone(metadata.navigation) : (earlier?.navigation ?? null)
     };
     if (previous >= 0) list[previous] = card;
     else list.push(card);
@@ -550,40 +551,52 @@ function hexTravelColumns(html, outcome) {
   const guide = blocks[heading + 2];
   if (!pace || !guide?.children?.length) return `<div class="zft-hex-travel-html">${html}</div>`;
 
-  const statusClass = /failure/i.test(outcome) ? "failure" : /success/i.test(outcome) ? "success" : "pending";
-  const metadata = guide.children[0]?.textContent?.replace(/\s+/g, " ").trim() ?? "Guide · Wisdom (Survival)";
-  const nameAndRoll = guide.cloneNode(true);
-  nameAndRoll.children[0]?.remove();
-  let guideName = "Guide awaiting roll";
-  // The first direct text node in the original Guide card holds the actor name.
-  // Only strip the name when the delimiter is present; leave every other result
-  // node (including the actual d20 icon and any GM override note) intact.
-  const firstText = [...nameAndRoll.childNodes].find(node => node.nodeType === 3 && node.textContent.trim());
-  const nameMatch = firstText?.textContent.match(/^\s*([^·]+?)\s*·\s*/);
-  if (nameMatch) {
-    guideName = nameMatch[1].trim();
-    firstText.textContent = firstText.textContent.slice(nameMatch[0].length);
-  }
-  const outcomeEl = [...nameAndRoll.children].find(node => node.matches?.("strong") && /SUCCESS|FAILURE/i.test(node.textContent));
-  const overrideEl = [...nameAndRoll.children].find(node => node.matches?.("em") && /GM override/i.test(node.textContent));
-  const statusText = outcomeEl?.textContent?.trim() ?? (/success/i.test(outcome) ? "SUCCESS" : /failure/i.test(outcome) ? "FAILURE" : "AWAITING RULING");
-  const overrideText = overrideEl?.textContent?.trim() ?? "";
-  const shownTotal = Number(nameAndRoll.querySelector(".zft-hex-d20-total > strong")?.textContent?.trim());
-  const recordedDC = Number(metadata.match(/DC\s*(\d+)/i)?.[1]);
-  const rawClass = Number.isFinite(shownTotal) && Number.isFinite(recordedDC) && recordedDC > 0
-    ? (shownTotal >= recordedDC ? "success" : "failure") : statusClass;
-  const rawVsFinal = rawClass !== statusClass && (rawClass === "success" || rawClass === "failure") && overrideText
-    ? `<span class="zft-hex-hex-original-result zft-hex-result-${rawClass}">Original roll: ${rawClass === "success" ? "Success" : "Failure"}</span>` : "";
-  outcomeEl?.remove();
-  overrideEl?.remove();
-  // Keep the original rolled d20 and DC comparison, but not the separator
-  // that previously introduced the now-separated outcome label.
-  const trailingText = [...nameAndRoll.childNodes].reverse().find(node => node.nodeType === 3 && node.textContent.trim());
-  if (trailingText) trailingText.textContent = trailingText.textContent.replace(/\s*·\s*$/, "");
-  // The d20 graphic shows a CHECK TOTAL, not a raw die face. Enlarge its
-  // existing system-owned die icon to match the visual prominence of d4 faces.
-  const guideRollHtml = nameAndRoll.innerHTML.trim() || '<span class="zft-hex-hex-awaiting">Navigation roll pending</span>';
-
+  // Present Guide and Vanguard with the same row anatomy. Work exclusively
+  // from the existing evaluated HTML, retaining die artwork, DC and GM ruling;
+  // this is never a replacement for the persisted travel record.
+  const navigationRow = (source, role, checkLabel) => {
+    const metadata = source.children[0]?.textContent?.replace(/\s+/g, " ").trim() ?? "";
+    const nameAndRoll = source.cloneNode(true);
+    nameAndRoll.children[0]?.remove();
+    const firstText = [...nameAndRoll.childNodes].find(node => node.nodeType === 3 && node.textContent.trim());
+    const nameMatch = firstText?.textContent.match(/^\s*([^·]+?)\s*·\s*/);
+    const name = nameMatch?.[1]?.trim() || `${role} awaiting roll`;
+    if (nameMatch) firstText.textContent = firstText.textContent.slice(nameMatch[0].length);
+    const verdict = [...nameAndRoll.children].find(node => node.matches?.("strong") && /^(?:SUCCESS|FAILURE)$/i.test(node.textContent.trim()));
+    const override = [...nameAndRoll.children].find(node => node.matches?.("em") && /GM override/i.test(node.textContent));
+    const pending = [...nameAndRoll.children].find(node => node.matches?.("span") && /Pending GM confirmation/i.test(node.textContent));
+    const recordedDC = Number(metadata.match(/DC\s*(\d+)/i)?.[1]);
+    const shownTotal = Number(nameAndRoll.querySelector(".zft-hex-d20-total > strong")?.textContent?.trim());
+    const hasRoll = !!nameAndRoll.querySelector(".zft-hex-d20-total");
+    const status = verdict?.textContent?.trim().toUpperCase() ?? (pending || hasRoll ? "PENDING GM" : "AWAITING ROLL");
+    const statusClass = verdict ? (/FAILURE/i.test(status) ? "failure" : "success") : "pending";
+    const rawClass = hasRoll && Number.isFinite(shownTotal) && Number.isFinite(recordedDC) && recordedDC > 0
+      ? (shownTotal >= recordedDC ? "success" : "failure") : statusClass;
+    const overridden = !!override;
+    verdict?.remove();
+    override?.remove();
+    pending?.remove();
+    // The last separator belonged to the removed verdict or pending note.
+    const tail = [...nameAndRoll.childNodes].reverse().find(node => node.nodeType === 3 && node.textContent.trim());
+    if (tail) tail.textContent = tail.textContent.replace(/\s*·\s*$/, "");
+    const rollHtml = hasRoll ? nameAndRoll.innerHTML.trim()
+      : `<span class="zft-hex-hex-awaiting">Not rolled</span>`;
+    const original = overridden && rawClass !== statusClass
+      ? `<small class="zft-hex-hex-original-result zft-hex-result-${rawClass}">Rolled: ${rawClass === "success" ? "Success" : "Failure"}</small>` : "";
+    return `<div class="zft-hex-nav-check" data-hex-navigation-role="${role.toLowerCase()}">
+      <div class="zft-hex-nav-check-identity">
+        <strong class="zft-hex-nav-check-name">${esc(name)}</strong>
+        <span class="zft-hex-nav-check-label">${esc(role)} <span aria-hidden="true">·</span> ${esc(checkLabel)}</span>
+      </div>
+      <div class="zft-hex-nav-check-roll zft-hex-hex-guide-roll zft-hex-result-${rawClass}">${rollHtml}</div>
+      <div class="zft-hex-nav-check-outcome">
+        <strong class="zft-hex-nav-check-status ${statusClass}">${esc(status)}</strong>
+        ${overridden ? `<small class="zft-hex-nav-check-override">GM override</small>` : ""}${original}
+      </div>
+    </div>`;
+  };
+  const guideHtml = navigationRow(guide, "Guide", "Survival (WIS)");
+  const navDC = guide.children[0]?.textContent?.match(/DC\s*(\d+)/i)?.[1] ?? null;
   const dice = blocks.find(block => /DICE ROLLED/i.test(block.children?.[0]?.textContent ?? ""));
   const diceHeading = dice?.children?.[0]?.textContent?.replace(/\s+/g," ").trim() ?? "";
   const diceFormula = diceHeading.match(/DICE ROLLED\s*·\s*(.+)/i)?.[1]?.trim() ?? "";
@@ -592,47 +605,62 @@ function hexTravelColumns(html, outcome) {
   const paceText = pace.textContent?.replace(/^\s*Pace:\s*/i," ").replace(/\s+/g," ").trim() ?? "";
   const total = blocks.find(block => /TOTAL\s*·\s*ONE HEX/i.test(block.textContent ?? ""));
   const totalHours = total?.textContent?.match(/(\d+)\s*hours?/i)?.[1] ?? null;
-  // An optional secondary legacy check still belongs to this saved hex. Show
-  // it in Navigation rather than silently omitting part of the original data.
-  const extra = blocks.find(block => /SECONDARY\s*·/i.test(block.children?.[0]?.textContent ?? ""));
-  const extraHtml = extra ? `<div class="zft-hex-hex-extra"><span>${extra.innerHTML}</span></div>` : "";
+  // Historical Secondary cards retain their original content. Vanguard gets
+  // the same compact row as Guide; no saved roll or underlying card is changed.
+  const extra = blocks.find(block => /(?:VANGUARD|SECONDARY)\s*·/i.test(block.children?.[0]?.textContent ?? ""));
+  const isVanguard = !!extra && /^VANGUARD\s*·/i.test(extra.children?.[0]?.textContent?.trim() ?? "");
+  const vanguardHtml = isVanguard ? navigationRow(extra, "Vanguard", "Athletics (STR)") : "";
+  const historicalHtml = extra && !isVanguard ? `<div class="zft-hex-hex-extra"><span>${extra.innerHTML}</span></div>` : "";
 
-  return `<div class="zft-hex-hex-detail zft-hex-travel-report" aria-label="Navigation, travel dice and duration">
-    <div class="zft-hex-hex-detail-grid">
-      <section class="zft-hex-hex-detail-nav" aria-label="Navigation check">
-        <h4><i class="fa-solid fa-compass" aria-hidden="true"></i> Navigation</h4>
-        <div class="zft-hex-hex-nav-line">
-          <div class="zft-hex-hex-nav-info">
-            <div class="zft-hex-hex-guide-meta">${esc(metadata)}</div>
-            <div class="zft-hex-hex-guide-name zft-hex-result-${rawClass}">${esc(guideName)}</div>
-          </div>
-          <div class="zft-hex-hex-nav-result">
-            <div class="zft-hex-hex-guide-roll zft-hex-result-${rawClass}">${guideRollHtml}</div>
-            <div class="zft-hex-hex-guide-status ${statusClass}">${esc(statusText)}${overrideText ? `<small>${esc(overrideText)}</small>` : ""}</div>
-            ${rawVsFinal}
-          </div>
-        </div>
-        ${extraHtml}
-      </section>
-      <section class="zft-hex-hex-detail-dice" aria-label="Travel dice and adjustments">
-        <h4><i class="fa-solid fa-dice" aria-hidden="true"></i> Travel Dice</h4>
-        <div class="zft-hex-hex-dice-line">
-          <div class="zft-hex-hex-dice-info">
-            <div class="zft-hex-hex-pace">Pace: <strong>${esc(paceText)}</strong></div>
-            ${dice ? `<div class="zft-hex-hex-dice-formula">${esc(diceFormula)}</div>` : ""}
-          </div>
-          ${dice ? `<div class="zft-hex-hex-dice-faces">${diceFaces}</div>`
-            : `<div class="zft-hex-hex-dice-pending">Travel dice awaiting GM confirmation</div>`}
-        </div>
-      </section>
-    </div>
-    ${dice ? `<div class="zft-hex-hex-detail-bottom" aria-label="Travel calculations and total time">
-      <div class="zft-hex-hex-detail-math" aria-label="Travel-hour calculation">
-        <span class="zft-hex-hex-math-title">TRAVEL HOURS</span>
-        <div class="zft-hex-hex-dice-math">${diceMath}</div>
-      </div>
-      ${totalHours !== null ? `<div class="zft-hex-hex-detail-total"><span>TOTAL · ONE HEX</span><strong>${esc(totalHours)} hours</strong></div>` : `<div class="zft-hex-hex-detail-total zft-hex-hex-total-pending"><span>TOTAL · ONE HEX</span><strong>Pending</strong></div>`}
-    </div>` : ""}
+  // Move the ACTUAL previously rolled d4 faces next to the corresponding
+  // saved calculation line. Do not compute, invent, or roll any new values.
+  const faceGroups = [...(dice?.children?.[1]?.children ?? [])];
+  const facesFor = kind => {
+    const match = faceGroups.find(group => kind === "base"
+      ? /^Travel\b/i.test(group.textContent.trim())
+      : kind === "guide" ? /^Guide delay\b/i.test(group.textContent.trim())
+        : /^Vanguard delay\b/i.test(group.textContent.trim()));
+    return match ? [...match.querySelectorAll(".zft-hex-die-face")].map(face => face.outerHTML).join("") : "";
+  };
+  const calculationRows = [...(dice?.children?.[2]?.children ?? [])];
+  const rowMarkup = calculationRows.map(row => {
+    const label = row.children?.[0]?.innerHTML ?? row.textContent?.trim() ?? "";
+    const amount = row.children?.[1]?.innerHTML ?? "";
+    const text = row.children?.[0]?.textContent ?? "";
+    const type = /Guide navigation delay/i.test(text) ? "guide" :
+      /Vanguard obstacle delay/i.test(text) ? "vanguard" : /Base\s*2d4/i.test(text) ? "base" : "pace";
+    const faces = type === "pace" ? "" : facesFor(type);
+    return `<div class="zft-hex-time-row ${type === "guide" || type === "vanguard" ? "is-delay" : ""}">
+      <span class="zft-hex-time-label">${label}</span>
+      <span class="zft-hex-time-faces">${faces}</span>
+      <strong class="zft-hex-time-hours">${amount}</strong>
+    </div>`;
+  }).join("");
+  // Legacy/nonstandard dice markup falls back to the old calculation and dice
+  // presentation instead of silently discarding a recorded die.
+  const supportedRows = !dice || (calculationRows.length > 0 && calculationRows.every(row => row.children.length >= 2));
+  const travelDetail = dice ? (supportedRows
+    ? `<div class="zft-hex-time-rows">${rowMarkup}</div>`
+    : `<div class="zft-hex-hex-dice-faces">${diceFaces}</div><div class="zft-hex-hex-dice-math">${diceMath}</div>`) :
+    `<div class="zft-hex-hex-dice-pending">Travel dice awaiting GM confirmation</div>`;
+  const rollDetail = dice && supportedRows
+    ? `<details class="zft-hex-time-original"><summary>Original roll detail <span>${esc(diceFormula)}</span></summary>
+        <div class="zft-hex-time-original-content"><div class="zft-hex-hex-dice-faces">${diceFaces}</div>
+        <div class="zft-hex-hex-dice-math">${diceMath}</div></div></details>` : "";
+
+  return `<div class="zft-hex-hex-detail zft-hex-travel-report zft-hex-travel-report-compact" aria-label="Navigation, travel dice and duration">
+    <section class="zft-hex-time-navigation" aria-label="Navigation checks">
+      <div class="zft-hex-time-section-head"><h4><i class="fa-solid fa-compass" aria-hidden="true"></i> Navigation</h4>
+        ${navDC ? `<small>DC ${esc(navDC)}</small>` : ""}</div>
+      <div class="zft-hex-nav-checks">${guideHtml}${vanguardHtml}</div>${historicalHtml}
+    </section>
+    <section class="zft-hex-time-summary" aria-label="Travel time and calculation">
+      <div class="zft-hex-time-section-head"><h4><i class="fa-solid fa-dice" aria-hidden="true"></i> Travel Time</h4>
+        <span class="zft-hex-time-pace">${esc(paceText)}</span></div>
+      <div class="zft-hex-time-highlight"><span>ONE HEX · TOTAL TRAVEL</span>
+        <strong>${totalHours === null ? "Pending" : `${esc(totalHours)} hours`}</strong></div>
+      ${travelDetail}${rollDetail}
+    </section>
   </div>`;
 }
 
@@ -669,16 +697,15 @@ function makeCards(snapshot) {
   const safeStatus = safeRemaining === 0 ? "amber" : "green";
   const nextStatus = forced > 0 ? "is-forced" : safeRemaining === 0 && pending > 0 ? "is-warning" : "is-neutral";
   cards.push(stateCard("overview", `
-    <div class="zft-hex-stats">${spanStat("DAY", Math.max(1, num(s.day)))}${spanStat("TRAVEL HOURS TODAY", `${hours}h`, hoursStatus, forced > 0 ? "forced" : safeRemaining === 0 ? "limit" : "safe")}${spanStat("HEXES", num(s.hexes))}</div>
+    <div class="zft-hex-stats zft-hex-stats-overview" aria-label="Current expedition travel summary">
+      ${spanStat("DAY", Math.max(1, num(s.day)))}
+      ${spanStat("TRAVEL HOURS TODAY", `${hours}h`, hoursStatus, forced > 0 ? "forced" : safeRemaining === 0 ? "limit" : "safe")}
+      ${spanStat("HEXES COMPLETE", num(s.hexes))}
+      ${spanStat("TRAVEL HOURS LEFT", pending > 0 ? `${pending}h` : "—", pending > 0 ? "amber" : "")}
+    </div>
     <div class="zft-hex-progress-label zft-hex-safe-label ${safeStatus}"><span>Safe travel hours</span><strong>${safe}/8h</strong></div>
     <div class="zft-hex-progress zft-hex-safe-progress ${hoursStatus}"><div style="width:${Math.round(safe / 8 * 100)}%"></div></div>
     ${hexValid ? `<div class="zft-hex-progress-label zft-hex-hex-label"><span>Current hex progress</span><strong>${spent}/${total}h</strong></div><div class="zft-hex-progress zft-hex-hex-progress"><div style="width:${total ? Math.round(spent / total * 100) : 0}%"></div></div>` : ""}
-    <div class="zft-hex-progress-grid">
-      <span>Traveled today <strong>${hours}h</strong></span>
-      <span class="zft-hex-safe-remaining ${safeStatus}">Safe hours remaining <strong>${safeRemaining}h</strong></span>
-      <span class="zft-hex-forced-hours ${forced > 0 ? "red" : ""}">Forced March hours <strong>${forced}h</strong></span>
-      ${pending > 0 ? `<span>Current hex remaining <strong>${pending}h</strong></span>` : ""}
-    </div>
     <div class="zft-hex-next-step ${nextStatus}"><span class="zft-hex-next-label">NEXT</span><span class="zft-hex-next-instruction">${esc(next.replace(/^Next:\s*/, ""))}</span></div>
     <div class="zft-hex-time-brief" data-hex-time-brief>
       <span data-hex-sun-row><i class="fa-solid fa-sun" aria-hidden="true"></i> <span data-hex-live-sun>Daylight information is unavailable.</span></span>
@@ -763,7 +790,11 @@ function makeCards(snapshot) {
   ensureDay(today);
 
   const latestMarch = [...linkedMarch, ...legacyMarch].sort((a,b) => (b.entry.recordedAt ?? 0) - (a.entry.recordedAt ?? 0))[0]?.entry;
-  const holdLatestMarch = ["Forced march decision", "Hour resolved", "Hex completed"].includes(String(snapshot.phase ?? ""));
+  // A resolved hour is relevant only while the hex still has travel remaining.
+  // Never leave a finished hex's last Forced March detail auto-expanded.
+  // While a new hour is being adjudicated, the live save rows supersede the
+  // previous completed hour and all historical details stay collapsed.
+  const holdLatestMarch = num(s.pending) > 0 && String(snapshot.phase ?? "") === "Hour resolved";
   const renderMarch = ({ entry }) => {
     const holdOpen = holdLatestMarch && entry === latestMarch && entry.day === today && Number(entry.hour) === num(s.hours);
 
@@ -798,7 +829,7 @@ function makeCards(snapshot) {
     if (phase === "Forced march") return `Forced March In Progress · Hour ${hour}`;
     const stage = String(record?.stage ?? "");
     if (stage === "started") return "Awaiting Navigation Roll";
-    if (stage === "navigation") return "Navigation Complete · Awaiting Next Check";
+    if (stage === "navigation") return "Navigation Checks Complete · Awaiting GM Ruling";
     if (stage === "secondary") return "Awaiting GM Navigation Ruling";
     if (stage === "rolling") return "Awaiting Travel Dice";
     if (stage === "complete" && pending > 0) return "Ready to Continue Travel";
@@ -982,9 +1013,8 @@ function syncCards(container, cards, dayOverrides = null, historyOverrides = nul
         const dayDetail = replacement.querySelector("details[data-hex-day-group]");
         if (dayDetail) dayDetail.open = dayOverrides.get(card.key);
       }
-      // Preserve manual expansion of earlier checks when the day card rerenders.
-      // A newly processed latest check auto-opens until Continue / Pause; then
-      // its held open state is explicitly cleared in the shared render.
+      // Preserve manual historical review only between changes of travel
+      // progress. refresh() owns the single-current-hour auto-open lifecycle.
       if (node) {
         const oldMarches = new Map([...node.querySelectorAll("details[data-hex-march-key]")].map(el => [el.dataset.hexMarchKey, el]));
         for (const fresh of replacement.querySelectorAll("details[data-hex-march-key]")) {
@@ -1030,12 +1060,15 @@ class ExpeditionConsole {
   activeTravelTicket = 0;
   dragMoved = false;
   followLatest = true;
+  activeLogTab = "travel";
+  travelTabScroll = 0;
   logHasRendered = false;
   logResizeActive = false;
   dayOpenOverrides = new Map();
   historyOpenOverrides = new Map();
   pendingRolls = new Map();
   lastDayState = null;
+  lastMarchTimelineState = null;
   lastDisplaySecond = null;
   lastDetailMinute = null;
   clockHook = null;
@@ -1259,10 +1292,11 @@ class ExpeditionConsole {
   sizeLogToContent() {
     const node = this.logElement;
     if (!node || node.hidden || this.logResizeActive) return;
-    const scroller = node.querySelector(".zft-hex-scroll");
-    const feed = node.querySelector("[data-hex-cards]");
+    const scroller = node.querySelector(`[data-hex-log-panel="${this.activeLogTab}"]`);
+    const feed = this.activeLogTab === "travel" ? node.querySelector("[data-hex-cards]") : scroller?.firstElementChild;
     const head = node.querySelector(".zft-hex-log-head");
-    if (!scroller || !feed || !head) return;
+    const tabs = node.querySelector(".zft-hex-log-tabs");
+    if (!scroller || !feed || !head || !tabs) return;
     const factor = this.displayScale();
     const room = Math.max(160, Math.floor((window.innerHeight - node.getBoundingClientRect().top - 8) / factor));
     const minimum = Math.min(205, room);
@@ -1273,7 +1307,7 @@ class ExpeditionConsole {
     }
     const style = getComputedStyle(scroller);
     const pad = (parseFloat(style.paddingTop) || 0) + (parseFloat(style.paddingBottom) || 0);
-    const desired = Math.ceil(head.offsetHeight + feed.scrollHeight + pad + 4);
+    const desired = Math.ceil(head.offsetHeight + tabs.offsetHeight + feed.scrollHeight + pad + 4);
     node.style.height = `${Math.min(room, Math.max(minimum, desired))}px`;
   }
   fitDashboardToViewport() {
@@ -1283,7 +1317,8 @@ class ExpeditionConsole {
     this.element.style.setProperty("--zft-hex-available-height", `${available}px`);
   }
   scrollToLatest() {
-    const scroller = this.logElement?.querySelector(".zft-hex-scroll");
+    if (this.activeLogTab !== "travel") return;
+    const scroller = this.logElement?.querySelector('[data-hex-log-panel="travel"]');
     if (!scroller || this.logElement?.hidden) return;
     this.scrollingFromCode = true;
     scroller.scrollTop = 0;
@@ -1295,7 +1330,29 @@ class ExpeditionConsole {
   }
   updateLatestButton() {
     const control = this.logElement?.querySelector("[data-hex-log-action='latest']");
-    if (control) control.hidden = this.followLatest;
+    if (control) control.hidden = this.activeLogTab !== "travel" || this.followLatest;
+  }
+  /** Presentation-only tab selection; never changes expedition state or travel cards. */
+  selectLogTab(tab) {
+    if (!["travel", "roles", "events"].includes(tab) || !this.logElement) return;
+    if (this.activeLogTab === "travel" && tab !== "travel") {
+      this.travelTabScroll = this.logElement.querySelector('[data-hex-log-panel="travel"]')?.scrollTop ?? 0;
+    }
+    this.activeLogTab = tab;
+    for (const button of this.logElement.querySelectorAll("[data-hex-log-tab]")) {
+      const active = button.dataset.hexLogTab === tab;
+      button.setAttribute("aria-selected", String(active));
+      button.tabIndex = active ? 0 : -1;
+    }
+    for (const pane of this.logElement.querySelectorAll("[data-hex-log-panel]")) {
+      pane.hidden = pane.dataset.hexLogPanel !== tab;
+    }
+    this.updateLatestButton();
+    this.sizeLogToContent();
+    if (tab === "travel") {
+      if (this.followLatest) this.scrollToLatest();
+      else this.logElement.querySelector('[data-hex-log-panel="travel"]').scrollTop = this.travelTabScroll;
+    }
   }
   toggle() { return this.setMode(this.element?.dataset.mode === "expanded" ? "hidden" : "expanded"); }
   async showWorkspace() {
@@ -1377,6 +1434,8 @@ class ExpeditionConsole {
   }
   mount() {
     if (this.element?.isConnected && this.logElement?.isConnected && (!game.user.isGM || this.workflowElement?.isConnected)) return;
+    this.activeLogTab = "travel";
+    this.travelTabScroll = 0;
     const saved = this.state;
     const node = document.createElement("section");
     node.id = "zft-hex-travel-console";
@@ -1424,7 +1483,14 @@ class ExpeditionConsole {
         <button type="button" data-hex-log-action="dock" title="Dock or undock log"><i class="fa-solid fa-link"></i> <span data-hex-dock-label>Undock</span></button>
         <button type="button" data-hex-log-action="hide" title="Hide log"><i class="fa-solid fa-xmark"></i></button>
       </header>
-      <div class="zft-hex-scroll" tabindex="0" aria-label="Scrollable expedition travel history"><div class="zft-hex-log-feed" data-hex-cards role="log" aria-label="Expedition travel history"></div></div>
+      <nav class="zft-hex-log-tabs" role="tablist" aria-label="Expedition log sections">
+        <button type="button" role="tab" id="zft-hex-tab-travel" data-hex-log-tab="travel" aria-controls="zft-hex-panel-travel" aria-selected="true" tabindex="0"><i class="fa-solid fa-route" aria-hidden="true"></i> Travel</button>
+        <button type="button" role="tab" id="zft-hex-tab-roles" data-hex-log-tab="roles" aria-controls="zft-hex-panel-roles" aria-selected="false" tabindex="-1"><i class="fa-solid fa-users" aria-hidden="true"></i> Roles</button>
+        <button type="button" role="tab" id="zft-hex-tab-events" data-hex-log-tab="events" aria-controls="zft-hex-panel-events" aria-selected="false" tabindex="-1"><i class="fa-solid fa-map" aria-hidden="true"></i> Events</button>
+      </nav>
+      <div class="zft-hex-scroll" id="zft-hex-panel-travel" role="tabpanel" aria-labelledby="zft-hex-tab-travel" data-hex-log-panel="travel" tabindex="0" aria-label="Scrollable expedition travel history"><div class="zft-hex-log-feed" data-hex-cards role="log" aria-label="Expedition travel history"></div></div>
+      <div class="zft-hex-scroll" id="zft-hex-panel-roles" role="tabpanel" aria-labelledby="zft-hex-tab-roles" data-hex-log-panel="roles" tabindex="0" hidden><div class="zft-hex-log-placeholder"><i class="fa-solid fa-users" aria-hidden="true"></i><strong>Expedition Roles</strong><p>Navigation, Reconnaissance, and Expedition Support results will appear here after their resolution rules are designed.</p><small>Placeholder only. No additional rolls or history are recorded.</small></div></div>
+      <div class="zft-hex-scroll" id="zft-hex-panel-events" role="tabpanel" aria-labelledby="zft-hex-tab-events" data-hex-log-panel="events" tabindex="0" hidden><div class="zft-hex-log-placeholder"><i class="fa-solid fa-map" aria-hidden="true"></i><strong>Expedition Events</strong><p>Travel Quality, Momentum, Discoveries, Complications, Threat, and Encounters will appear here when their engines are integrated.</p><small>Placeholder only. The existing travel history is unchanged.</small></div></div>
       <div class="zft-hex-log-resize" data-hex-resize-log title="Drag to resize expedition log" aria-label="Resize expedition log"><i class="fa-solid fa-up-right-and-down-left-from-center"></i></div>`;
     if (game.user.isGM) {
       const content = node.querySelector(".zft-hex-dashboard-content");
@@ -1494,7 +1560,18 @@ class ExpeditionConsole {
     node.addEventListener("click", event => this.click(event));
 
     logNode.addEventListener("click", event => this.logClick(event));
-    const scroller = logNode.querySelector(".zft-hex-scroll");
+    logNode.addEventListener("keydown", event => {
+      const current = event.target.closest("[data-hex-log-tab]");
+      if (!current || !["ArrowLeft", "ArrowRight", "Home", "End"].includes(event.key)) return;
+      const tabs = [...logNode.querySelectorAll("[data-hex-log-tab]")];
+      const index = tabs.indexOf(current);
+      if (index < 0) return;
+      event.preventDefault();
+      const next = event.key === "Home" ? 0 : event.key === "End" ? tabs.length - 1 : (index + (event.key === "ArrowRight" ? 1 : -1) + tabs.length) % tabs.length;
+      this.selectLogTab(tabs[next].dataset.hexLogTab);
+      tabs[next].focus();
+    });
+    const scroller = logNode.querySelector('[data-hex-log-panel="travel"]');
     // Only user-initiated scrolling updates follow mode. Programmatic scroll
     // or content reflow must not turn follow mode off behind the user's back.
     let scrollIntent = false;
@@ -1525,6 +1602,14 @@ class ExpeditionConsole {
         this.followLatest = false;
         this.updateLatestButton();
         requestAnimationFrame(() => {
+          if (detail.matches("details[data-hex-march-key]") && detail.open) {
+            // Accordion behavior across all day/hex groups: only one Forced
+            // March history entry can be expanded at any time, even when the
+            // GM manually opens an earlier completed hour for inspection.
+            for (const other of this.logElement.querySelectorAll("details[data-hex-march-key][open]")) {
+              if (other !== detail) other.open = false;
+            }
+          }
           if (key) this.historyOpenOverrides.set(key, detail.open);
           this.sizeLogToContent();
         });
@@ -1650,6 +1735,8 @@ class ExpeditionConsole {
     document.addEventListener("pointermove",move);document.addEventListener("pointerup",stop);document.addEventListener("pointercancel",stop);
   }
   async logClick(event) {
+    const tab = event.target.closest("button[data-hex-log-tab]");
+    if (tab && this.logElement?.contains(tab)) return void this.selectLogTab(tab.dataset.hexLogTab);
     const button = event.target.closest("button[data-hex-log-action]");
     if (!button || !this.logElement?.contains(button)) return;
     if (button.dataset.hexLogAction === "latest") {
@@ -1845,17 +1932,39 @@ class ExpeditionConsole {
     }
     this.lastDayState = currentDayState;
     const cards = makeCards(snapshot);
-    const scroller = this.logElement.querySelector(".zft-hex-scroll");
+    const scroller = this.logElement.querySelector('[data-hex-log-panel="travel"]');
+    const travelVisible = this.activeLogTab === "travel";
     const previousScroll = scroller.scrollTop;
     const previousHeight = scroller.scrollHeight;
-    const scrollerTop = scroller.getBoundingClientRect().top;
-    const anchor = !this.followLatest ? [...log.children].find(node => node.getBoundingClientRect().bottom > scrollerTop + 1) : null;
+    const scrollerTop = travelVisible ? scroller.getBoundingClientRect().top : 0;
+    const anchor = travelVisible && !this.followLatest ? [...log.children].find(node => node.getBoundingClientRect().bottom > scrollerTop + 1) : null;
     const anchorKey = anchor?.dataset.hexCard;
     const anchorOffset = anchor ? anchor.getBoundingClientRect().top - scrollerTop : 0;
     syncCards(summary, cards.filter(card => card.key === "overview"));
     this.updateClockReadout(true);
     syncCards(dashboard, cards.filter(card => card.key === "party"));
     syncCards(log, cards.filter(card => !["overview", "party"].includes(card.key)), this.dayOpenOverrides, this.historyOpenOverrides);
+    // When a new hour begins or travel completes, collapse the prior hour,
+    // regardless of saved DOM expansion state. A newly resolved active hour
+    // alone may auto-open. Ordinary refreshes preserve deliberate manual
+    // inspection, but never allow several Forced March records to remain open.
+    const marchHistory = Array.isArray(snapshot.state?.marchHistory) ? snapshot.state.marchHistory : [];
+    const lastMarch = marchHistory[marchHistory.length - 1];
+    const marchTimelineState = [snapshot.state?.day, snapshot.state?.hours, snapshot.state?.pending,
+      snapshot.phase, marchHistory.length, lastMarch?.recordedAt ?? ""].join(":");
+    if (this.lastMarchTimelineState !== marchTimelineState) {
+      for (const detail of log.querySelectorAll("details[data-hex-march-key]")) {
+        detail.open = detail.hasAttribute("data-hex-march-held");
+      }
+      this.lastMarchTimelineState = marchTimelineState;
+    }
+    // Defensive accordion reconciliation when a card is rebuilt while the
+    // timeline has not changed (including reopening older travel days).
+    const expandedMarches = [...log.querySelectorAll("details[data-hex-march-key][open]")];
+    if (expandedMarches.length > 1) {
+      const preferred = expandedMarches.find(d => d.hasAttribute("data-hex-march-held")) ?? expandedMarches[0];
+      for (const detail of expandedMarches) if (detail !== preferred) detail.open = false;
+    }
     if (changedDay) {
       // Explicitly synchronize <details> state even when a card's markup did
       // not change and syncCards retained the existing node.
@@ -1871,7 +1980,10 @@ class ExpeditionConsole {
       label.textContent = place;
       label.style.display = place ? "" : "none";
     }
-    if (this.followLatest) this.scrollToLatest();
+    if (!travelVisible) {
+      // The Travel feed remains mounted but hidden. Do not derive scroll
+      // anchors from its zero-sized geometry while another tab is selected.
+    } else if (this.followLatest) this.scrollToLatest();
     else {
       const anchorNow = [...log.children].find(node => node.dataset.hexCard === anchorKey);
       if (anchorNow) scroller.scrollTop += anchorNow.getBoundingClientRect().top - scroller.getBoundingClientRect().top - anchorOffset;

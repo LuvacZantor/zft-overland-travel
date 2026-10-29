@@ -3,6 +3,7 @@
  * This function is invoked only from the GM toolbar action.
  */
 import { hexTravelDieFace, hexTravelD20Total } from "./HexTravelDice.js";
+import { navigationDiceFormula, resolveNavigationHours } from "./HexNavigationResolution.js";
 import { HEX_TRAVEL_ACTIVITIES, HEX_TRAVEL_NAVIGATION_SKILL } from "./HexTravelRoles.js";
 import { hexNavigationDifficulty, TERRAIN_CHOICES, DANGER_CHOICES, normalizeHexDifficultyPreferences } from "./HexDifficulty.js";
 import { nextClockTarget, readExpeditionClock, clockText, advanceExpeditionClock, advanceTravelClockHours, hasRestRecovery, openPartyRestRecovery } from "./ExpeditionTime.js";
@@ -61,20 +62,19 @@ export function launchHexTravel({ action: requestedAction = "menu" } = {}) {
  * Requires a connected user with Owner permission or falls back to the GM.
  *
  * The GM creates a progressive public chat card before requesting skill checks.
- * At navigation/secondary checkpoints, a NEW card replaces the old one.
+ * At navigation/GM review checkpoints, a NEW card replaces the old one.
  * During the final travel dice animation the old progress card remains visible.
  * Only when Dice So Nice has finished and the completed card is visible do
  * we remove the preceding card, avoiding a temporary gap in the chat feed.
  * Intermediate cards have NO rolls.
  *
- * One combined Foundry Roll contains 2d4 travel dice and, on navigation
- * failure, an additional 1d4+2. All three d4s appear in the same native
- * dice result, and the card labels each die's purpose. Dice So Nice can animate
+ * One combined Foundry Roll contains 2d4 base travel dice plus one d4
+ * for each failed Guide or Vanguard check. All dice share the native
+ * roll result, and the card identifies each delay die by role. Dice So Nice can animate
  * every die without duplicate separate chat rolls.
  * No duplicate manual game.dice3d.showForRoll calls or extra travel-roll messages.
- * This is a Chapter 4 single-hex travel aid. The secondary-PC menu excludes
- * the selected navigator and updates live when the navigator changes.
- * Secondary action effects are GM adjudicated.
+ * This is a Chapter 4 single-hex travel aid with Guide and optional Vanguard
+ * Navigation checks. Both results are reviewed by the GM before travel dice.
  * Tracks party travel time in a world setting; the GM advances days manually.
  * 2024 extended travel: CON save at end of each hour beyond eight, DC 10 + hour past eight.
  * All CON saves are requested together; one GM panel adjudicates the party.
@@ -513,11 +513,12 @@ return (async () => {
     + eligiblePlayers(actor).map(u => `<option value="${esc(u.id)}">${esc(u.name)}</option>`).join("");
 
   // Expedition roles are assigned exclusively through GM Expedition Roles.
-  // The existing guide's Survival roll continues to determine hex duration.
+  // Guide navigation and Vanguard obstacle checks share this hex's DC but are individually adjudicated before travel dice.
   const rolePrefs = globalThis.ZFTHexTravelConsole?.rolePreferences?.() ?? {};
   const assignments = rolePrefs.assignments ?? {};
   const guideUuid = assignments.guide || rolePrefs.navigatorUuid || "";
   const guideActor = actors.find(actor => actor.uuid === guideUuid);
+  const vanguardActor = actors.find(actor => actor.uuid === assignments.vanguard && actor.uuid !== guideUuid) ?? null;
   if (!resuming && !guideActor)
     return warn("Assign a present Guide in Expedition Roles before starting travel.");
   const expeditionGroups = [
@@ -526,7 +527,7 @@ return (async () => {
     ["Expedition Support", [["Forager", "forager", "Survival (WIS)"], ["Coordinator", "coordinator", "Persuasion (CHA)"]]]
   ];
   // One theme-aware, gently raised surface per paired activity. Portraits
-  // identify the actual assigned PC; only the Guide is currently rolled.
+  // identify assigned PCs. Guide and present Vanguard are active checks.
   const groupIcon = {Navigation:"fa-compass", Reconnaissance:"fa-eye", "Expedition Support":"fa-people-group"};
   const expeditionSummary = expeditionGroups.map(([heading, roles]) =>
     `<section class="zft-hex-travel-role-group" aria-label="${esc(heading)} roles">` +
@@ -536,7 +537,7 @@ return (async () => {
       const portrait = actor?.img ? `<img class="zft-hex-travel-role-portrait" src="${esc(actor.img)}" alt="" loading="lazy">`
         : `<span class="zft-hex-travel-role-portrait zft-hex-travel-role-empty"><i class="fa-solid fa-user" aria-hidden="true"></i></span>`;
       return `<div class="zft-hex-travel-role-line${key === "guide" ? " is-guide" : ""}">` +
-        `${portrait}<div class="zft-hex-travel-role-identity"><span class="zft-hex-travel-role-label">${esc(label)}${key === "guide" ? ' <i class="fa-solid fa-dice-d20" title="Active Navigation roll" aria-label="Active Navigation roll"></i>' : ""}</span>` +
+        `${portrait}<div class="zft-hex-travel-role-identity"><span class="zft-hex-travel-role-label">${esc(label)}${["guide", "vanguard"].includes(key) ? ' <i class="fa-solid fa-dice-d20" title="Active Navigation check" aria-label="Active Navigation check"></i>' : ""}</span>` +
         `<strong>${actor ? esc(actor.name) : "Unassigned"}</strong></div><small>${esc(skill)}</small></div>`;
     }).join("") + `</section>`
   ).join("");
@@ -904,19 +905,21 @@ return (async () => {
     const beforeConfirmation = JSON.stringify(travelState);
     const approved = await promptWait({
       toggleKey: "travel",
-      window: { title: `Continue Traveling Through Hex ${plan.hexNumber}?` },
+      window: { title: `Continue Hex ${plan.hexNumber}?` },
       position: { width: 440 }, render: colorButtons,
       content: `<section class="zft-hex-resume-confirm" aria-label="Unfinished hex travel confirmation">
-        <p>Hex ${esc(plan.hexNumber)} has <strong>${esc(plan.pending)} ${plan.pending === 1 ? "hour" : "hours"} of travel remaining</strong>.</p>
-        <div class="zft-hex-resume-stats">
-          <span><small>HEX TRAVEL REMAINING</small><strong>${esc(plan.pending)}h</strong></span>
-          <span><small>SAFE HOURS AVAILABLE TODAY</small><strong>${esc(plan.safeAvailable)}h</strong></span>
+        <div class="zft-hex-resume-stats" aria-label="Remaining hex travel and safe hours">
+          <span><small>TRAVEL REMAINING</small><strong>${esc(plan.pending)}h</strong></span>
+          <span><small>SAFE HOURS LEFT</small><strong>${esc(plan.safeAvailable)}h</strong></span>
         </div>
-        <p class="zft-hex-resume-outcome">${esc(plan.description)}</p>
-        <p class="zft-hex-resume-cancel-note">Cancel leaves the saved hex, travel hours, and world time unchanged. You can continue later.</p>
+        <div class="zft-hex-resume-outcome ${plan.forcedHours > 0 ? "needs-forced-march" : "safe-travel"}">
+          <i class="fa-solid ${plan.forcedHours > 0 ? "fa-triangle-exclamation" : "fa-circle-info"}" aria-hidden="true"></i>
+          <p>${esc(plan.description)}</p>
+        </div>
+        <p class="zft-hex-resume-cancel-note">Cancel preserves the unfinished hex, travel ledger, and world time.</p>
       </section>`,
       buttons: [
-        { action: "continue", label: "Continue Traveling", default: true, callback: () => true },
+        { action: "continue", label: plan.safeHours === 0 && plan.forcedHours > 0 ? "Review Forced March" : "Continue Traveling", default: true, callback: () => true },
         { action: "cancel", label: "Cancel", callback: () => false }
       ], close: () => false
     });
@@ -970,9 +973,10 @@ return (async () => {
       <label class="zft-hex-travel-pace"><span>Pace</span>
         <select name="pace"><option value="fast">Fast (75%)</option><option selected value="normal">Normal (100%)</option><option value="slow">Slow (150%)</option></select></label>
       <div class="zft-hex-travel-role-groups">${expeditionSummary}</div>
-      <label class="zft-hex-travel-roller"><span>Guide roll requested from</span>
+      <label class="zft-hex-travel-roller"><span>Guide Survival requested from</span>
         <select name="navRoller">${rollerOptions(guideActor)}</select></label>
-      <p class="zft-hex-travel-help" title="Other paired expedition checks are not yet executed; established Guide navigation and hex-time rules remain unchanged.">Guide sets navigation and hex travel time. Edit assignments in Expedition Roles.</p>
+      ${vanguardActor ? `<label class="zft-hex-travel-roller"><span>Vanguard Athletics requested from</span><select name="vanguardRoller">${rollerOptions(vanguardActor)}</select></label>` : `<p class="zft-hex-travel-help">Vanguard unassigned or absent. Guide travels unassisted; no automatic obstacle failure.</p>`}
+      <p class="zft-hex-travel-help">Guide and Vanguard roll together. Each failed check adds 1d4 travel hours. Edit assignments in Expedition Roles.</p>
     </section>`,
     render: (event, dialog) => {
       colorButtons(event, dialog);
@@ -1047,6 +1051,7 @@ return (async () => {
           return {
           pace: button.form.elements.pace.value,
           navRoller: button.form.elements.navRoller.value,
+          vanguardRoller: button.form.elements.vanguardRoller?.value ?? "auto",
           dcMode: button.form.elements.dcMode.value,
           customDC: button.form.elements.customDC.value,
           terrainId: button.form.elements.terrainId.value,
@@ -1072,15 +1077,12 @@ return (async () => {
     return warn(`Hex navigation difficulty invalid: ${error.message}`);
   }
   const pace = PACES[input.pace];
-  // Preserve the current dice pipeline's 'none' secondary action, but eliminate
-  // legacy secondary-role prompts and prevent overwriting Expedition Roles.
-  const action = ACTIONS.none;
   const nav = guideActor;
-  const secondary = null;
+  const secondary = vanguardActor;
   const navRoller = resolveRoller(nav, input.navRoller);
-  const secRoller = null;
-  if (!pace || !navRoller)
-    return warn("Invalid pace or the selected Guide roller is offline / lacks Owner permission.");
+  const secRoller = secondary ? resolveRoller(secondary, input.vanguardRoller) : null;
+  if (!pace || !navRoller || (secondary && !secRoller))
+    return warn("Invalid pace or the selected Guide/Vanguard roller is offline or lacks Owner permission.");
   ensureCurrent();
 
   // For the navigation skill check, environmental disadvantage is always present.
@@ -1106,12 +1108,12 @@ return (async () => {
           rollType: "skill", rollAbilities: [], rollSkills: [skill], rollTools: [],
           advantage: modes.advantage, disadvantage: modes.disadvantage,
           isMagicSave: false, isFriendly: true,
-          rollDC: navigation ? DC : 0, saveItemUuid: "",
+          rollDC: DC, saveItemUuid: "",
           workflowOptions: {}, workflowId: "", itemCardUuid: "", itemId: ""
         },
         displayOptions: {
           fastForward: false, chatMessage: true, rollMode: "publicroll",
-          showTargetDC: navigation
+          showTargetDC: true
         }
       };
     }
@@ -1119,7 +1121,7 @@ return (async () => {
       targetUuid: actor.uuid,
       request: "skill", skill,
       advantage: modes.advantage, disadvantage: modes.disadvantage,
-      rollDC: navigation ? DC : 0,
+      rollDC: DC,
       options: { fastForward: false, chatMessage: true, rollMode: "publicroll" }
     };
   }
@@ -1157,8 +1159,8 @@ return (async () => {
       try {
         const request = await recoverableRemoteRoll(actor, currentRoller,
           () => midiRequest(actor, skill, isNavigation),
-          `${isNavigation ? "Navigation" : "Secondary"} · ${CONFIG.DND5E.skills[skill]?.label ?? skill}`,
-          isNavigation ? "navigation" : "secondary");
+          `${isNavigation ? "Guide" : "Vanguard"} · ${CONFIG.DND5E.skills[skill]?.label ?? skill} · DC ${DC}`,
+          isNavigation ? "navigation-guide" : "navigation-vanguard");
         if (request.cancelled) return null;
         returned = request.value;
         observedMessageId = request.observedMessageId;
@@ -1207,40 +1209,39 @@ return (async () => {
     hexTravelDieFace(face, 4, { penalty })).join(" ");
 
   function renderStage({ stage, navResult=null, secResult=null, success=null,
-                         decision=null, dice=null }) {
+                         vanguardSuccess=null, decision=null, vanguardDecision=null, dice=null }) {
     const status = {
       started: "NAVIGATION PENDING",
-      navigation: secondary ? "SECONDARY PENDING" : "GM REVIEW PENDING",
+      navigation: "GM REVIEW PENDING",
       secondary: "GM REVIEW PENDING",
       rolling: "ROLLING TRAVEL DICE",
       complete: "TRAVEL TIME ROLLED"
     }[stage];
-    const navStatus = navResult
-      ? `${hexTravelD20Total(navResult.total)} vs DC ${DC} · ` +
-        (success === null ? `<span style="color:#dec7e5;">Pending GM confirmation</span>`
-          : `<strong class="zft-hex-roll-outcome zft-hex-result-${success ? "success" : "failure"}">${success ? "SUCCESS" : "FAILURE"}</strong>` +
-            (decision !== "roll" ? ` <em style="font-size:11px;">(GM override)</em>` : ""))
-      : `<span style="color:#c2b9ca;">Awaiting ${esc(navRoller.name)}'s roll</span>`;
+    const outcome = (result, passed, ruling, roller) => result
+      ? `${hexTravelD20Total(result.total)} vs DC ${DC} · ` +
+        (passed === null ? `<span style="color:#dec7e5;">Pending GM confirmation</span>`
+          : `<strong class="zft-hex-roll-outcome zft-hex-result-${passed ? "success" : "failure"}">${passed ? "SUCCESS" : "FAILURE"}</strong>` +
+            (ruling !== "roll" ? ` <em style="font-size:11px;">(GM override)</em>` : ""))
+      : `<span style="color:#c2b9ca;">Awaiting ${esc(roller.name)}'s roll</span>`;
     const navBlock = smallBox(`Guide · Wisdom (Survival) · DC ${DC}`,
-      `${esc(nav.name)} · ${navStatus}`);
-    const secBlock = !secondary
-      ? ``
-      : smallBox(`Secondary · ${action.name} · ${CONFIG.DND5E.skills[action.skill]?.label ?? action.skill}`,
-        `${esc(secondary.name)} · ${secResult ? `${hexTravelD20Total(secResult.total)} <span style="color:#b9bec9;">(GM adjudicates)</span>`
-        : `<span style="color:#c2b9ca;">${navResult ? "Awaiting" : "Queued for"} ${esc(secRoller.name)}'s roll</span>`}`);
+      `${esc(nav.name)} · ${outcome(navResult, success, decision, navRoller)}`);
+    const secBlock = !secondary ? "" : smallBox(`Vanguard · Strength (Athletics) · DC ${DC}`,
+      `${esc(secondary.name)} · ${outcome(secResult, vanguardSuccess, vanguardDecision, secRoller)}`);
+    const formula = success === null ? "2d4 + possible delay dice" : navigationDiceFormula({ guideSuccess: success, vanguardSuccess: secondary ? vanguardSuccess : null });
     const travelBlock = !dice
       ? `<div style="border:1px solid #5b5166;background:#302b39;border-radius:5px;padding:8px;font-size:12px;` +
-        `color:#c6bdce;">TRAVEL DICE · ${stage === "rolling" ?
-          `Rolling ${success ? "2d4" : "2d4 + 1d4 + 2"} …` : "Pending Guide check and GM confirmation"}</div>`
+        `color:#c6bdce;">TRAVEL DICE · ${stage === "rolling" ? `Rolling ${formula} …` : "Pending both Navigation checks and GM confirmation"}</div>`
       : `<div style="border:1px solid #746580;background:#302b39;border-radius:5px;padding:8px;">` +
-          `<div style="font-size:10px;letter-spacing:1px;color:#e3cee9;margin-bottom:5px;">DICE ROLLED · ${success ? "2d4" : "2d4 + 1d4 + 2"}</div>` +
+          `<div style="font-size:10px;letter-spacing:1px;color:#e3cee9;margin-bottom:5px;">DICE ROLLED · ${formula}</div>` +
           `<div style="display:flex;flex-wrap:wrap;align-items:center;gap:10px;font-size:11px;">` +
           `<span style="white-space:nowrap;">Travel ${diceChips(dice.baseDice)}</span>` +
-          (success ? "" : `<span style="white-space:nowrap;">Delay ${diceChips(dice.lostDie,true)} <strong style="color:#f0c9c4;">+ 2</strong></span>`) +
+          (dice.guideDelay ? `<span style="white-space:nowrap;">Guide delay ${diceChips([dice.guideDelay],true)}</span>` : "") +
+          (dice.vanguardDelay ? `<span style="white-space:nowrap;">Vanguard delay ${diceChips([dice.vanguardDelay],true)}</span>` : "") +
           `</div><div style="border-top:1px solid #62576d;margin-top:7px;padding-top:6px;display:grid;gap:3px;font-size:12px;">` +
           `<div style="display:flex;justify-content:space-between;"><span>Base 2d4</span><strong>${dice.base} h</strong></div>` +
           `<div style="display:flex;justify-content:space-between;"><span>${pace.name} (${pace.percent}), rounded up</span><strong>${dice.adjusted} h</strong></div>` +
-          (success ? "" : `<div style="display:flex;justify-content:space-between;color:#efc3bd;"><span>Navigation delay · 1d4+2</span><strong>+${dice.delay} h</strong></div>`) +
+          (dice.guideDelay ? `<div style="display:flex;justify-content:space-between;color:#efc3bd;"><span>Guide navigation delay · 1d4</span><strong>+${dice.guideDelay} h</strong></div>` : "") +
+          (dice.vanguardDelay ? `<div style="display:flex;justify-content:space-between;color:#efc3bd;"><span>Vanguard obstacle delay · 1d4</span><strong>+${dice.vanguardDelay} h</strong></div>` : "") +
           `</div></div>` +
           `<div style="background:#393342;border:1px solid #746580;border-radius:4px;` +
             `text-align:center;margin-top:7px;padding:7px;">` +
@@ -1268,7 +1269,7 @@ return (async () => {
       ensureCurrent();
     }
     // The progress card remains at "Rolling…" for all clients during animation.
-    await globalThis.ZFTHexTravelConsole?.stage?.(hexCardId, renderStage(stageInfo), stageInfo.stage, launchLogEpoch, { day: travelState.day, travelHour: travelState.hours, difficulty: navigationDifficulty });
+    await globalThis.ZFTHexTravelConsole?.stage?.(hexCardId, renderStage(stageInfo), stageInfo.stage, launchLogEpoch, { day: travelState.day, travelHour: travelState.hours, difficulty: navigationDifficulty, navigation: options.details?.navigation });
     currentCard = hexCardId;
     ensureCurrent();
   }
@@ -1289,77 +1290,89 @@ return (async () => {
   let travelTimeRolled = false;
   try {
     await publishStage({ stage: "started" });
-    const navResult = await rollWithRetry(nav, navRoller, HEX_TRAVEL_NAVIGATION_SKILL, true);
-    if (!navResult) { await clearProgress(); return; }
-    await publishStage({ stage: "navigation", navResult });
-    let secResult = null;
-    if (secondary) {
-      secResult = await rollWithRetry(secondary, secRoller, action.skill, false);
-      if (!secResult) { await clearProgress(); return; }
-      await publishStage({ stage: "secondary", navResult, secResult });
-    }
-    const autoSuccess = navResult.total >= DC;
-    const decision = await promptWait({
+    // Both role checks are sent concurrently, as with Forced March saves.
+    // Nothing commits travel time until all assigned role rolls are usable
+    // and the GM confirms the final outcomes.
+    const [navResult, secResult] = await Promise.all([
+      rollWithRetry(nav, navRoller, HEX_TRAVEL_NAVIGATION_SKILL, true),
+      secondary ? rollWithRetry(secondary, secRoller, "ath", false) : Promise.resolve(null)
+    ]);
+    if (!navResult || (secondary && !secResult)) { await clearProgress(); return; }
+    await publishStage({ stage: "navigation", navResult, secResult });
+    const autoGuide = navResult.total >= DC;
+    const autoVanguard = secondary ? secResult.total >= DC : null;
+    const review = await promptWait({
       window: { title: `${identity().name} | Navigation Ruling` },
       render: (event, dialog) => {
         colorButtons(event, dialog);
-        const select = dialog.element.querySelector('select[name="ruling"]');
-        const preview = dialog.element.querySelector('[data-hex-final-navigation]');
         const update = () => {
-          if (!select || !preview) return;
-          const actual = select.value === "roll";
-          const finalSuccess = actual ? autoSuccess : select.value === "success";
-          preview.className = `zft-hex-navigation-final ${finalSuccess ? "is-success" : "is-failure"}`;
-          preview.textContent = `${finalSuccess ? "Success" : "Failure"}${actual ? " · matches roll" : " · GM override"}`;
-          select.classList.toggle("is-success",finalSuccess);
-          select.classList.toggle("is-failure",!finalSuccess);
+          for (const [key, passed] of [["guide", autoGuide], ["vanguard", autoVanguard]]) {
+            if (passed === null) continue;
+            const select = dialog.element.querySelector(`select[name="${key}Ruling"]`);
+            const preview = dialog.element.querySelector(`[data-hex-final-${key}]`);
+            if (!select || !preview) continue;
+            const rolled = select.value === "roll";
+            const finalSuccess = rolled ? passed : select.value === "success";
+            preview.className = `zft-hex-navigation-final ${finalSuccess ? "is-success" : "is-failure"}`;
+            preview.textContent = `${finalSuccess ? "Success" : "Failure"}${rolled ? " · matches roll" : " · GM override"}`;
+            select.classList.toggle("is-success", finalSuccess);
+            select.classList.toggle("is-failure", !finalSuccess);
+          }
         };
-        select?.addEventListener("change",update);
+        for (const select of dialog.element.querySelectorAll('select[name$="Ruling"]')) select.addEventListener("change", update);
         update();
       },
-      position: { width: 380 },
+      position: { width: 470 },
       content: `<section class="zft-hex-travel-stage zft-hex-navigation-ruling">
-        <div class="zft-hex-navigation-result"><strong class="zft-hex-result-${autoSuccess ? "success" : "failure"}">${esc(nav.name)}</strong><span class="zft-hex-navigation-roll zft-hex-result-${autoSuccess ? "success" : "failure"}">Survival ${hexTravelD20Total(navResult.total)} vs <strong>DC ${DC}</strong></span><strong class="zft-hex-navigation-verdict ${autoSuccess ? "is-success" : "is-failure"}">ROLLED ${autoSuccess ? "SUCCESS" : "FAILURE"}</strong></div>
-        ${secondary ? `<div class="zft-hex-navigation-secondary">${esc(secondary.name)} · ${esc(action.name)} ${hexTravelD20Total(secResult.total)} (GM adjudicates)</div>` : ""}
-        <label class="zft-hex-travel-roller"><span>Navigation outcome</span>
-          <select name="ruling"><option value="roll">Use roll (${autoSuccess ? "Success" : "Failure"})</option>
-          <option class="zft-hex-result-success" value="success">Override: Success</option><option class="zft-hex-result-failure" value="failure">Override: Failure</option></select></label>
-        <div class="zft-hex-navigation-final-line">Final navigation outcome: <strong data-hex-final-navigation class="zft-hex-navigation-final ${autoSuccess ? "is-success" : "is-failure"}">${autoSuccess ? "Success" : "Failure"} · matches roll</strong></div>
-        <small class="zft-hex-travel-help">Travel time is rolled only when you confirm.</small>
+        <div class="zft-hex-navigation-result"><strong class="zft-hex-result-${autoGuide ? "success" : "failure"}">${esc(nav.name)} · Guide</strong><span class="zft-hex-navigation-roll">Survival ${hexTravelD20Total(navResult.total)} vs <strong>DC ${DC}</strong></span><strong class="zft-hex-navigation-verdict ${autoGuide ? "is-success" : "is-failure"}">ROLLED ${autoGuide ? "SUCCESS" : "FAILURE"}</strong></div>
+        <label class="zft-hex-travel-roller"><span>Guide route outcome</span><select name="guideRuling"><option value="roll">Use roll (${autoGuide ? "Success" : "Failure"})</option><option value="success">Override: Success</option><option value="failure">Override: Failure</option></select></label>
+        <div class="zft-hex-navigation-final-line">Final Guide outcome: <strong data-hex-final-guide class="zft-hex-navigation-final"></strong></div>
+        ${secondary ? `<div class="zft-hex-navigation-result"><strong class="zft-hex-result-${autoVanguard ? "success" : "failure"}">${esc(secondary.name)} · Vanguard</strong><span class="zft-hex-navigation-roll">Athletics ${hexTravelD20Total(secResult.total)} vs <strong>DC ${DC}</strong></span><strong class="zft-hex-navigation-verdict ${autoVanguard ? "is-success" : "is-failure"}">ROLLED ${autoVanguard ? "SUCCESS" : "FAILURE"}</strong></div>
+        <label class="zft-hex-travel-roller"><span>Vanguard obstacle outcome</span><select name="vanguardRuling"><option value="roll">Use roll (${autoVanguard ? "Success" : "Failure"})</option><option value="success">Override: Success</option><option value="failure">Override: Failure</option></select></label>
+        <div class="zft-hex-navigation-final-line">Final Vanguard outcome: <strong data-hex-final-vanguard class="zft-hex-navigation-final"></strong></div>` : `<p class="zft-hex-travel-help">No present Vanguard assigned. Only Guide is checked.</p>`}
+        <small class="zft-hex-travel-help">Each failed check adds 1d4 hours. Travel time is rolled only when you confirm.</small>
       </section>`,
       buttons: [
         { action: "confirm", label: "Roll Travel Time", icon: "fas fa-dice", default: true,
-          callback: (event, button) => button.form.elements.ruling.value },
+          callback: (_event, button) => ({ guide: button.form.elements.guideRuling.value,
+            vanguard: secondary ? button.form.elements.vanguardRuling.value : null }) },
         { action: "cancel", label: "Cancel Travel", callback: () => null }
       ], close: () => null
     });
-    if (!decision) { await clearProgress(); return; }
-    const success = decision === "roll" ? autoSuccess : decision === "success";
-    await setRollingStage({ navResult, secResult, success, decision });
-    // One combined Foundry roll reveals all 3d4 on failure, 2d4 on success.
-    const travelRoll = await new Roll(success ? "2d4" : "2d4 + 1d4 + 2").evaluate();
+    if (!review) { await clearProgress(); return; }
+    const success = review.guide === "roll" ? autoGuide : review.guide === "success";
+    const vanguardSuccess = secondary ? (review.vanguard === "roll" ? autoVanguard : review.vanguard === "success") : null;
+    const formula = navigationDiceFormula({ guideSuccess: success, vanguardSuccess });
+    await setRollingStage({ navResult, secResult, success, vanguardSuccess,
+      decision: review.guide, vanguardDecision: review.vanguard });
+    // One native roll for all 2d4 travel dice and zero to two 1d4 delay dice.
+    const travelRoll = await new Roll(formula).evaluate();
     const faces = die => (die?.results ?? [])
       .filter(result => result.active !== false && result.discarded !== true)
       .map(result => Number(result.result));
     const baseDice = faces(travelRoll.dice[0]);
-    const lostDie = success ? [] : faces(travelRoll.dice[1]);
-    if (baseDice.length !== 2 || (!success && lostDie.length !== 1)) {
-      throw new Error("Unexpected Hex Travel dice terms. Expected 2d4 + (optional) 1d4+2.");
-    }
-    const base = baseDice.reduce((sum, face) => sum + face, 0);
-    const delay = success ? 0 : lostDie[0] + 2;
-    const adjusted = Math.ceil(base * pace.multiplier);
-    const hours = adjusted + delay;
-    await publishStage({ stage: "complete", navResult, secResult, success, decision,
-      dice: { baseDice, lostDie, base, adjusted, delay, hours } },
+    const failureCount = Number(!success) + Number(vanguardSuccess === false);
+    const delayDice = failureCount ? faces(travelRoll.dice[1]) : [];
+    const dice = resolveNavigationHours({ baseDice, delayDice, paceMultiplier: pace.multiplier,
+      guideSuccess: success, vanguardSuccess });
+    const hours = dice.hours;
+    const navigation = {
+      dc: DC, pace: input.pace,
+      guide: { actorUuid: nav.uuid, total: navResult.total, success, ruling: review.guide, delay: dice.guideDelay },
+      vanguard: secondary ? { actorUuid: secondary.uuid, total: secResult.total,
+        success: vanguardSuccess, ruling: review.vanguard, delay: dice.vanguardDelay } : null,
+      grade: secondary ? (success && vanguardSuccess ? "strong" : !success && !vanguardSuccess ? "failure" : "partial") : "unassisted",
+      totalHours: hours
+    };
+    await publishStage({ stage: "complete", navResult, secResult, success, vanguardSuccess,
+      decision: review.guide, vanguardDecision: review.vanguard, dice },
       { roll: travelRoll, details: {
         navigator: nav.name, navigationTotal: navResult.total, navigationSuccess: success,
-        navigationDC: DC, difficulty: navigationDifficulty,
-        base, delay, totalHours: hours, secondaryTotal: secResult?.total ?? null
+        navigationDC: DC, difficulty: navigationDifficulty, navigation,
+        base: dice.base, delay: dice.delay, guideDelay: dice.guideDelay,
+        vanguardDelay: dice.vanguardDelay, totalHours: hours, secondaryTotal: secResult?.total ?? null
       } });
     travelTimeRolled = true;
-    // Audio acknowledges the saved navigation outcome; no cue on a canceled
-    // decision or an uncommitted dice workflow.
     globalThis.ZFTHexTravelConsole?.cue?.(success ? "navigationSuccess" : "navigationFailure");
     await finishTravel(hours, travelState, false);
   } catch (error) {

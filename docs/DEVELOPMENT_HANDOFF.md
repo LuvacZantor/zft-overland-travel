@@ -1,3 +1,43 @@
+# ZFT Overland Travel | Current Development Handoff
+
+**Checkpoint:** `0.4.0-dev.86`, October 29, 2026.
+**Repository:** `LuvacZantor/zft-overland-travel`.
+**Authoritative source branch for this checkpoint:** `feature/expedition-system`, advancing from parent `c5a487c97e4245ef27fdd57a928be4fc779f20d2` (dev.79).
+**GitHub scope:** Dev.86 source and this handoff committed only to the feature branch by specific owner approval. Neither `develop` nor `main` is promoted; no tag, release, or deployment is implied.
+**Delivery:** Complete manual-install ZIP `zft-overland-travel-v0.4.0-dev.86.zip`, SHA256 `0eb8115fb9e61cc137c635a6937b3ec65e8332c46af95ebb8b50ee2b1e5bff8e`; 73 files under one `zft-overland-travel/` directory.
+**Evidence:** Locally validated, live Foundry acceptance pending. User screenshots and feedback are not a complete regression pass.
+
+## Mandatory next-chat baseline
+
+1. Re-read current `LuvacZantor/zft-standards/main/PROJECT-INSTRUCTIONS.md` and all applicable current central standards, then inspect this module's actual source and GitHub branch HEAD.
+2. Use this dev.86 feature-branch checkpoint, not the older `develop` dev.77 or archived dev.79 handoff, when continuing the current Expedition System iteration. If a locally verified newer complete ZIP exists, establish and compare that baseline before editing.
+3. Preserve existing state/history, six role skill definitions, original gold/copper theme presets, world clock integration, GM/player permissions, and the exact original file `src/expeditions/mount-ironrot/MountIronrotV413.source.js`.
+4. Never write to any GitHub repository without fresh, operation-specific approval identifying repository, branch, affected files, and intended action.
+5. Deliver complete versioned installable ZIPs for future requested builds, not partial patches, and distinguish local/simulated testing from live acceptance.
+
+## Dev.80–86 changes in this checkpoint
+
+- **Dev.80:** Expedition Log gains Travel, Roles, Events tabs. Travel preserves existing log and persistence; Roles and Events remain clearly marked placeholders.
+- **Dev.81:** Active Guide Survival (WIS) and optional present Vanguard Athletics (STR) roll concurrently at the same GM-selected Navigation DC. Independent GM adjudication. Travel formula `ceil(2d4 × pace) + failed Guide ? 1d4 : 0 + failed Vanguard ? 1d4 : 0` (terms are additive, each failure gets a separate d4). Missing Vanguard is unassisted, not an automatic failure. Unfinished hex resumes without rerolling. New pure helper `src/engines/hex-travel/HexNavigationResolution.js` and structured results.
+- **Dev.82–83:** Aligned compact Navigation results, readable total travel hours and d4 faces beside their calculation rows, with optional original roll detail, preserving historical cards and dice values.
+- **Dev.84:** Compact unfinished-hex confirmation; only current resolved Forced March hour auto-expands while hex travel is pending; earlier hours collapse when a new one starts; completing hex collapses all, with one-at-a-time manual historical review.
+- **Dev.85:** Four dashboard overview tiles replace redundant hour text rows. Original progress bars, next action, daylight/ETA remain.
+- **Dev.86:** Tile labels `DAY`, `TRAVEL HOURS TODAY`, `HEXES COMPLETE`, `TRAVEL HOURS LEFT`, same compact row/heights at standard window width; responsive smaller-width behavior preserved.
+
+Other paired expedition skills are unchanged: Scout = Stealth (DEX), Tracker = Investigation (INT), Forager = Survival (WIS), Coordinator = Persuasion (CHA). Reconnaissance and Expedition Support cooperative mechanics are not implemented yet. The original generic Momentum/Event/Discovery/Complication/Threat/Encounter engines are not newly wired into the placeholder tabs.
+
+## Validation and pending acceptance
+
+The complete dev.86 manual ZIP previously passed local JSON/JS syntax, import, Navigation resolution, Forced March lifecycle, packaging, and multiple responsive dashboard checks. Re-run relevant tests on new changes; live testing should include assigned and unassigned Vanguard, all pass/fail outcomes with GM overrides, forced-hour transition and hex completion, resuming across days without re-rolls, long saved history, narrow widths, GM/player clients, and existing themes. Test on the actually installed Foundry V13/D&D5e versions; V14 compatibility has not been verified. See `INTEGRATION_TEST_NOTES.md` and `docs/DEVELOPMENT_STATUS.md` for specific acceptance steps.
+
+## Preserved source and history
+
+This checkpoint changes only `module.json`, `README.md`, `INTEGRATION_TEST_NOTES.md`, `docs/DEVELOPMENT_STATUS.md`, this handoff, `src/constants/module-constants.js`, `src/engines/hex-travel/HexTravelConsole.js`, `src/engines/hex-travel/HexTravelEngine.js`, `src/styles/zft-overland-travel.css`, and adds `src/engines/hex-travel/HexNavigationResolution.js`. All existing assets and packs retain their prior Git blob SHAs; no data-bearing files are modified.
+
+---
+
+## Archived handoff (historical snapshot, superseded above)
+
 # ZFT Overland Travel | Chat Continuity Checkpoint
 
 **Prepared:** October 28, 2026 at 05:05 PM EDT  

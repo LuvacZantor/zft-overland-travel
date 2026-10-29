@@ -1,12 +1,36 @@
 # ZFT Overland Travel
 
-Current local test package: `0.4.0-dev.79` for Foundry V13 (live validation pending). The Foundry module ID remains `zft-overland-travel`.
+Current local test package: `0.4.0-dev.86` for Foundry V13 (live validation pending). The Foundry module ID remains `zft-overland-travel`.
 
 Foundry VTT module implementing Zantor's hex-based overland travel and independent encounter-generation framework.
 
 ## Version
 
-Current module build: **`0.4.0-dev.79`** (development only). The original generic framework was developed as `0.3.1`; its earlier notes remain below for historical context.
+Current module build: **`0.4.0-dev.86`** (development only). The original generic framework was developed as `0.3.1`; its earlier notes remain below for historical context.
+
+## 0.4.0-dev.86 | Dashboard tile labels only
+
+The existing four dashboard overview tiles remain in the same compact row with unchanged values, behavior, heights, progress bars and responsive wrapping. Labels now read DAY, TRAVEL HOURS TODAY, HEXES COMPLETE and TRAVEL HOURS LEFT. The final value still displays an em dash when no active hex has pending hours. All gameplay mechanics, world settings, ledger, themes and Expedition Log remain unchanged. Derived from the complete local dev.85 ZIP; local validation only, live Foundry acceptance pending. No GitHub writes.
+
+## 0.4.0-dev.85 | Four-tile dashboard summary
+
+Dashboard overview now presents Day, Travel Today, Hexes Complete, and Hex Remaining as four compact summary tiles (two by two at narrow widths). Removed the duplicate text-only Traveled Today, Safe Hours Remaining, Forced March Hours, and Current Hex Remaining grid. Both original safe-hour and current-hex progress bars, conditional next-action callout, daylight/ETA, existing travel rules, ledger, Force March, role roster, themes, and Expedition Log remain unchanged. Zero pending hex hours are shown as an em dash instead of suggesting an active hex. Derived from complete local dev.84 ZIP; locally tested, live Foundry acceptance pending; no GitHub changes.
+
+## 0.4.0-dev.84 | Compact resume and Forced March accordion
+
+The unfinished-hex resume confirmation is shorter, with an accurate safe-hour/forced-hour summary and a context-sensitive **Review Forced March** action when no safe hours remain. The Navigation and Travel Time panels have slightly tighter vertical spacing while retaining all dice, GM status, detail disclosures, and total-hour calculations. Forced March history now auto-expands only the newly resolved current hour while the hex remains unfinished; a new hour closes the previous one, and completing the hex collapses all completed Forced March entries. Manual review remains possible one hour at a time. These changes affect presentation and expansion state only, not game rules, saves, exhaustion, world time, persistent history or event engines. Live Foundry acceptance pending.
+
+## 0.4.0-dev.83 | Compact summary-first Travel Log card
+
+The Travel Log now shows two aligned Navigation rows with the name first and the saved d20/DC/GM status on the right. The Travel Time section puts the recorded total first, and moves each existing d4 die face next to its corresponding saved hour calculation. An optional Original roll detail disclosure preserves the original math and dice markup. Unsupported historical records fall back without changing stored data. No travel mechanics, world state, themes, or other engines were modified. This is a local presentation-only test build, not live-verified.
+
+## 0.4.0-dev.81 | Cooperative Navigation check
+
+Guide (Wisdom / Survival) and assigned, present Vanguard (Strength / Athletics) are requested concurrently at new-hex start. Both use the same chosen DC, with independent GM success/failure overrides. Each failed check adds its own 1d4 hours, **without the former Guide +2 modifier**. Base travel time stays `ceil(2d4 × pace multiplier)` and delays are added afterward. The travel roll remains a single native Foundry Roll, and the travel card identifies both checks and delay dice. If the Vanguard is absent or unassigned, Guide navigates unassisted with no automatic obstacle failure. Each completed card stores its structured Navigation result for later expedition-engine integration. An unfinished hex resumes its previously rolled remaining hours without new checks. No other role categories, event outcomes or tab integrations are added; the Roles and Events tabs remain placeholders. Live Foundry acceptance is pending.
+
+## 0.4.0-dev.80 | Expedition Log tabs (presentation-only)
+
+The existing Expedition Log now has Travel, Roles, and Events tabs. Travel remains the default and uses the original cards, history and persistence; Roles and Events are clearly marked placeholders. Switching tabs does not roll dice or write expedition state. New event/role logging is not implemented in this build.
 
 ## 0.4.0-dev.79 | Role-pair grouping correction
 
@@ -14,7 +38,7 @@ Only Vanguard and Tracker have exchanged activity groups. Vanguard remains STR (
 
 ## Expedition roles (feature branch)
 
-The GM **Expedition Roles** panel groups six role assignments into three paired activities: Navigation (Guide + Vanguard), Reconnaissance (Scout + Tracker), and Expedition Support (Forager + Coordinator). Each actor may hold at most one expedition assignment. Their assignments appear in the GM/player Present Party roster. The cooperative resolution rules (both succeed = strong; one = partial; neither = failed) are documented design and are **not yet executed by the existing hex roll workflow**. Existing navigation, duration, forced march and Constitution calculations are unchanged. Live Foundry V13 verification remains pending.
+The GM **Expedition Roles** panel groups six role assignments into three paired activities: Navigation (Guide + Vanguard), Reconnaissance (Scout + Tracker), and Expedition Support (Forager + Coordinator). Each actor may hold at most one expedition assignment. Their assignments appear in the GM/player Present Party roster. The Navigation pair now rolls and resolves together when a present Vanguard is assigned; the other two category mechanics remain pending. Forced March and Constitution calculations are unchanged. Live Foundry V13 verification remains pending.
 
 ## Canonical terminology
 

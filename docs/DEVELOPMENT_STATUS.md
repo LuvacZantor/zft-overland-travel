@@ -1,3 +1,47 @@
+## 0.4.0-dev.86 | Dashboard label clarification (local build, not live verified)
+
+Source: complete dev.85 manual-install ZIP. Only the two travel-hour tile labels are clarified: TRAVEL TODAY -> TRAVEL HOURS TODAY and HEX REMAINING -> TRAVEL HOURS LEFT. Day and Hexes Complete remain as before. Tile count, progress bars, next actions, stored state, navigation, Forced March, history, themes and all integrations are preserved. No GitHub changes.
+
+---
+
+## 0.4.0-dev.85 | Consolidated dashboard summary
+
+Based on the complete dev.84 manual-install module. The Dashboard overview now displays Day / Travel Today / Hexes Complete / Hex Remaining in four theme-aware tiles (responsive to two columns on narrow widths), with the original two labeled progress bars immediately below and no duplicated text-only hour breakdown. Next-action, daylight and ETA stay intact. When no hex is pending, Hex Remaining displays an em dash. Only Dashboard markup, scoped CSS, version and documentation changed. No mechanics, state schema, world time, historical log, Forced March or other module files modified. Local validation only, Foundry live acceptance pending, no GitHub write.
+
+---
+
+## 0.4.0-dev.84 | Forced March history expansion and compact travel confirmation
+
+Derived from complete local dev.83 manual-install package (not the outdated dev.79 GitHub checkpoint). Small presentation-only changes: resume confirmation condenses summary and reflects Forced March context; Navigation and Travel Time spacing reduced modestly; only the current resolved Forced March hour may auto-expand while the hex has pending travel, previous entries collapse on hour transitions, all collapse when hex completes, and only one manual historical entry can be open at a time. No gameplay, ledger, exhaustion, dice, or persistent history schema changes. Local testing pending; not pushed to GitHub.
+
+---
+
+## 0.4.0-dev.83 | Compact Hex Travel presentation-only test build
+
+Based on the complete 0.4.0-dev.82 ZIP. Reworked only the read-only Hex Travel result renderer and scoped CSS to provide aligned Guide/Vanguard rows, prominent saved total hours, dice faces next to corresponding saved calculation rows, and an expandable original roll detail section. Existing navigation d20/d4 totals, role skills, pace, ledger, GM rulings, Forced March, themes, and saved records are untouched. Local checks only; Foundry V13 live verification pending. GitHub not modified.
+
+---
+
+# 0.4.0-dev.82 | Aligned Navigation travel-report rows (local test build)
+
+Derived directly from the complete dev.81 package, preserving all role assignments, skill checks, dice math, Saved Hex Travel records, GM ruling, time ledger and Forced March. The hex-log renderer now displays Guide and Vanguard in matching compact rows with character identity, evaluated d20 total, DC and status in aligned columns, with a narrow-width fallback. Historical Secondary and older cards remain viewable. The update changes only the runtime presentation code and scoped theme-aware CSS. Browser responsive layout checks passed; live Foundry testing pending. The feature branch still holds the dev.79 checkpoint; this dev.82 package was not committed.
+
+---
+
+# 0.4.0-dev.81 | Cooperative Navigation (local test build)
+
+**Local baseline:** dev.80 complete manual-install module ZIP. **GitHub base checkpoint:** `LuvacZantor/zft-overland-travel`, branch `feature/expedition-system`, commit `c5a487c97e4245ef27fdd57a928be4fc779f20d2` (dev.79). No GitHub writes authorized for dev.81.
+
+Guide Survival and present Vanguard Athletics are requested concurrently and independently adjudicated by GM. Failure of each adds one d4 hour without a fixed bonus; base `ceil(2d4 × pace)` preserved. Navigation results are recorded as structured card metadata; role/event tab placeholders and unrelated engines are unchanged. A missing Vanguard is unassisted, not failed. Unfinished-hex resume uses saved pending hours and does not roll again. Existing records, settings and original Mount Ironrot source preserved. Live Foundry validation pending.
+
+---
+
+# 0.4.0-dev.80 | Tabbed Expedition Log (local test build)
+
+Based on owner-approved dev.79 checkpoint in `feature/expedition-system`. Three Expedition Log tabs: Travel (existing log, default and preserved), Roles (placeholder) and Events (placeholder). Only presentation/navigation and version/testing documentation changed; no new role rolls, changes to skill definitions, event processing, persistence schema, or travel/Forced March mechanics. Local build only; not pushed to GitHub, Foundry V13/V14 live acceptance pending.
+
+---
+
 # 0.4.0-dev.79 | Role-group swap only (local test build)
 
 Derived directly from the complete `0.4.0-dev.77` installable ZIP. Swap Tracker and Vanguard between the paired categories only: Navigation is Guide (WIS Survival) + Vanguard (STR Athletics); Reconnaissance is Scout (DEX Stealth) + Tracker (INT Investigation); Expedition Support remains Forager (WIS Survival) + Coordinator (CHA Persuasion). All six original skill definitions, Actor role IDs, saved assignments, and core travel/Forced March mechanics remain unchanged. No situational-roll workflow is included. GitHub not modified; live acceptance pending.
