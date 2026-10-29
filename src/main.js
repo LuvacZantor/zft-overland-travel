@@ -1,4 +1,5 @@
-import { IronrotConsole, registerIronrotSettings, publishIronrotSnapshot, publishIronrotTravelCard, removeIronrotTravelCard, ironrotIdentity, ironrotGeneration, ironrotLogEpoch, ironrotRolePreferences, rememberIronrotRoles, rememberIronrotHex } from "./expeditions/mount-ironrot/IronrotConsole.js";
+import { registerHexTravelLegacySettings, migrateHexTravelSettings } from "./migration/hex-travel-v63.js";
+import { HexTravelConsole, registerHexTravelSettings, publishHexTravelSnapshot, publishHexTravelCard, removeHexTravelCard, hexTravelIdentity, hexTravelGeneration, hexTravelLogEpoch, hexTravelRolePreferences, rememberHexTravelRoles, rememberHexProgress, notifyHexCompletion, playHexTravelCue, preserveDepartingTravelDayDate } from "./engines/hex-travel/HexTravelConsole.js";
 import { MODULE_ID, MODULE_VERSION, MODULE_TITLE, SETTINGS, LOG_PREFIX } from "./constants/module-constants.js";
 import { TERRAIN, REGION_DANGER, TRAVEL_ROLES } from "./data/rules.js";
 import { ExpeditionState } from "./state/ExpeditionState.js";
@@ -20,12 +21,19 @@ console.log(`${LOG_PREFIX} 🛠️ v${MODULE_VERSION} | Loading ${MODULE_ID}`);
 
 Hooks.once("init", () => {
   ExpeditionState.registerSettings();
-  registerIronrotSettings();
+  registerHexTravelLegacySettings();
+  registerHexTravelSettings();
   ThemeManager.register();
   console.log(`${LOG_PREFIX} 🚀 v${MODULE_VERSION} | Initializing`);
 });
 
 Hooks.once("ready", async () => {
+  try { await migrateHexTravelSettings(); }
+  catch (error) {
+    console.error("[ZFT][HexTravel] World/client settings migration failed; workspace not initialized.", error);
+    ui.notifications?.error?.("Hex Travel migration failed. Expedition controls were not started; review F12 and restore from a backup before retrying.");
+    return;
+  }
   const module = game.modules.get(MODULE_ID);
   if (!module) {
     console.error(`${LOG_PREFIX} ❌ v${MODULE_VERSION} | Module record unavailable`);
@@ -51,25 +59,24 @@ Hooks.once("ready", async () => {
   };
 
   game.zftOverlandTravel = module.api;
-  // Only the Mount Ironrot implementation uses this bridge. It is not an API
-  // of the generic Travel Manager or shared expedition-state engines.
-  globalThis.ZFTMountIronrotConsole = Object.freeze({ publish: publishIronrotSnapshot, stage: publishIronrotTravelCard, removeStage: removeIronrotTravelCard, identity: ironrotIdentity, generation: ironrotGeneration, logEpoch: ironrotLogEpoch, rolePreferences: ironrotRolePreferences, rememberRoles: rememberIronrotRoles, hexStarted: rememberIronrotHex, prompt: options => IronrotConsole.prompt(options), registerPendingRoll: info => IronrotConsole.registerPendingRoll(info), unregisterPendingRoll: (key,token) => IronrotConsole.unregisterPendingRoll(key,token) });
-  IronrotConsole.onReady();
-  Hooks.on("updateActor", actor => { if (actor?.type === "character") IronrotConsole.refresh(); });
+  // Dedicated Hex Travel Engine bridge; the generic Travel Manager is separate.
+  globalThis.ZFTHexTravelConsole = Object.freeze({ publish: publishHexTravelSnapshot, stage: publishHexTravelCard, removeStage: removeHexTravelCard, identity: hexTravelIdentity, generation: hexTravelGeneration, logEpoch: hexTravelLogEpoch, rolePreferences: hexTravelRolePreferences, rememberRoles: rememberHexTravelRoles, hexStarted: rememberHexProgress, hexCompleted: notifyHexCompletion, cue: playHexTravelCue, preserveDayDate: preserveDepartingTravelDayDate, prompt: options => HexTravelConsole.prompt(options), registerPendingRoll: info => HexTravelConsole.registerPendingRoll(info), unregisterPendingRoll: (key,token) => HexTravelConsole.unregisterPendingRoll(key,token) });
+  HexTravelConsole.onReady();
+  Hooks.on("updateActor", actor => { if (actor?.type === "character") HexTravelConsole.refresh(); });
   // Scoped V13 application hook: only our pending forced-march CON prompts
   // qualify for placement. No global Foundry window or Action HUD changes.
   Hooks.on("renderApplicationV2", (application, element) => {
-    IronrotConsole.onOtherApplicationRendered();
-    IronrotConsole.positionExpeditionRollDialog(application, element);
+    HexTravelConsole.onOtherApplicationRendered();
+    HexTravelConsole.positionExpeditionRollDialog(application, element);
   });
   Hooks.on("closeApplicationV2", application => {
-    IronrotConsole.restoreExpeditionRollDialog(application);
-    IronrotConsole.onOtherApplicationRendered();
+    HexTravelConsole.restoreExpeditionRollDialog(application);
+    HexTravelConsole.onOtherApplicationRendered();
   });
   // V13 legacy and third-party windows should also pass in front of the
   // expedition panes; these hooks only adjust our own panes' z-index.
-  Hooks.on("renderApplication", () => IronrotConsole.onOtherApplicationRendered());
-  Hooks.on("renderDialog", () => IronrotConsole.onOtherApplicationRendered());
+  Hooks.on("renderApplication", () => HexTravelConsole.onOtherApplicationRendered());
+  Hooks.on("renderDialog", () => HexTravelConsole.onOtherApplicationRendered());
 
   if (game.user?.isGM) {
     try {
@@ -99,9 +106,9 @@ Hooks.once("ready", () => {
       { name: "zftOverlandTravel", title: "Travel Manager", icon: "fa-solid fa-map",
         order: 10, button: true, visible: true, gmOnly: true,
         onChange: () => { if (game.user?.isGM) TravelPanel.open(); } },
-      { name: "zftMountIronrot", title: "Expedition Dashboard", icon: "fa-solid fa-mountain",
+      { name: "zftHexTravelEngine", title: "Expedition Dashboard", icon: "fa-solid fa-mountain",
         order: 20, button: true, visible: true, gmOnly: false,
-        onChange: () => { void IronrotConsole.toggle(); } }
+        onChange: () => { void HexTravelConsole.toggle(); } }
     ]
   });
 });

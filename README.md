@@ -1,12 +1,12 @@
 # ZFT Overland Travel
 
-Current local test package: `0.4.0-dev.62` for Foundry V13 (live validation pending). The Foundry module ID remains `zft-overland-travel`.
+Current local test package: `0.4.0-dev.77` for Foundry V13 (live validation pending). The Foundry module ID remains `zft-overland-travel`.
 
 Foundry VTT module implementing Zantor's hex-based overland travel and independent encounter-generation framework.
 
 ## Version
 
-Current module build: **`0.4.0-dev.62`** (development only). The original generic framework was developed as `0.3.1`; its earlier notes remain below for historical context.
+Current module build: **`0.4.0-dev.77`** (development only). The original generic framework was developed as `0.3.1`; its earlier notes remain below for historical context.
 
 ## Expedition roles (feature branch)
 
@@ -81,7 +81,7 @@ The repository follows the authoritative ZFT development and release policy in `
 - [Development status and live acceptance checklist](docs/DEVELOPMENT_STATUS.md)
 - [Interface theme configuration](docs/THEMES.md)
 
-The feature branch is consolidating the original generic framework and the Mount Ironrot expedition interface into a unified workflow. Existing Mount Ironrot hex calculations and persistence remain intact during the transition. There is no automatic world-clock advancement from the New Travel Day control.
+The current development work is converting the Chapter 4 origin into a reusable Hex Travel Engine while retaining the independent generic Overland framework. Existing Mount Ironrot hex calculations and persistence remain intact during the transition. There is no automatic world-clock advancement from the New Travel Day control.
 
 
 ## Rules documentation
@@ -360,3 +360,112 @@ Expedition Roles assignments return to the inline pop-down within GM Expedition 
 - For Forced March party-CON adjudication, a failed save preselects **Apply +1 Exhaustion**; success still defaults to **Accept success**. Unrolled checks remain unresolved, and any previously saved GM choice is preserved. Nothing applies until the GM selects **Process Party Decisions**. Reroll results are re-evaluated under the same default rules while other recorded choices persist.
 - The Forced March ruling footer has two equal-width, two-line actions (**Process Party / Decisions**, **Pause / Exit / Saves Progress**) and stacks on narrow screens. Existing action callbacks and save checkpoints remain intact.
 - No changes to navigation, hex duration, forced-hour DC, outcomes, or the legacy source file. Static tests only; live GM/player Foundry verification pending.
+
+
+## v0.4.0-dev.63 | Hex Travel Engine naming and GM-selected navigation DC
+
+- Active Hex Travel files, symbols, CSS classes, data attributes, bridge, and toolbar action no longer use the Chapter 4 Ironrot names. Original MountIronrotV413.source.js retained byte for byte as archival source only.
+- GM chooses Custom DC (default 15) or Terrain + Region Danger in each new Hex Travel setup. Both selections are explicit; no environmental automation or scene inference.
+- One validated DC is used for Guide Midi roll requests, result adjudication, report text, and retained per-hex card metadata. Existing saved card and Forced March history remains intact.
+- Historical world/client setting values are copied once through src/migration/hex-travel-v63.js to the generic Hex Travel keys. No automatic deletion or rewriting of old setting records; the running engine only writes new keys.
+- Tested baseline remains Foundry V13.351 / D&D5e 5.2.5. V14 is not yet verified.
+- No changes to existing Forced March DC formula, base travel dice, pace multipliers, world clock behavior, or unrelated generic Overland engines.
+
+## v0.4.0-dev.64 | Migration startup recovery (V13 test build)
+
+- Correct scope-specific settings storage detection. World settings are stored as Setting documents in a Collection (`get`); client settings use localStorage-style `getItem`. The incorrect client lookup caused Hex Travel startup to abort on .63.
+- Preserve all existing world and client state and the original historical keys. A partially completed migration resumes only missing destinations, and does not overwrite any migrated or newly edited value.
+- Missing or failed client preference migration logs a warning and permits workspace startup with registered UI defaults; failed world migration remains fail-closed to protect expedition history.
+- No travel mechanics, DC selection rules, layout, theme, dependencies, source v4.13 reference or compendium contents changed. The fix still requires live Foundry V13.351 / D&D5e 5.2.5 GM and player testing.
+
+## v0.4.0-dev.65 | GM prompt toggles and compact Navigation Difficulty
+
+- Start / Continue closes its own initial Hex Travel setup when clicked again; New Travel Day similarly closes its uncommitted confirmation on a second click. Canceling either prompt writes no world ledger changes. A submitted decision, active Guide roll, or Forced March is still protected from button-based interruption.
+- Reorganized the initial Navigation Difficulty section with accessible segmented radio choices for Custom DC versus Terrain + Danger, paired terrain/danger inputs, an understated DC summary, and reduced redundant nested framing. Responsive narrow panes stack input controls. Existing GM-selected calculations, values, custom description, per-hex logging and mechanics are untouched.
+- Preserves dev.64 settings migration recovery, all role/attendance/editor functionality, travel history, theme presets, and original v4.13 source. Live Foundry V13.351/D&D5e 5.2.5 GM and player acceptance remains outstanding. No GitHub write.
+
+
+### Local 0.4.0-dev.67 | GM New Travel Day and optional Rest Recovery
+
+- Compact GM Day N to N+1 panel displays hours reset and unfinished-hex hours retained.
+- Optional time jump to next sunrise, midday, sunset, midnight or custom 12-hour clock time (5-minute steps). Sunrise/sunset require the active calendar's values; no 6 AM / 6 PM assumptions. A preview displays elapsed idle time. Default remains no time change.
+- Optional Rest Recovery 5e integration is only enabled when its GM prompt API is active. ZFT advances to bedtime then opens the provider's native GM rest UI; the GM selects Long Rest and party, and Rest Recovery owns resource changes and any additional rest-duration time advancement. No direct actor healing or duplicate 8-hour jump.
+- Next travel day still resets only expedition hours, preserves unfinished hex, and never requires Calendaria or Rest Recovery. Cancel/toggle off changes nothing. Rest workflow does not automatically reopen Guide travel.
+- When Rest Recovery is selected, the new day date remains pending until travel next records a calendar date, to avoid permanently stamping bedtime's pre-rest date. This is not an automatic rest-completion guarantee.
+- Hex-based world-time synchronization remains deferred to the next phase.
+
+
+## 0.4.0-dev.68 (local test build, not committed)
+
+- Added GM world setting **Advance world time during Hex Travel** (off by default). When enabled, committed safe and Forced March travel hours advance Foundry world time as they accrue, including partial hexes. No separate change on hex completion; no rest hours are added.
+- Travel clock updates are checkpointed in the existing world ledger. An interrupted or failed update requires explicit GM reconciliation; the engine never blindly replays it. Existing history, actor exhaustion adjudication, pending hex IDs and Rest Recovery remain preserved.
+- Corrected the New Travel Day Rest Recovery checkbox alignment on themed/narrow windows.
+- Live V13.351/D&D5e 5.2.5 GM and player acceptance is outstanding.
+
+
+## 0.4.0-dev.69 local test build (not committed)
+
+- Compact Hex Travel controls above Pace: GM difficulty modes/inputs, navigation DC and persistent world-clock checkbox in one summary row. No changes to travel hours, DC rules or existing ledger data.
+- New Travel Day now stores the GM client’s time preset, custom bedtime (hour, minute and AM/PM), and Rest Recovery checkbox preference. UI selection alone never advances time or performs a rest.
+- Corrected the checkbox and description alignment with independent label and input styling across ZFT themes and narrow windows.
+- Rest Recovery and Calendaria remain optional; the GM must explicitly confirm a new day and complete the rest in the provider UI.
+- Existing .68 clock synchronization and migration implementation retained. Requires live V13 GM/client verification; V14 is not verified.
+
+
+## 0.4.0-dev.70 local test changes
+
+- Expedition header shows current in-game date and clock time, read directly from Foundry/Calendaria. The `updateWorldTime` hook updates only the labels while the Dashboard is open. No polling, independent timer, world setting, or duplicate time authority.
+- Dashboard shows sunrise/sunset daylight status when Calendaria provides valid values, plus a read-only estimated arrival time for unfinished hexes with known travel duration. Time estimates do not start travel or apply nighttime penalties.
+- Nonstandard calendar hours and missing daylight data display unavailable status instead of inventing a time. Existing ledger, historical dates, resting and travel clock accounting are unchanged.
+- This is a V13 live-test candidate. No V14 compatibility claim.
+
+
+## 0.4.0-dev.72 | Calendaria display parity, clear travel wording, and day summary
+
+- Mirrors Calendaria's published visual tick and selected GM/player HUD time format including seconds when configured; clock start/stop, world-time commits and display format changes synchronize the header without rebuilding the Dashboard. No independent timer or world-time writes. Native time fallback when Calendaria is absent.
+- Existing optional Calendaria recommendation is preserved in `module.json`; it is not a required dependency. Live target remains Foundry V13.351 / D&D5e 5.2.5, not V14-certified.
+- Expedition Log day headers show separate Completed, In Progress, and Forced March check counts; no counts are reclassified or persisted anew.
+- Improves dashboard next-action, safe/forced-hour descriptions, sunrise/sunset temporal wording, and estimated-arrival language. Arrival row is hidden when no active hex exists. Display-only changes do not modify expedition records, roll logic, clock accounting, or the original Mount Ironrot source.
+- Live acceptance still needed for Calendaria version-specific hooks, GM/player display preferences, pause/stop boundaries, all themes and small windows.
+
+
+## 0.4.0-dev.72 | Hex travel day-hour history and log readability
+
+- Per-hex actual committed hours are recorded in the existing world ledger as additive `hexHourSegments` entries keyed by stable hex-card ID and expedition day. Safe hours and adjudicated Forced March hours are recorded once, at the same ledger checkpoint as completed travel. The existing clock synchronization and all travel calculations remain unchanged.
+- Completed hex headers show recorded travel duration; when one hex spans days, the expanded hex displays each day's hours and unfinished balance. The same stable hex appears on each relevant day, without generating a new roll/card. Older history with no per-day data retains its original rolled duration and clearly indicates any missing allocations.
+- Day/date are separate lines; day counts explicitly say Hex Completed, Hexes Completed, Hex in Progress, Hexes in Progress, and Forced March Checks as appropriate. The Dashboard NEXT instruction is its own two-line heading.
+- After the final hour commits, only the GM sees a six-second themed, nonblocking Hex Complete reminder. No automatic party-token movement or replay on refresh. When 8 safe hours have been reached, the notice warns that continuing may require Forced March.
+- Manual install ZIP with complete module; preserved original Mount Ironrot source, compendiums, migration logic, integrations and themes. Live Foundry V13/V14 acceptance pending. No GitHub write.
+
+## Local test build 0.4.0-dev.73 | Notification, audio and next-day log collapse
+
+- Hex Complete GM-only announcement is positioned over normal Foundry windows with the same opacity/blur dissolve technique used by ZFT Cinematics, without adding a Cinematics dependency. Only emitted on a saved, fully completed hex; duplicate notice IDs suppressed per session.
+- Optional GM-client sound cues for navigation success/failure, first Forced March prompt, and hex completion. Four original low-volume WAV assets bundled. Foundry Module Settings offers an enable toggle (off by default) and individual client volume (0–1). No player broadcast.
+- A confirmed New Travel Day collapses the prior day's log group and expands the new current day on every connected client. Canceled New Travel Day leaves expansion unchanged; earlier days may still be expanded manually.
+- No changes to travel calculations, DCs, effects, migrations, or original source. Local tests only; live V13 / V14 acceptance pending.
+
+## Local test build 0.4.0-dev.74 | Date preservation and GM prompt clarity
+
+- Hex Complete acknowledgement now supports click-to-dismiss, Enter, Space, or Escape with a ten-second automatic dissolve fallback; event never re-executes travel.
+- On confirmed New Travel Day, persist the departing day's calendar date before optionally advancing to bedtime. This preserves dates even for days with no travel events; a canceled dialog leaves state unchanged.
+- New days awaiting Rest Recovery show a provisional date; the current date label changes with world time without rebuilding or expanding history. Historical day dates are not rewritten.
+- New Travel Day preview shows `(next calendar day)` on its own success-colored line, and the summary distinguishes the old day's hours from the new day's reset zero counter and separately retained hex time.
+- No changes to rules, travel-hour calculations, Rest Recovery handling, compendiums, migrations, or saved world data schema. Live GM/player testing required.
+
+## Local test build 0.4.0-dev.75 | Hex completion acknowledgement
+
+- Each saved completion publishes a GM-owned world event for connected GM and player clients.
+- GM notices remain until dismissed by click, Enter, Space, or Escape; unacknowledged notices survive refresh in that GM client and are queued rather than overwritten.
+- Connected players receive a brief completion announcement which can be clicked away or fades after 10 seconds. Player alerts are silent and historical events do not replay at startup.
+- No change to travel math, dice, clock, rest, logs or historical expedition state.
+- Foundry V13.351 / D&D5e 5.2.5 requires live GM/player client acceptance.
+
+## Local test build 0.4.0-dev.76 | Clean Hex Complete reminder
+
+- Removed the redundant upper-right X control from GM and player Hex Complete notices. The whole notice remains clickable and keyboard accessible (Enter, Space, Escape).
+- GM notices remain visible until acknowledged and restore if pending after a refresh. Players can click to dismiss or wait for the existing 10-second automatic fade.
+- All other completion events, acknowledgement persistence, audio, travel math, dates, settings, and packs remain unchanged. Live multi-client Foundry testing pending.
+
+## Local test build 0.4.0-dev.77 | Confirm unfinished hex travel
+
+Built on the complete local dev.76 package; GitHub `develop` remains at the historical dev.62 checkpoint. Start / Continue now asks the GM to confirm before spending saved unfinished hours, including hours carried into a new travel day. The confirmation shows remaining hex hours, today's available safe hours, and the expected outcome (or Forced March choice). Cancel, Escape or closing the prompt leaves world time, ledger, hour history and saved progress unchanged, and the prompt appears again on the next attempt. On confirmation the unchanged travel-hour and Forced March engine runs, after checking the saved ledger has not changed while the prompt was open. All archived source, migrations, packs, themes, clock accounting, audio and notifications preserved. Local tests are not live V13 or V14 acceptance. No GitHub write.

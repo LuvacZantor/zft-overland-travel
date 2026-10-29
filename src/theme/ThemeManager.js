@@ -75,9 +75,9 @@ export const hasCustomTheme = theme => {
   return safe.preset !== "zantor" || Object.keys(safe.overrides).length > 0;
 };
 const LEGACY_TOKEN_MAP = Object.freeze({
-  "--zft-ir-amber":"accent", "--zft-ir-green":"success", "--zft-ir-red":"failure", "--zft-ir-text":"text",
-  "--zft-ir-muted":"muted", "--zft-ir-bg":"window", "--zft-ir-panel":"panel",
-  "--zft-ir-border":"border", "--zft-ir-parchment":"heading", "--zft-ir-copper":"border"
+  "--zft-hex-amber":"accent", "--zft-hex-green":"success", "--zft-hex-red":"failure", "--zft-hex-text":"text",
+  "--zft-hex-muted":"muted", "--zft-hex-bg":"window", "--zft-hex-panel":"panel",
+  "--zft-hex-border":"border", "--zft-hex-parchment":"heading", "--zft-hex-copper":"border"
 });
 export class ThemeManager {
   static register() {
@@ -93,7 +93,7 @@ export class ThemeManager {
     const safe = cleanTheme(theme);
     const active = hasCustomTheme(safe);
     const colors = themeColors(safe);
-    for (const id of ["zft-ironrot-console", "zft-ironrot-log", "zft-ironrot-workflow-window", "zft-overland-theme-window", "zft-ir-scale-window"]) {
+    for (const id of ["zft-hex-travel-console", "zft-hex-travel-log", "zft-hex-travel-workflow-window", "zft-overland-theme-window", "zft-hex-scale-window"]) {
       const node = document.getElementById(id);
       if (!node) continue;
       if (!active) {
