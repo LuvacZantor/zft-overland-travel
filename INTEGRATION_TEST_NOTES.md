@@ -1,3 +1,39 @@
+## 0.4.0-dev.88 | Reconnaissance / Support shared-record integration (live verification pending)
+
+1. Install dev.88 over a copied dev.87 test world. Confirm existing Travel history, shared records, role assignments, themes, Forced March history, world-clock setting, and player view remain intact.
+2. Use a dev.87-created record whose `reconnaissance` / `support` phases still show `notImplemented`. As GM click **Resolve Role Checks**. Verify that record can be selected/resolved without rerunning Navigation or travel dice.
+3. Assign/present Scout, Tracker, Forager, and Coordinator. Start a new hex, then Resolve Role Checks. Verify Scout Stealth + Tracker Investigation are requested together, followed by one GM ruling panel. Then verify Forager Survival + Coordinator Persuasion are requested together and reviewed separately. All checks use the hex's saved DC.
+4. Exercise rolled success/failure plus GM overrides. In `game.zftOverlandTravel.hexRecords.inspect()`, verify each result retains `total`, `rolledSuccess`, `ruling`, and effective `success`. Confirm the Roles tab shows the effective result and does not alter the Travel tab.
+5. Leave one role unassigned and, separately, assign a role to a character who is not present when the hex begins. Verify no prompt is generated for that slot and no automatic failure is invented. The Roles tab must identify the unavailable slot.
+6. Cancel a pair's GM review after rolls. Native roll chat may remain, but the shared record phase must remain unresolved and no later pair should be saved by that canceled action. Retry and confirm it resolves once.
+7. Complete travel before resolving the role phases, then Resolve Role Checks. Verify the completed record accepts its pending role results and travel counters/clock do not change. Start multiple unresolved records and verify the GM can choose the intended hex.
+8. During a role roll, use the existing pending-roll recovery controls (Resend Prompt / Roll as GM / Cancel Request). A superseded late response must not overwrite the accepted result.
+9. Interrupt an active record through Edit Travel Ledger, then attempt role resolution. Verify the interrupted record rejects late writes. Clear Expedition Log and confirm role records remain; Reset Travel clears them only through the existing reset workflow.
+10. Test GM and player Roles tabs at normal/narrow widths and all five themes. Players must remain read-only. Verify Events remains a placeholder and no Travel Quality, Momentum, Threat, Discovery, Complication, or Encounter state changes.
+
+Expected live target remains Foundry V13.351 / D&D5e 5.2.5 with the installed Midi-QOL and ZFT Tools versions. Report PASS/FAIL per row plus F12 errors. Static tests are not live acceptance.
+
+---
+
+## 0.4.0-dev.87 | Shared record live acceptance
+
+Follow the exact prerequisite, action, expected-result, and rollback checklist in [docs/HEX_RECORDS.md](docs/HEX_RECORDS.md). Use a copied test world, retain dev.86 and the pre-install world backup, and record the actual Foundry/D&D5e/Midi-QOL versions.
+
+1. Existing data and legacy unfinished travel survive upgrade; no automatic backfill.
+2. Setup/review/resume cancellation leaves travel counts and record history unchanged.
+3. One new sequence stores exact manual selections, present actors, assignments, original rolls, GM rulings, and dice.
+4. Pause, refresh, New Travel Day, and resume retain the same ID without rerolls.
+5. Safe hours and fully adjudicated Forced March hours update the record exactly once at the ledger checkpoint.
+6. Completion preserves history; another hex creates a different ID. Optional world time advances only through the existing clock logic.
+7. Both manual correction paths preserve/detach, Clear Log retains, and explicit Reset clears records.
+8. Read-only inspection works on GM/player clients; changing a returned object cannot edit stored data.
+
+Diagnostic: `console.log(JSON.stringify(game.zftOverlandTravel.hexRecords.inspect(), null, 2));`
+
+Status: live Foundry acceptance NOT TESTED. Node simulations and static/package checks are separate local evidence.
+
+---
+
 ## 0.4.0-dev.86 | Dashboard tile label wording (live Foundry acceptance pending)
 
 1. Open the Expedition Dashboard and confirm tile labels DAY, TRAVEL HOURS TODAY, HEXES COMPLETE, TRAVEL HOURS LEFT, in that order.

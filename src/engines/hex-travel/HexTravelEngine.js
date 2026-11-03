@@ -10,6 +10,7 @@ import { nextClockTarget, readExpeditionClock, clockText, advanceExpeditionClock
 import { normalizeNewDayPreferences } from "./NewTravelDayPreferences.js";
 import { appendHexHours } from "./HexTravelHourHistory.js";
 import { planHexTravelResume } from "./HexTravelResume.js";
+import { cloneHexRecordStore, startHexRecord, syncHexRecordProgress, markHexRecordLedgerCorrection } from "./HexTravelRecords.js";
 
 const DIFFICULTY_PREF_KEY = "hexTravelDifficultyPreferences";
 const CLOCK_SYNC_KEY = "hexTravelAdvanceWorldTime";
@@ -128,6 +129,9 @@ return (async () => {
       hourRerollPending: Array.isArray(value.hourRerollPending) ? value.hourRerollPending : [],
       marchHistory: Array.isArray(value.marchHistory) ? value.marchHistory : [],
       hexHourSegments: Array.isArray(value.hexHourSegments) ? value.hexHourSegments : [],
+      // The record collection belongs to this ledger, never to a display card.
+      // Clone it so a canceled/failed operation cannot mutate settings in memory.
+      hexRecords: cloneHexRecordStore(value.hexRecords),
       clockSyncPending: value.clockSyncPending && typeof value.clockSyncPending === "object" ? value.clockSyncPending : null,
       hexes: Math.max(0, Number(value.hexes) || 0)
     };
@@ -302,7 +306,11 @@ return (async () => {
       if ([result.day, result.hours, result.pending, result.hexes].some(v => v === null)) {
         return warn("Enter valid whole numbers. Day must be at least 1; all other values must be zero or greater.");
       }
-      await saveState({ day: result.day, hours: result.hours, pending: result.pending, hexes: result.hexes, hexHourSegments: state.hexHourSegments, hourResolved: [], hourRolls: {}, hourDecisions: {}, hourOutcomes: {}, hourRerolls: {}, marchHistory: [] });
+      const corrected = { day: result.day, hours: result.hours, pending: result.pending, hexes: result.hexes,
+        hexHourSegments: state.hexHourSegments, activeHexCardId: null,
+        hexRecords: markHexRecordLedgerCorrection(state.hexRecords, state.activeHexCardId, { before: state, after: result }),
+        hourResolved: [], hourRolls: {}, hourDecisions: {}, hourOutcomes: {}, hourRerolls: {}, marchHistory: [] };
+      await saveState(corrected);
       await publishStatus(loadState(), "Ledger corrected", "GM manually updated the travel ledger.");
       ui.notifications.info("Overland Travel ledger corrected. Run macro again to continue.");
       return;
@@ -318,7 +326,7 @@ return (async () => {
       ], close: () => null
     });
     if (confirmation !== "RESET") return warn("Full travel reset canceled. No data changed.");
-    await saveState({ day: 1, hours: 0, pending: 0, hexes: 0, hourResolved: [], hourRolls: {}, hourDecisions: {}, hourOutcomes: {}, hourRerolls: {}, marchHistory: [] });
+    await saveState({ day: 1, hours: 0, pending: 0, hexes: 0, hexRecords: cloneHexRecordStore(), hourResolved: [], hourRolls: {}, hourDecisions: {}, hourOutcomes: {}, hourRerolls: {}, marchHistory: [] });
     await publishStatus(loadState(), "Travel reset", "Expedition travel statistics were reset by the GM.");
     ui.notifications.info("Overland Travel statistics fully reset to Day 1.");
   }
@@ -801,12 +809,13 @@ return (async () => {
       state.hexes += 1;
       state.activeHexCardId = null;
     }
+    state.hexRecords = syncHexRecordProgress(state.hexRecords, state, committedHexId);
     await commitTravelHours(state, 1);
     await reportLedger(state, `Completed forced-march hour ${hour}, DC ${dc}.`);
     return true;
   }
 
-  async function finishTravel(hours, existingState, isResume) {
+  async function finishTravel(hours, existingState, isResume, recordDetails = null) {
     // On a new hex, persist all rolled hours immediately. On resume, those
     // hours are already recorded as unfinished, and MUST NOT be appended again.
     const state = { ...existingState };
@@ -814,6 +823,9 @@ return (async () => {
     let completedHexId = state.activeHexCardId;
     if (!isResume) {
       ensureCurrent();
+      // Do not overwrite another GM's progress/records after a suspended roll.
+      if (JSON.stringify(loadState()) !== JSON.stringify(existingState))
+        throw new Error("Travel progress changed while Navigation was resolving. No new hex was recorded; review the current ledger before starting again.");
       await globalThis.ZFTHexTravelConsole?.hexStarted?.(hours, state.hexes);
       // Only a newly rolled hex gets an ID. Legacy unfinished travel with no
       // saved ID remains unassociated rather than being linked by guesswork.
@@ -826,6 +838,9 @@ return (async () => {
       state.hourOutcomes = {};
       state.hourRerolls = {};
       state.hourRerollPending = [];
+      state.hexRecords = startHexRecord(state.hexRecords, {
+        ...recordDetails, id: hexCardId, number: state.hexes + 1, day: state.day, hour: state.hours
+      });
       await saveState(state);
     }
     if (!state.pending) return true;
@@ -833,6 +848,7 @@ return (async () => {
 
     const safe = Math.min(state.pending, Math.max(0, 8 - state.hours));
     if (safe > 0) {
+      const committedHexId = state.activeHexCardId;
       state.hexHourSegments = appendHexHours(state.hexHourSegments, state.activeHexCardId, state.day, safe);
       state.hours += safe;
       state.pending -= safe;
@@ -840,6 +856,7 @@ return (async () => {
         state.hexes += 1;
         state.activeHexCardId = null;
       }
+      state.hexRecords = syncHexRecordProgress(state.hexRecords, state, committedHexId);
       await commitTravelHours(state, safe);
       await reportLedger(state, `${safe} safe travel hour(s) completed.`);
     }
@@ -1084,6 +1101,14 @@ return (async () => {
   if (!pace || !navRoller || (secondary && !secRoller))
     return warn("Invalid pace or the selected Guide/Vanguard roller is offline or lacks Owner permission.");
   ensureCurrent();
+  // Freeze the GM's selections and participants for this travel sequence.
+  // Custom DC retains null terrain/danger; no map information is inferred.
+  const recordContext = foundry.utils.deepClone({
+    identity: identity(), difficulty: navigationDifficulty,
+    pace: { id: input.pace, name: pace.name, multiplier: pace.multiplier },
+    party: actors.map(actor => ({ actorUuid: actor.uuid, name: actor.name })),
+    assignments: { ...assignments, guide: nav.uuid }
+  });
 
   // For the navigation skill check, environmental disadvantage is always present.
   // At slow pace Survival advantage cancels it. The native Midi dialog remains editable.
@@ -1374,7 +1399,16 @@ return (async () => {
       } });
     travelTimeRolled = true;
     globalThis.ZFTHexTravelConsole?.cue?.(success ? "navigationSuccess" : "navigationFailure");
-    await finishTravel(hours, travelState, false);
+    await finishTravel(hours, travelState, false, {
+      ...recordContext, dice,
+      navigation: {
+        ...navigation,
+        guide: { ...navigation.guide, actorName: nav.name, skill: "sur", ability: "wis",
+          rolledSuccess: autoGuide, rollerId: navResult.roller?.id ?? null },
+        vanguard: secondary ? { ...navigation.vanguard, actorName: secondary.name, skill: "ath", ability: "str",
+          rolledSuccess: autoVanguard, rollerId: secResult.roller?.id ?? null } : null
+      }
+    });
   } catch (error) {
     // Once dice have been rolled and a travel ledger might have been saved,
     // never erase the history card because a world-clock update failed.

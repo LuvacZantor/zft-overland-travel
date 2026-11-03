@@ -1,3 +1,74 @@
+# ZFT Overland Travel | Current dev.88 Development Handoff
+
+**Checkpoint:** `0.4.0-dev.88`, November 2, 2026.  
+**Repository:** `LuvacZantor/zft-overland-travel`.  
+**Authoritative source branch:** `feature/expedition-system`; this checkpoint advances the branch from dev.86 to the complete owner-supplied dev.88 source.  
+**Module source evidence:** owner-uploaded `0.4.0-dev.88` manual-install ZIP, 90 module files, SHA-256 `8596a518448d063b5b12754cfa206c81e819f59259722bb0da90268beafc0a6e`.  
+**Design checkpoint:** `docs/EXPEDITION_SYSTEM_DESIGN_1.1_DRAFT.md` plus `docs/COMPLICATION_CONTENT_LIBRARY_DRAFT.md`.  
+**GitHub scope:** development feature-branch checkpoint only. No `main` merge, tag, GitHub Release, or deployment is included.  
+**Evidence:** dev.88 remains locally/simulated validated; live Foundry acceptance remains pending.
+
+## Mandatory next-chat baseline
+
+1. Re-read current `LuvacZantor/zft-standards/main/PROJECT-INSTRUCTIONS.md` and all applicable current standards, then inspect this repository's actual `feature/expedition-system` HEAD.
+2. Use the complete dev.88 source on this branch as the implementation baseline. Do not fall back to dev.86, dev.77, or an older ZIP.
+3. Read `docs/EXPEDITION_SYSTEM_DESIGN_1.1_DRAFT.md` before further Expedition System design or implementation. The approved design is settled through the Complication Engine foundation.
+4. Read `docs/COMPLICATION_CONTENT_LIBRARY_DRAFT.md` for the 384-entry draft complication content library, Standard/Major framing, suggested responses, outcome guidance, consequence identities, Support applicability, and Threat eligibility.
+5. Preserve the shared hex-record/ledger boundary, planned-vs-committed time separation, all six fixed role skills, themes, packs/assets, optional Calendaria/Rest Recovery behavior, GM/player permissions, and exact original `src/expeditions/mount-ironrot/MountIronrotV413.source.js`.
+6. No future GitHub write is implied by this checkpoint. Each later remote write still requires fresh task-specific owner authorization.
+
+## Implemented dev.87-dev.88 baseline
+
+- **dev.87:** persistent shared travel-sequence/hex record freezes expedition context, party/role assignments, Navigation resolution, travel dice, committed-hour progress, status/corrections, and phase state. The travel ledger remains authoritative for committed hours and world-clock changes.
+- **dev.88:** Reconnaissance (Scout Stealth + Tracker Investigation) and Expedition Support (Forager Survival + Coordinator Persuasion) resolve from the frozen shared record with independent GM adjudication while preserving original and effective outcomes. Roles tab displays Navigation, Reconnaissance, and Support.
+- Travel Quality, Momentum, Event, Complication, Quiet Travel, Opportunity/Discovery, Threat, and Encounter integration described in the 1.1 design remains **design-only** unless a future build explicitly implements it.
+
+## Approved design checkpoint through Complication
+
+- Staged workflow: Navigation -> Reconnaissance -> Expedition Support -> Travel Quality -> Momentum -> Event -> Event Resolution.
+- Planned travel duration is separate from committed travel time; design-stage delays never advance the ledger or world clock.
+- Reconnaissance controls information quality: Full / Partial / No Advance Intelligence.
+- Support creates hex-local Supply Readiness and Operational Readiness; each may mitigate one relevant consequence by one tier.
+- Travel Quality uses the approved success/failure point model and shifts Momentum only.
+- Event roll is `1d20 + Momentum modifier`, clamped 1-20: Threat 1-5, Complication 6-10, Quiet Travel 11-15, Opportunity 16-20.
+- Complication uses six categories: Navigation, Environment, Resources, Omen, Social, Magical / Strange. Each category uses `d8 primary -> d8 detail`.
+- Standard/Major severity uses the shared Tier 0-4 consequence ladder. Category-specific consequences and the full draft content library are documented in the two design files above.
+- Complication content is intended to become Journal/compendium-backed content with stable metadata; rules/state logic remains in code.
+- Detailed Threat Engine behavior is intentionally deferred.
+
+## Next design target
+
+Continue with **Quiet Travel**. After that: Opportunity / Discovery, Threat, then Encounter.
+
+Do not implement those remaining design-only systems merely because they are documented.
+
+---
+
+# ZFT Overland Travel | Prior dev.87 Development Handoff
+
+**Current local build:** `0.4.0-dev.87`, November 2, 2026.  
+**Repository baseline:** `LuvacZantor/zft-overland-travel`, `feature/expedition-system`, commit `caccc9f1acd46b97f05c8e60813bfc7efc871fcc` (`0.4.0-dev.86`).  
+**GitHub status:** unchanged at dev.86. No remote write is authorized or performed.  
+**Current scope:** shared saved record for each hex travel sequence, with all existing game mechanics preserved. Remaining role and event integration is still queued.  
+**Delivery:** complete manual-install `zft-overland-travel-v0.4.0-dev.87.zip`; includes current source, tests, preservation documentation, and this handoff.  
+**Evidence:** locally validated: 32 automated tests, 42 JavaScript syntax checks, 103 relative imports, and complete package validation. Live Foundry acceptance pending.
+
+## Next-chat baseline and scope
+
+Read current central PROJECT-INSTRUCTIONS.md and applicable standards from GitHub. If continuing this build, inspect the complete dev.87 ZIP before replacing it with the older remote dev.86 source. The owner approved a local build and testing guidance, not a repository write. Read `docs/HEX_RECORDS.md` and `docs/LOCAL_VALIDATION_DEV87.md` for the data contract, original-package comparison, exact source changes, tests, and acceptance requirements.
+
+The owner clarified that the GM continues to select conditions for each crossing. This is not a persistent geographic-map registry. Use the existing hex-card ID as the travel-sequence identifier. Keep the existing ledger authoritative for hours and clock checkpoints, and the generic expedition state separate for Momentum/Threat until their integration is deliberately implemented.
+
+The new field `hexTravelLedger.hexRecords` owns schema-1 shared records. Creation occurs only at the first committed pending-hours save after Navigation review/dice. Progress updates occur with committed safe/Forced March hours. Existing old sequences remain unrecorded. Manual edits retain/detach; Clear Log retains; full Reset clears. Read API is `game.zftOverlandTravel.hexRecords`.
+
+Preserve all original source, packs, assets, history, themes, skill definitions, calendar/rest behavior, and GM/player permissions. The owner supplied an installed dev.86 ZIP with five additional unreferenced older source files; all are retained unchanged. Its dev.78 handoff is archived in `docs/history/INSTALLED_DEV86_HANDOFF.md` and is historical only.
+
+A binary-only downgrade to dev.86 can drop the additive records during later travel because the older loader whitelists known fields. Complete rollback uses dev.86 plus the pre-upgrade world backup. Do not claim live V14 support from these local tests.
+
+---
+
+## Prior dev.86 handoff retained verbatim below
+
 # ZFT Overland Travel | Current Development Handoff
 
 **Checkpoint:** `0.4.0-dev.86`, October 29, 2026.

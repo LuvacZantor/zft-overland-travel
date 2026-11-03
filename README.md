@@ -1,12 +1,28 @@
 # ZFT Overland Travel
 
-Current local test package: `0.4.0-dev.86` for Foundry V13 (live validation pending). The Foundry module ID remains `zft-overland-travel`.
+Current local test package: `0.4.0-dev.88` for Foundry V13 (live validation pending). The Foundry module ID remains `zft-overland-travel`.
 
 Foundry VTT module implementing Zantor's hex-based overland travel and independent encounter-generation framework.
 
 ## Version
 
-Current module build: **`0.4.0-dev.86`** (development only). The original generic framework was developed as `0.3.1`; its earlier notes remain below for historical context.
+Current module build: **`0.4.0-dev.88`** (development only). The original generic framework was developed as `0.3.1`; its earlier notes remain below for historical context.
+
+## 0.4.0-dev.88 | Reconnaissance and Expedition Support resolution
+
+The shared dev.87 hex record now drives the two remaining paired expedition activities. The GM uses **Resolve Role Checks** to resolve the saved hex's Reconnaissance pair (Scout · Dexterity/Stealth + Tracker · Intelligence/Investigation) and Expedition Support pair (Forager · Wisdom/Survival + Coordinator · Charisma/Persuasion). Each pair uses the exact DC, present-party snapshot, and role assignments frozen when that hex began. Native Midi-QOL skill rolls are requested concurrently within the pair, followed by independent GM success/failure adjudication. Original totals and rolled outcomes remain stored when the GM overrides a result.
+
+The **Roles** tab is no longer a placeholder. It displays Navigation plus the saved Reconnaissance and Expedition Support results for every shared hex record. Unassigned roles and roles whose assigned character was absent when the hex started do not create invented rolls or automatic failures. New dev.88 records mark these two phases `pending`; existing dev.87 records with `notImplemented` can be resolved without reconstructing their context. Interrupted records reject late role results.
+
+This build does **not** calculate Travel Quality, shift Momentum, roll/modify Events, advance Threat, change supplies, alter travel hours, advance world time, or change Forced March/Exhaustion. Those engines remain queued for the next integration increment. Local validation only; live Foundry V13 acceptance pending; GitHub remains unchanged at the dev.86 feature-branch checkpoint.
+
+## 0.4.0-dev.87 | Shared saved record for each hex travel sequence
+
+Adds a versioned record within the existing travel ledger after confirmed Navigation and travel dice. The existing hex ID links the GM-selected conditions, present party and assignments, exact Navigation results/rulings, dice, and actual per-day travel hours. Safe and adjudicated Forced March hours update the record in the same ledger checkpoint. Pausing, refreshing, and New Travel Day retain that sequence. Legacy travel is not backfilled, manual ledger corrections preserve and detach records, Clear Log retains them, and explicit Reset clears them.
+
+Read-only API: `game.zftOverlandTravel.hexRecords.current()`, `.latest()`, `.get(id)`, `.list()`, and `.inspect()`. Record reads never write settings. Remaining role and event phases are explicitly not implemented. No map registration, automatic terrain selection, additional rolls, changed travel calculations, clock writer, or new role/event mechanics are introduced.
+
+Derived from dev.86 feature commit `caccc9f1acd46b97f05c8e60813bfc7efc871fcc`, compared with the owner's installed dev.86 ZIP, with its additional source files preserved. See [Shared Hex Travel Records](docs/HEX_RECORDS.md) for the data contract, testing, and rollback details. Local build only; live Foundry acceptance pending; GitHub remains at dev.86.
 
 ## 0.4.0-dev.86 | Dashboard tile labels only
 

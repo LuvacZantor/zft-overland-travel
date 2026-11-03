@@ -13,8 +13,9 @@ export const HEX_TRAVEL_ACTIVITIES = Object.freeze({
   nature: Object.freeze({ name: "Environmental Assessment", skill: "nat" })
 });
 
-/** Expedition role assignment model. Paired checks are a design checkpoint;
- * existing hex-duration, navigation and forced-march mechanics remain intact. */
+/** Expedition role assignment model. Navigation resolves in the travel workflow;
+ * Reconnaissance and Expedition Support resolve from the saved hex record.
+ * Existing hex-duration and forced-march mechanics remain intact. */
 export const EXPEDITION_PAIRS = Object.freeze([
   Object.freeze({ name: "Navigation", roles: ["guide", "vanguard"] }),
   Object.freeze({ name: "Reconnaissance", roles: ["scout", "tracker"] }),

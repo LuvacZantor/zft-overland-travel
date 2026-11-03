@@ -1,3 +1,19 @@
+## 0.4.0-dev.88 | Saved paired-role resolution and Roles tab
+
+Built from the complete verified dev.87 ZIP. Adds a GM **Resolve Role Checks** action that resolves Reconnaissance (Scout · DEX Stealth + Tracker · INT Investigation) and Expedition Support (Forager · WIS Survival + Coordinator · CHA Persuasion) against the DC and party/assignment snapshot already stored for that hex. Pair members roll concurrently through the existing Midi-QOL remote-roll pattern and receive independent GM rulings. Original totals/rolled outcomes are retained alongside effective GM outcomes. Unassigned or start-of-hex absent roles do not roll and are not treated as automatic failures. Existing dev.87 records with `notImplemented` phases can be resolved once; interrupted records reject late results.
+
+The Expedition Log **Roles** tab now renders Navigation, Reconnaissance, and Expedition Support directly from the shared hex record. Travel hours, Forced March, Exhaustion, clock integration, themes, packs, original Mount Ironrot source, Travel Quality, Momentum, Threat, and Events are unchanged. Local automated/static/package validation is required; live Foundry V13/D&D5e 5.2.5 acceptance remains pending. GitHub is not modified.
+
+---
+
+## 0.4.0-dev.87 | Shared hex travel record foundation
+
+Local build on feature/expedition-system commit `caccc9f1acd46b97f05c8e60813bfc7efc871fcc` (dev.86), also compared with the owner-supplied installed ZIP. Adds ledger-owned, versioned records and a read-only API. Original conditions, party, assignments, Navigation results, and dice remain associated with the existing stable hex ID. Actual safe/Forced March hours update in the same ledger checkpoint. Legacy records are not fabricated; corrections preserve/detach, Clear Log retains, and explicit Reset clears records. All remaining role/event mechanics stay unimplemented. Complete source and preservation details: [HEX_RECORDS.md](HEX_RECORDS.md).
+
+Current status: locally validated (32 automated tests, 42 JavaScript syntax checks, 103 relative imports); live Foundry acceptance pending. No GitHub write, merge, tag, release, or deployment. The historical entries below describe their original build-time state and do not supersede this current checkpoint.
+
+---
+
 ## 0.4.0-dev.86 | Dashboard label clarification (local build, not live verified)
 
 Source: complete dev.85 manual-install ZIP. Only the two travel-hour tile labels are clarified: TRAVEL TODAY -> TRAVEL HOURS TODAY and HEX REMAINING -> TRAVEL HOURS LEFT. Day and Hexes Complete remain as before. Tile count, progress bars, next actions, stored state, navigation, Forced March, history, themes and all integrations are preserved. No GitHub changes.
@@ -102,11 +118,11 @@ The GM's **Expedition Roles** editor replaces the Party Roles assignment panel. 
 
 | Activity | Roles and primary checks |
 | --- | --- |
-| Navigation | Guide (WIS Survival), Tracker (INT Investigation) |
-| Reconnaissance | Scout (DEX Stealth), Vanguard (STR Athletics) |
+| Navigation | Guide (WIS Survival), Vanguard (STR Athletics) |
+| Reconnaissance | Scout (DEX Stealth), Tracker (INT Investigation) |
 | Expedition Support | Forager (WIS Survival), Coordinator (CHA Persuasion) |
 
-A character may only be assigned one expedition role/check in each travel resolution. Unfilled roles are allowed except Guide, which is required for the existing hex navigation workflow. On future cooperative roll integration: 2 successes = strong, 1 = partial, 0 = failed; these paired outcomes are **not implemented yet**. The current hex engine still uses its established Guide/Navigator roll and may retain a previous legacy secondary assignment when that character remains assigned; other new roles currently display as assignments without automatically rolling. Existing saved navigator/secondary settings are read for display migration without rewriting travel history. The established hex duration, dice, calendar, forced march and Constitution saving throws are unchanged. Run a live Foundry V13 GM/player check before promoting or claiming compatibility.
+A character may only be assigned one expedition role/check in each travel resolution. Unfilled roles are allowed except Guide, which is required for the existing hex navigation workflow. Reconnaissance and Expedition Support now use their fixed checks from the saved hex record. Their display grade is 2 effective successes = strong, 1 = partial, and 0 = failed; unassigned/absent roles provide no check rather than an automatic failure. Navigation continues to use its established Guide/Vanguard travel workflow. Existing saved navigator/secondary settings are read for display migration without rewriting travel history. The established hex duration, dice, calendar, forced march and Constitution saving throws are unchanged. Run a live Foundry V13 GM/player check before promoting or claiming compatibility.
 
 
 ## Local 0.4.0-dev.30 test package (not yet committed)

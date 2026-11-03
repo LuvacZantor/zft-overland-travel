@@ -16,6 +16,7 @@ import { ThreatEngine } from "./engines/threat/ThreatEngine.js";
 import { TravelPanel } from "./ui/TravelPanel.js";
 import { RulesCompendium } from "./docs/RulesCompendium.js";
 import { ThemeManager } from "./theme/ThemeManager.js";
+import { HexTravelRecords } from "./engines/hex-travel/HexTravelRecords.js";
 
 console.log(`${LOG_PREFIX} 🛠️ v${MODULE_VERSION} | Loading ${MODULE_ID}`);
 
@@ -42,6 +43,7 @@ Hooks.once("ready", async () => {
 
   module.api = {
     state: ExpeditionState,
+    hexRecords: HexTravelRecords,
     travel: TravelEngine,
     roles: RoleEngine,
     momentum: MomentumEngine,

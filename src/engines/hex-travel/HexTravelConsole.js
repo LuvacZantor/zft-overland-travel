@@ -11,6 +11,8 @@ import { HEX_TRAVEL_ACTIVITIES, HEX_TRAVEL_NAVIGATION_SKILL, EXPEDITION_PAIRS, E
 import { DEFAULT_HEX_DIFFICULTY_PREFERENCES } from "./HexDifficulty.js";
 import { DEFAULT_NEW_DAY_PREFERENCES } from "./NewTravelDayPreferences.js";
 import { hexHoursForId } from "./HexTravelHourHistory.js";
+import { cloneHexRecordStore, markHexRecordLedgerCorrection } from "./HexTravelRecords.js";
+import { resolveHexTravelRolePhases } from "./HexTravelRoleResolution.js";
 import { expeditionClockView, formatCalendariaHud, timeLabel } from "./ExpeditionClockDisplay.js";
 import { ThemeManager } from "../../theme/ThemeManager.js";
 import { ThemeEditor } from "../../theme/ThemeEditor.js";
@@ -369,8 +371,12 @@ export async function publishHexTravelSnapshot(state, phase = "Travel status", d
   // Keep the new day's calendar date live until the next actual travel event.
   if (phase !== "New travel day awaiting rest") await recordFoundryTravelDay(Number(state?.day));
   await recordExpeditionLogDays(state?.day, phase);
+  const snapshotState = foundry.utils.deepClone(state);
+  // Durable records have one owner: the ledger. The UI snapshot remains small
+  // and does not become a second, potentially stale record collection.
+  if (snapshotState) delete snapshotState.hexRecords;
   await game.settings.set(MODULE_ID, SNAPSHOT_KEY, {
-    phase, detail, state: foundry.utils.deepClone(state), updatedAt: Date.now()
+    phase, detail, state: snapshotState, updatedAt: Date.now()
   });
 }
 
@@ -999,6 +1005,86 @@ function makeCards(snapshot) {
   return [...cards, ...groupedLog];
 }
 
+const HEX_ROLE_SKILL_FALLBACK = Object.freeze({
+  ath: "Athletics", inv: "Investigation", per: "Persuasion", ste: "Stealth", sur: "Survival"
+});
+function hexRoleSkillLabel(skill) {
+  const raw = globalThis.CONFIG?.DND5E?.skills?.[skill]?.label;
+  if (raw) {
+    const localized = game.i18n?.localize?.(raw);
+    return localized || raw;
+  }
+  return HEX_ROLE_SKILL_FALLBACK[skill] ?? String(skill ?? "Check").toUpperCase();
+}
+
+function roleOutcomeText(result) {
+  if (!result || result.status === "unassigned") return { label: "Unassigned", tone: "pending", detail: "No check" };
+  if (result.status === "absent") return { label: "Absent", tone: "pending", detail: "No check" };
+  if (result.status !== "checked") return { label: "Pending", tone: "pending", detail: "Awaiting check" };
+  const override = result.ruling && result.ruling !== "roll" ? " · GM override" : "";
+  return {
+    label: result.success ? "Success" : "Failure",
+    tone: result.success ? "success" : "failure",
+    detail: `${Number(result.total)} vs DC ${Number(result.dc ?? 0) || "?"}${override}`
+  };
+}
+function roleRow(result, fallback) {
+  const source = result ?? fallback;
+  const outcome = roleOutcomeText(source);
+  const name = source?.actorName || (source?.status === "absent" ? "Assigned character absent" : "Unassigned");
+  const check = source?.skill ? `${hexRoleSkillLabel(source.skill)} (${String(source.ability ?? "").toUpperCase()})` : "No check";
+  const total = source?.status === "checked" && Number.isFinite(Number(source.total)) ? hexTravelD20Total(Number(source.total)) : "—";
+  return `<div class="zft-hex-role-log-row zft-hex-result-${outcome.tone}"><span class="zft-hex-role-log-identity"><strong>${esc(source?.roleName ?? source?.role ?? "Role")}</strong><small>${esc(name)} · ${esc(check)}</small></span><span class="zft-hex-role-log-roll">${total}</span><span class="zft-hex-role-log-verdict">${esc(outcome.label)}</span></div>`;
+}
+function rolePhaseHtml(record, phase, title, roleIds) {
+  const saved = record.roles?.[phase];
+  const phaseState = record.phases?.[phase];
+  const resultMap = new Map((saved?.results ?? []).map(result => [result.role, result]));
+  const party = new Map((record.context?.party ?? []).map(entry => [entry.actorUuid, entry]));
+  const rows = roleIds.map(roleId => {
+    const role = EXPEDITION_ROLES[roleId];
+    const actorUuid = record.context?.assignments?.[roleId] || null;
+    const partyEntry = actorUuid ? party.get(actorUuid) : null;
+    const fallback = {
+      role: roleId, roleName: role?.name ?? roleId, skill: role?.skill ?? null,
+      ability: String(role?.ability ?? "").toLowerCase(), actorUuid,
+      actorName: partyEntry?.name ?? null,
+      status: !actorUuid ? "unassigned" : partyEntry ? "pending" : "absent"
+    };
+    const result = resultMap.get(roleId);
+    if (result && saved?.dc != null) result.dc = saved.dc;
+    return roleRow(result, fallback);
+  }).join("");
+  const grade = saved?.grade === "strong" ? "Strong" : saved?.grade === "partial" ? "Partial" : saved?.grade === "failure" ? "Failed" : saved?.grade === "unassigned" ? "No assigned checks" : null;
+  const status = phaseState === "completed" ? (grade ?? "Completed") : phaseState === "notImplemented" ? "Ready to resolve" : phaseState === "pending" ? "Pending" : esc(phaseState ?? "Pending");
+  return `<section class="zft-hex-role-log-phase ${phaseState === "completed" ? "is-complete" : "is-pending"}"><header><strong>${esc(title)}</strong><span>${esc(status)}</span></header><div class="zft-hex-role-log-rows">${rows}</div></section>`;
+}
+function renderRoleLog(storeValue) {
+  let store;
+  try { store = cloneHexRecordStore(storeValue); }
+  catch (error) {
+    console.error("[ZFT][HexTravel] Roles tab could not read shared records", error);
+    return `<div class="zft-hex-log-placeholder"><i class="fa-solid fa-triangle-exclamation" aria-hidden="true"></i><strong>Expedition Roles unavailable</strong><p>The saved hex record collection could not be read safely.</p></div>`;
+  }
+  if (!store.records.length) return `<div class="zft-hex-log-placeholder"><i class="fa-solid fa-users" aria-hidden="true"></i><strong>Expedition Roles</strong><p>Start and commit a new hex to create its shared expedition record.</p><small>Navigation, Reconnaissance, and Expedition Support will then appear here.</small></div>`;
+  return `<div class="zft-hex-role-log-feed">${[...store.records].reverse().map(record => {
+    const nav = record.navigation ?? {};
+    const navResults = [];
+    const navRole = (key, name, skill, ability) => {
+      const value = nav[key];
+      if (!value) return { role:key, roleName:name, skill, ability, status:"unassigned", actorName:null };
+      return { role:key, roleName:name, skill, ability, status:"checked", actorName:value.actorName,
+        total:value.total, rolledSuccess:value.rolledSuccess, ruling:value.ruling, success:value.success, dc:nav.dc };
+    };
+    navResults.push(navRole("guide", "Guide", "sur", "wis"));
+    navResults.push(navRole("vanguard", "Vanguard", "ath", "str"));
+    const navRows = navResults.map(result => roleRow(result, result)).join("");
+    const navGrade = nav.grade === "strong" ? "Strong" : nav.grade === "partial" ? "Partial" : nav.grade === "failure" ? "Failed" : nav.grade === "unassisted" ? "Unassisted" : "Completed";
+    const place = [record.context?.identity?.region, record.context?.identity?.world].filter(Boolean).join(" · ");
+    return `<article class="zft-hex-role-log-card"><header class="zft-hex-role-log-card-head"><span><strong>Hex ${esc(record.number)}</strong>${place ? `<small>${esc(place)}</small>` : ""}</span><span class="zft-hex-role-log-status">${esc(record.status)}</span></header><section class="zft-hex-role-log-phase is-complete"><header><strong>Navigation</strong><span>${esc(navGrade)}</span></header><div class="zft-hex-role-log-rows">${navRows}</div></section>${rolePhaseHtml(record,"reconnaissance","Reconnaissance",["scout","tracker"])}${rolePhaseHtml(record,"support","Expedition Support",["forager","coordinator"])}</article>`;
+  }).join("")}</div>`;
+}
+
 function syncCards(container, cards, dayOverrides = null, historyOverrides = null) {
   const existing = new Map([...container.children].map(node => [node.dataset.hexCard, node]));
   const desired = new Set(cards.map(card => card.key));
@@ -1465,6 +1551,7 @@ class ExpeditionConsole {
                   <button type="button" data-hex-action="travel"><i class="fa-solid fa-route"></i> Start / Continue</button>
                   <button type="button" data-hex-action="day"><i class="fa-solid fa-sun"></i> New Travel Day</button>
                   <button type="button" data-hex-action="roles"><i class="fa-solid fa-user-gear"></i> Expedition Roles</button>
+                  <button type="button" data-hex-action="resolve-roles"><i class="fa-solid fa-dice-d20"></i> Resolve Role Checks</button>
                   <button type="button" data-hex-action="attendance"><i class="fa-solid fa-users"></i> Party Attendance</button>
                   <button type="button" data-hex-action="manage"><i class="fa-solid fa-book-open"></i> Edit Travel Ledger</button>
                   <button type="button" data-hex-action="show-players"><i class="fa-solid fa-display"></i> Show to Players</button>
@@ -1489,7 +1576,7 @@ class ExpeditionConsole {
         <button type="button" role="tab" id="zft-hex-tab-events" data-hex-log-tab="events" aria-controls="zft-hex-panel-events" aria-selected="false" tabindex="-1"><i class="fa-solid fa-map" aria-hidden="true"></i> Events</button>
       </nav>
       <div class="zft-hex-scroll" id="zft-hex-panel-travel" role="tabpanel" aria-labelledby="zft-hex-tab-travel" data-hex-log-panel="travel" tabindex="0" aria-label="Scrollable expedition travel history"><div class="zft-hex-log-feed" data-hex-cards role="log" aria-label="Expedition travel history"></div></div>
-      <div class="zft-hex-scroll" id="zft-hex-panel-roles" role="tabpanel" aria-labelledby="zft-hex-tab-roles" data-hex-log-panel="roles" tabindex="0" hidden><div class="zft-hex-log-placeholder"><i class="fa-solid fa-users" aria-hidden="true"></i><strong>Expedition Roles</strong><p>Navigation, Reconnaissance, and Expedition Support results will appear here after their resolution rules are designed.</p><small>Placeholder only. No additional rolls or history are recorded.</small></div></div>
+      <div class="zft-hex-scroll" id="zft-hex-panel-roles" role="tabpanel" aria-labelledby="zft-hex-tab-roles" data-hex-log-panel="roles" tabindex="0" hidden><div data-hex-role-cards></div></div>
       <div class="zft-hex-scroll" id="zft-hex-panel-events" role="tabpanel" aria-labelledby="zft-hex-tab-events" data-hex-log-panel="events" tabindex="0" hidden><div class="zft-hex-log-placeholder"><i class="fa-solid fa-map" aria-hidden="true"></i><strong>Expedition Events</strong><p>Travel Quality, Momentum, Discoveries, Complications, Threat, and Encounters will appear here when their engines are integrated.</p><small>Placeholder only. The existing travel history is unchanged.</small></div></div>
       <div class="zft-hex-log-resize" data-hex-resize-log title="Drag to resize expedition log" aria-label="Resize expedition log"><i class="fa-solid fa-up-right-and-down-left-from-center"></i></div>`;
     if (game.user.isGM) {
@@ -1944,6 +2031,8 @@ class ExpeditionConsole {
     this.updateClockReadout(true);
     syncCards(dashboard, cards.filter(card => card.key === "party"));
     syncCards(log, cards.filter(card => !["overview", "party"].includes(card.key)), this.dayOpenOverrides, this.historyOpenOverrides);
+    const roleFeed = this.logElement.querySelector("[data-hex-role-cards]");
+    if (roleFeed) roleFeed.innerHTML = renderRoleLog(getLedger().hexRecords);
     // When a new hour begins or travel completes, collapse the prior hour,
     // regardless of saved DOM expansion state. A newly resolved active hour
     // alone may auto-open. Ordinary refreshes preserve deliberate manual
@@ -2506,6 +2595,21 @@ class ExpeditionConsole {
     // Allow a GM to open Reset while an older travel prompt is awaiting input.
     // Save/Reset themselves are still serialized via this.busy.
     if (this.busy) return;
+    if (action === "resolve-roles") {
+      if (this.travelActive) return ui.notifications.warn("Finish or pause the active travel workflow before resolving the remaining expedition roles.");
+      this.busy = true;
+      try {
+        await resolveHexTravelRolePhases({
+          prompt: options => this.prompt(options),
+          registerPending: info => this.registerPendingRoll(info),
+          unregisterPending: (key, token) => this.unregisterPendingRoll(key, token)
+        });
+      } catch (error) {
+        console.error("[ZFT][HexTravel] ❌ Expedition role resolution failed", error);
+        ui.notifications.error(`Expedition roles stopped: ${error.message}`);
+      } finally { this.busy = false; this.refresh(); }
+      return;
+    }
     const editor = this.workflowElement?.querySelector("[data-hex-editor]");
     if (["roles", "attendance", "manage", "reset", "identity", "clear-log"].includes(action)) return this.togglePanel(action);
     if (action === "panel-cancel") return this.togglePanel(this.panel);
@@ -2574,7 +2678,10 @@ class ExpeditionConsole {
           this.dismissPrompt();
           this.activeTravelTicket += 1;
           this.travelActive = false;
-          const state = { ...values, hexHourSegments: getLedger().hexHourSegments ?? [], activeHexCardId: null, hourResolved: [], hourRolls: {}, hourDecisions: {}, hourOutcomes: {}, hourRerolls: {}, marchHistory: [] };
+          const previous = getLedger();
+          const state = { ...values, hexHourSegments: previous.hexHourSegments ?? [], activeHexCardId: null,
+            hexRecords: markHexRecordLedgerCorrection(previous.hexRecords, previous.activeHexCardId, { before: previous, after: values }),
+            hourResolved: [], hourRolls: {}, hourDecisions: {}, hourOutcomes: {}, hourRerolls: {}, marchHistory: [] };
           await game.settings.set("zft-overland-travel", STATE_KEY, state);
           await game.settings.set(MODULE_ID, HEX_KEY, { totalHours: 0, baseHexes: 0 });
           await publishHexTravelSnapshot(state, "Ledger corrected", "GM manually corrected expedition progress.");
@@ -2586,7 +2693,7 @@ class ExpeditionConsole {
           this.dismissPrompt();
           this.activeTravelTicket += 1;
           this.travelActive = false;
-          const state = { ...DEFAULT_LEDGER, activeHexCardId: null, hourResolved: [], hourRolls: {}, hourDecisions: {}, hourOutcomes: {}, hourRerolls: {}, marchHistory: [] };
+          const state = { ...DEFAULT_LEDGER, activeHexCardId: null, hexRecords: cloneHexRecordStore(), hourResolved: [], hourRolls: {}, hourDecisions: {}, hourOutcomes: {}, hourRerolls: {}, marchHistory: [] };
           await game.settings.set("zft-overland-travel", STATE_KEY, state);
           await game.settings.set(MODULE_ID, CARDS_KEY, EMPTY_CARDS);
           // A new expedition gets fresh Foundry calendar dates, not stale dates
