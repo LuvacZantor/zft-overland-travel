@@ -3,6 +3,8 @@
  * persistence; they never roll dice, advance time, or infer historical results.
  */
 import { MODULE_ID, MODULE_VERSION } from "../../constants/module-constants.js";
+import { expeditionMomentumFromStore, isEventResolutionComplete } from "./HexExpeditionOutcome.js";
+import { cloneThreats } from "./HexThreatState.js";
 
 const SCHEMA = 1;
 const LEDGER_KEY = "hexTravelLedger";
@@ -82,7 +84,7 @@ export function startHexRecord(records, {
     phases: {
       navigation: "completed", travel: "inProgress",
       reconnaissance: "pending", support: "pending",
-      travelQuality: "notImplemented", momentum: "notImplemented", event: "notImplemented"
+      travelQuality: "pending", momentum: "pending", event: "pending", eventResolution: "pending"
     }
   });
   return store;
@@ -145,6 +147,68 @@ export function saveHexRolePhase(records, id, phase, resolution) {
   return store;
 }
 
+/** Save the deterministic Travel Quality -> Momentum -> Event pipeline.
+ * The store-level Momentum value is the only persistent Momentum owner for the
+ * staged Hex Travel workflow. Downstream event engines may remain pending.
+ */
+export function saveHexExpeditionOutcome(records, id, outcome) {
+  const store = cloneHexRecordStore(records);
+  if (!validId(id)) fail("expedition outcome requires a saved sequence ID.");
+  if (!isObject(outcome) || outcome.schema !== 1 || outcome.recordId !== id ||
+      !isCount(outcome.resolvedAt) || !isObject(outcome.travelQuality) ||
+      !isObject(outcome.momentum) || !isObject(outcome.event) || !isObject(outcome.eventResolution))
+    fail("invalid Expedition outcome.");
+  const record = store.records.find(entry => entry.id === id);
+  if (!record) fail(`sequence ${id} does not exist.`);
+  if (record.status === "interrupted") fail(`sequence ${id} was interrupted by a ledger correction.`);
+  if (record.phases?.reconnaissance !== "completed" || record.phases?.support !== "completed")
+    fail(`sequence ${id} must finish Reconnaissance and Expedition Support first.`);
+  if (record.phases?.event === "completed" || record.event) fail(`Event is already completed for sequence ${id}.`);
+  const currentMomentum = expeditionMomentumFromStore(store);
+  if (outcome.momentum.before !== currentMomentum)
+    fail(`Momentum changed before sequence ${id} could save its Event result.`);
+  if (!["pending", "resolved"].includes(outcome.eventResolution.status))
+    fail(`invalid Event Resolution status for sequence ${id}.`);
+  record.travelQuality = copy(outcome.travelQuality);
+  record.momentum = copy(outcome.momentum);
+  record.event = copy(outcome.event);
+  record.eventResolution = copy(outcome.eventResolution);
+  record.expeditionResolvedAt = outcome.resolvedAt;
+  record.phases = {
+    ...record.phases, travelQuality: "completed", momentum: "completed", event: "completed",
+    eventResolution: outcome.eventResolution.status
+  };
+  store.momentum = outcome.momentum.after;
+  return store;
+}
+
+/** Transitional bridge for downstream engines that are not yet implemented.
+ * It records a GM-authored resolution note without inventing time, resources,
+ * Threat changes, checks, or consequences.
+ */
+export function saveHexEventManualResolution(records, id, { notes = "", now = Date.now() } = {}) {
+  const store = cloneHexRecordStore(records);
+  if (!validId(id)) fail("manual Event resolution requires a saved sequence ID.");
+  const record = store.records.find(entry => entry.id === id);
+  if (!record) fail(`sequence ${id} does not exist.`);
+  if (record.status === "interrupted") fail(`sequence ${id} was interrupted by a ledger correction.`);
+  if (record.phases?.event !== "completed" || !isObject(record.event) || !isObject(record.eventResolution))
+    fail(`sequence ${id} has no Event ready for manual resolution.`);
+  if (isEventResolutionComplete(record.eventResolution)) fail(`Event Resolution is already complete for sequence ${id}.`);
+  const resolvedAt = timestamp(Number(now));
+  record.eventResolution = { ...record.eventResolution, status: "manual", resolvedAt,
+    notes: String(notes ?? "").trim() };
+  record.phases = { ...record.phases, eventResolution: "manual" };
+  return store;
+}
+
+export function hexRecordReadyForTravel(record) {
+  return !!record && record.status !== "interrupted" &&
+    record.phases?.reconnaissance === "completed" && record.phases?.support === "completed" &&
+    record.phases?.travelQuality === "completed" && record.phases?.momentum === "completed" &&
+    record.phases?.event === "completed" && isEventResolutionComplete(record.eventResolution);
+}
+
 function ledgerSummary(ledger) {
   if (!isObject(ledger)) fail("ledger summary requires a saved ledger object.");
   return copy(Object.fromEntries(["day", "hours", "pending", "hexes", "activeHexCardId"]
@@ -191,6 +255,12 @@ export class HexTravelRecords {
   static list() {
     return readSnapshot().store.records;
   }
+  static momentum() {
+    return expeditionMomentumFromStore(readSnapshot().store);
+  }
+  static threats() {
+    return cloneThreats(readSnapshot().store.threats);
+  }
   static inspect() {
     const { ledger, store } = readSnapshot();
     const game = globalThis.game;
@@ -201,6 +271,11 @@ export class HexTravelRecords {
       foundryVersion: game.version ?? game.release?.version ?? null,
       systemId: game.system?.id ?? null, systemVersion: game.system?.version ?? null,
       schema: store.schema, ledger: ledgerSummary(ledger), recordCount: store.records.length,
+      expedition: {
+        momentum: expeditionMomentumFromStore(store),
+        threatCount: cloneThreats(store.threats).length,
+        activeThreatCount: cloneThreats(store.threats).filter(threat => threat.status === "active").length
+      },
       current: copy(current), latest: copy(store.records.at(-1) ?? null),
       legacyActive: Number(ledger.pending) > 0 && current === null,
       clockSyncPending: copy(ledger.clockSyncPending ?? null)

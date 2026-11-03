@@ -1,12 +1,72 @@
 # ZFT Overland Travel
 
-Current local test package: `0.4.0-dev.88` for Foundry V13 (live validation pending). The Foundry module ID remains `zft-overland-travel`.
+Current local test package: `0.4.0-dev.97` for Foundry V13 (live validation pending). This is an experimental Expedition System 1.1 build and is not the recommended campaign-session build until live acceptance. The Foundry module ID remains `zft-overland-travel`.
 
 Foundry VTT module implementing Zantor's hex-based overland travel and independent encounter-generation framework.
 
 ## Version
 
-Current module build: **`0.4.0-dev.88`** (development only). The original generic framework was developed as `0.3.1`; its earlier notes remain below for historical context.
+Current module build: **`0.4.0-dev.97`** (development only). The original generic framework was developed as `0.3.1`; its earlier notes remain below for historical context.
+
+## 0.4.0-dev.97 | Dashboard visual rollback to dev.94 baseline
+
+Owner live testing found the dev.95/dev.96 transparency-tooltip layer distorted Dashboard typography and left an orphan tooltip surface above Hex Travel Remaining. Dev.97 deliberately restores the complete dev.94 Dashboard runtime markup and CSS as the visual baseline while retaining the dev.94 feature set: manual Reconnaissance/Support progression, current-hex Travel Quality/Momentum shift, persistent Momentum rail, direct Event Resolution, compact roster, Exhaustion refresh, rerolls, Recovery, and explicit travel commit. The dev.95/dev.96 Dashboard tooltip wrappers and cosmetic overrides are removed rather than patched again. Role-grade structured help from dev.94 remains. No travel math, Momentum rules, Event bands, ledger/world-time behavior, Threat state, Forced March/Exhaustion, integrations, themes, packs/assets, or protected Mount Ironrot source are changed.
+
+## 0.4.0-dev.94 | Manual role progression and persistent Momentum dashboard
+
+Dev.94 changes the normal staged Expedition flow so the GM explicitly advances each paired role group. A new hex now stops after Navigation/travel-duration staging and presents **Resolve Reconnaissance**. After that phase is saved, the primary action becomes **Resolve Expedition Support**. Only after Support is saved does the deterministic Travel Quality → Momentum → Event pipeline run automatically. Completed role phases remain locked, rerolls remain available only inside GM adjudication, Recovery remains for genuinely interrupted state, and no travel hours/world time are committed until the existing Commit/Continue Travel boundary.
+
+The Dashboard no longer mirrors the Log's Expedition Outcome card. **THIS HEX** now summarizes Travel Quality, exact Success/Failure Points, and this hex's Momentum change. A separate persistent **EXPEDITION MOMENTUM** rail shows all five states (`Deteriorating -2 → Risky -1 → Neutral 0 → Prepared +1 → Favored +2`), highlights the current state, displays its Event-roll modifier, states that Momentum carries into the next hex, and includes a compact Event d20 legend (`1–5 Major`, `6–10 Complication`, `11–15 Quiet`, `16–20 Opportunity`). The underlying Momentum/Event rules are unchanged.
+
+Role-grade help is now a structured hover/focus mini-card with a grade explanation plus separate Success Point / Failure Point values instead of one long sentence. Existing compact roster names, Exhaustion synchronization, direct Event resolution, completed-hex auto-collapse, themes, packs/assets, world-time/Forced March behavior, and the protected Mount Ironrot source remain unchanged. Dev.94 is locally validated only; live Foundry V13.351 / D&D5e 5.2.5 acceptance remains required. GitHub remains unchanged at the frozen dev.88 checkpoint.
+
+## 0.4.0-dev.93 | Event-resolution primary action and compact workflow polish
+
+Owner live testing of dev.92 exposed a normal-workflow dead end after Major Complication: the staged Event was correctly marked for GM resolution, but the primary control still showed **Resolve Expedition** and only warned the GM to use Recovery. Dev.93 makes pending manual Events a first-class primary action. The control now reads **Resolve Major Complication**, **Resolve Complication**, or **Resolve Opportunity** as appropriate and opens the existing Event Resolution dialog directly. Recovery remains reserved for genuinely interrupted workflows. Saving the resolution returns the primary action to **Commit Travel** without changing the Event roll or travel hours.
+
+The condensed two-column Expedition Roster now displays a unique first name only, while preserving the full Actor name in the card tooltip, sheet-opening action, rolls, logs, and saved records. If two present characters share the same first name, both fall back to their full names. Role grades such as **Strong**, **Partial**, and **Failed** now expose hover/focus tooltips explaining the grade and the actual Success/Failure Point contribution saved for that hex.
+
+When **Commit Travel** finishes the current hex, that completed hex card now collapses automatically in the Travel log. Partial commits and unfinished/Forced March hexes remain expanded. The completion collapse is presentation state only and does not alter ledger history, world time, Event resolution, or saved records.
+
+Dev.93 is built locally from the complete owner-tested dev.92 package. Automated/static/package validation is local evidence only; live verification remains required on Foundry V13.351 / D&D5e 5.2.5. GitHub remains unchanged at the frozen dev.88 checkpoint.
+
+## 0.4.0-dev.92 | Exhaustion refresh and role-log presentation cleanup
+
+Owner live testing of dev.91 showed that Expedition Roster Exhaustion could remain stale after a Long Rest even though the Actor's native D&D5e Exhaustion effect had changed. Dev.92 keeps the existing character-Actor refresh and also watches the native Exhaustion ActiveEffect create/update/delete lifecycle, coalescing those document changes before repainting the workspace. This is display synchronization only; ZFT does not apply Long Rest benefits or take ownership of Rest Recovery.
+
+Roster Exhaustion is now one compact footer line (`Exhaustion N · penalty`) instead of a stacked block. Navigation, Reconnaissance, and Expedition Support point totals now occupy their own full-width line under the phase heading (`1 Success Point · 2 Failure Points`) rather than being compressed into the upper-right status area. Existing d20 icons, Roll/Result columns, two-column roster, Expedition State, travel commitment, rerolls, Forced March/Exhaustion mechanics, and all dev.91 persistence remain unchanged.
+
+Dev.92 is built locally from the complete owner-tested dev.91 package. Automated/static/package validation is local evidence only; live verification remains required on Foundry V13.351 / D&D5e 5.2.5, especially Long Rest exhaustion removal on both GM and player clients. GitHub remains unchanged at the frozen dev.88 checkpoint.
+
+## 0.4.0-dev.91 | Commit-state repair, rerolls, and expedition-state clarity
+
+Dev.91 repairs two regressions found during live dev.90 testing. The primary travel control no longer shows a dead-looking **Commit Travel** button while the staged hex is still locked: unresolved stages now present **Resolve Expedition** with an explicit reason, while a fully resolved uncommitted hex presents a working **Commit Travel** action that uses the existing confirmation/ledger/world-time commit path. GM adjudication also restores the selectable **Re-roll Check** option for Navigation, Reconnaissance, and Expedition Support. A requested reroll replaces only that character's roll, preserves the other GM rulings, reopens the review, and does not persist the phase until a final no-reroll submission.
+
+Player-facing expedition information is clearer without removing the existing die presentation. Navigation, Reconnaissance, and Expedition Support log sections now include **CHARACTER / CHECK**, **ROLL**, and **RESULT** column headings; the Roll column retains the D&D5e-style d20 icon and total. Each phase header also shows its aggregate Success/Failure point contribution so the resulting Travel Quality can be followed from role checks to the combined score.
+
+The Dashboard now repeats the current **Travel Quality** and persistent **Momentum** in a compact **EXPEDITION STATE** block. Travel Quality is current-hex state and shows unavailable when no current result exists; Momentum remains visible as persistent expedition state. The Expedition Roster uses two columns at normal dashboard widths and falls back to one column only when the roster container is very narrow, preserving portraits, role/check labels, exhaustion/status, permissions, and sheet-opening behavior. Historical Travel Quality/Momentum/Event/Resolution remain in the Day → Hex log.
+
+Dev.91 is built locally from the complete dev.90 package after owner live testing identified the two regressions above. Automated/static/package validation is local evidence only; dev.91 still requires Foundry V13.351 / D&D5e 5.2.5 live acceptance. The remote `feature/expedition-system-1.1` branch remains unchanged at frozen dev.88 commit `fca67c46e7c1ca5921a031645c9d9fa99063b469`; no dev.89/dev.90/dev.91 source has been pushed.
+
+## 0.4.0-dev.90 | Automatic staged workflow, Recovery, and consolidated hex history
+
+Dev.90 removes the routine manual handoff between the staged Expedition phases. After Navigation and travel duration are saved, the module automatically starts Reconnaissance, then Expedition Support, then calculates Travel Quality, shifts Momentum once, and rolls the Event. Each stage still uses the same frozen shared hex record and GM adjudication. Completed stages are never rerolled by the automatic workflow. Quiet Travel remains a no-op; Complication, Major Complication, and Opportunity still require explicit GM Event Resolution before travel can be committed.
+
+Travel commitment remains intentionally separate from planning/adjudication. A staged hex never consumes travel hours or advances world time merely because the Expedition workflow finished. The primary GM action is now state-aware: **Start Travel** for a new hex, **Commit Travel** for the first explicit commitment of a fully resolved staged hex, and **Continue Travel** for a partially traveled hex. The dashboard tile formerly labeled `TRAVEL HOURS LEFT` is now **HEX TRAVEL REMAINING**, identifying the uncommitted hours still required to finish the current hex.
+
+The normal **Resolve Role Checks** control is replaced by a state-aware **Recovery** drawer for interrupted workflows, pending roll controls, unresolved Events, clock reconciliation, saved-state refresh, and diagnostics. **Show to Players** moves into the GM Controls header beside Undock. Rolled-but-unconfirmed Reconnaissance/Support results are visible as **Awaiting GM Confirmation** without being persisted before Save. The Travel log now consolidates Navigation, Reconnaissance, Expedition Support, Travel Quality, Momentum, Event, and Event Resolution under the hex's starting day; a cross-day continuation references the original hex instead of duplicating its role/Event history.
+
+Dev.90 is built locally from the complete dev.89 package that was partially live-tested in Foundry V13.351 / D&D5e 5.2.5. Dev.90 itself is **not live verified**. The remote `feature/expedition-system-1.1` branch remains at frozen dev.88 commit `fca67c46e7c1ca5921a031645c9d9fa99063b469`; no dev.89/dev.90 source has been pushed.
+
+## 0.4.0-dev.89 | Staged Travel Quality, Momentum, Events, and persistent Threat foundation
+
+Dev.89 turns the approved Expedition System 1.1 sequence into a live staged workflow. A newly rolled hex now saves Navigation and planned travel duration but **does not commit travel hours yet**. The GM first resolves Reconnaissance and Expedition Support, then uses the **Events** tab to calculate Travel Quality from all six effective role outcomes, shift the persistent Expedition Momentum track once, and roll the corrected Event Chart (`1d20 + Momentum`, clamped 1–20): Major Complication 1–5, Complication 6–10, Quiet Travel 11–15, Opportunity 16–20.
+
+Quiet Travel resolves immediately as the approved no-op. Major Complication, Complication, and Opportunity are recorded as routed but pending specialized engines; dev.89 provides a clearly labeled **Record Manual Resolution** bridge so the GM can record an adjudicated result and unlock the existing travel workflow without inventing unfinished mechanics. The bridge does not change travel duration, resources, Threat, checks, consequences, or world time. After Event Resolution is complete, the existing Start / Continue confirmation, safe-hour commits, Forced March, Exhaustion, per-day history, completion notices, and optional clock integration proceed normally. Legacy unfinished travel without a shared record retains its existing resume behavior.
+
+The Events tab also introduces the first persistent multi-Threat framework. Multiple named Threats may coexist and retain independent `Emerging → Developing → Imminent → Immediate` stages across hexes and travel days. Threat movement is explicit only; elapsed travel does not auto-advance or decay Threats. The GM can create, advance, reduce, resolve, and control player visibility. Immediate Threat is flagged for direct resolution, but Encounter handoff is intentionally not integrated yet. Automatic Threat creation from Complications, Recon-driven Threat visibility, the Complication content library, the Opportunity content engine, Discovery persistence, and the redesigned Encounter integration remain future increments.
+
+This build is locally validated only. It is based on the frozen dev.88 checkpoint `fca67c46e7c1ca5921a031645c9d9fa99063b469`. A separate GitHub branch `feature/expedition-system-1.1` was created at that exact checkpoint; the dev.89 source itself has **not** been pushed.
 
 ## 0.4.0-dev.88 | Reconnaissance and Expedition Support resolution
 
@@ -14,7 +74,7 @@ The shared dev.87 hex record now drives the two remaining paired expedition acti
 
 The **Roles** tab is no longer a placeholder. It displays Navigation plus the saved Reconnaissance and Expedition Support results for every shared hex record. Unassigned roles and roles whose assigned character was absent when the hex started do not create invented rolls or automatic failures. New dev.88 records mark these two phases `pending`; existing dev.87 records with `notImplemented` can be resolved without reconstructing their context. Interrupted records reject late role results.
 
-This build does **not** calculate Travel Quality, shift Momentum, roll/modify Events, advance Threat, change supplies, alter travel hours, advance world time, or change Forced March/Exhaustion. Those engines remain queued for later integration. Local validation only; live Foundry V13 acceptance pending. The complete dev.88 source and Expedition System 1.1 design checkpoint are now preserved on `feature/expedition-system`.
+This build does **not** calculate Travel Quality, shift Momentum, roll/modify Events, advance Threat, change supplies, alter travel hours, advance world time, or change Forced March/Exhaustion. Those engines remained queued after dev.88. Local validation only; live Foundry V13 acceptance pending. The complete dev.88 checkpoint is preserved on `feature/expedition-system`.
 
 ## 0.4.0-dev.87 | Shared saved record for each hex travel sequence
 
@@ -54,7 +114,7 @@ Only Vanguard and Tracker have exchanged activity groups. Vanguard remains STR (
 
 ## Expedition roles (feature branch)
 
-The GM **Expedition Roles** panel groups six role assignments into three paired activities: Navigation (Guide + Vanguard), Reconnaissance (Scout + Tracker), and Expedition Support (Forager + Coordinator). Each actor may hold at most one expedition assignment. Their assignments appear in the GM/player Present Party roster. In dev.88, all three paired role stages can resolve against the frozen shared hex record with independent GM adjudication. Travel Quality, Momentum, the Event Chart, and downstream Event Resolution remain design-only integration work. Forced March and Constitution calculations are unchanged. Live Foundry V13 verification remains pending.
+The GM **Expedition Roles** panel groups six role assignments into three paired activities: Navigation (Guide + Vanguard), Reconnaissance (Scout + Tracker), and Expedition Support (Forager + Coordinator). Each actor may hold at most one expedition assignment. Their assignments appear in the GM/player Present Party roster. The Navigation pair now rolls and resolves together when a present Vanguard is assigned; the other two category mechanics remain pending. Forced March and Constitution calculations are unchanged. Live Foundry V13 verification remains pending.
 
 ## Canonical terminology
 
@@ -66,8 +126,6 @@ The GM **Expedition Roles** panel groups six role assignments into three paired 
 Immediate Threat triggers an Encounter.
 
 ## Implemented
-
-> **Legacy generic framework note:** The items below describe capabilities already present in the older generic Overland framework. They are **not** evidence that the new dev.88 staged Expedition workflow has integrated Travel Quality, Momentum, Event Resolution, Quiet Travel, Threat, Discovery, or Encounter handling. The current staged design source of truth is `docs/EXPEDITION_SYSTEM_DESIGN_1.1_DRAFT.md`.
 
 - Persistent world-level expedition state
 - Terrain Base DC and Region Danger modifiers
@@ -100,6 +158,7 @@ game.zftOverlandTravel
 Main services:
 
 ```js
+game.zftOverlandTravel.hexRecords
 game.zftOverlandTravel.state
 game.zftOverlandTravel.travel
 game.zftOverlandTravel.roles
@@ -114,6 +173,20 @@ game.zftOverlandTravel.threat
 game.zftOverlandTravel.panel
 ```
 
+The staged Hex Travel record API is read-only to callers. Dev.89 adds:
+
+```js
+game.zftOverlandTravel.hexRecords.current()
+game.zftOverlandTravel.hexRecords.latest()
+game.zftOverlandTravel.hexRecords.get(id)
+game.zftOverlandTravel.hexRecords.list()
+game.zftOverlandTravel.hexRecords.momentum()
+game.zftOverlandTravel.hexRecords.threats()
+game.zftOverlandTravel.hexRecords.inspect()
+```
+
+The older generic `momentum`, `events`, `quietTravel`, and `threat` services remain available for compatibility but are not the rules authority for the new staged Expedition System 1.1 workflow.
+
 ## Installation note
 
 The module folder name must be exactly `zft-overland-travel`. That must match the module `id` in `module.json`.
@@ -122,7 +195,7 @@ The module folder name must be exactly `zft-overland-travel`. That must match th
 
 ## Development
 
-The repository follows the authoritative ZFT development and release policy in `zft-standards`. The **`develop` branch** holds the latest in-progress module source; `main` remains the accepted/stable branch and must not receive this dev build without separate approval.
+The repository follows the authoritative ZFT development and release policy in `zft-standards`. The experimental Expedition System 1.1 work is isolated on **`feature/expedition-system-1.1`**; that remote branch currently remains at the frozen dev.88 checkpoint. `develop` and `main` are not updated by this local dev.89 build.
 
 - [Development status and live acceptance checklist](docs/DEVELOPMENT_STATUS.md)
 - [Interface theme configuration](docs/THEMES.md)

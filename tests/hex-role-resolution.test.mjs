@@ -29,13 +29,13 @@ const context = {
 };
 function recordStore() { return startHexRecord(undefined, context); }
 
-test("dev.88 records mark remaining paired roles pending while later engines stay untouched", () => {
+test("dev.89 records stage later Expedition phases pending", () => {
   const record = recordStore().records[0];
   assert.equal(record.phases.reconnaissance, "pending");
   assert.equal(record.phases.support, "pending");
-  assert.equal(record.phases.travelQuality, "notImplemented");
-  assert.equal(record.phases.momentum, "notImplemented");
-  assert.equal(record.phases.event, "notImplemented");
+  assert.equal(record.phases.travelQuality, "pending");
+  assert.equal(record.phases.momentum, "pending");
+  assert.equal(record.phases.event, "pending");
 });
 
 test("Reconnaissance plan uses frozen assignments, party and DC", () => {
@@ -83,7 +83,7 @@ test("paired grade is strong with two successes, partial with one, failure with 
   assert.equal(rolePairGrade([{ status: "unassigned" }, { status: "absent" }]), "unassigned");
 });
 
-test("saving a role phase changes only that phase and keeps future engines unimplemented", () => {
+test("saving a role phase changes only that phase and keeps later Expedition stages pending", () => {
   const store = recordStore();
   const plan = buildRolePhasePlan(store.records[0], "reconnaissance");
   const result = buildRolePhaseResolution(plan, { scout: 17, tracker: 12 }, {}, 3000);
@@ -91,7 +91,7 @@ test("saving a role phase changes only that phase and keeps future engines unimp
   const record = next.records[0];
   assert.equal(record.phases.reconnaissance, "completed");
   assert.equal(record.phases.support, "pending");
-  assert.equal(record.phases.travelQuality, "notImplemented");
+  assert.equal(record.phases.travelQuality, "pending");
   assert.equal(record.roles.reconnaissance.grade, "partial");
   assert.equal(record.navigation.guide.total, 16);
   assert.equal(record.travel.rolledHours, 4);

@@ -62,9 +62,39 @@ Hooks.once("ready", async () => {
 
   game.zftOverlandTravel = module.api;
   // Dedicated Hex Travel Engine bridge; the generic Travel Manager is separate.
-  globalThis.ZFTHexTravelConsole = Object.freeze({ publish: publishHexTravelSnapshot, stage: publishHexTravelCard, removeStage: removeHexTravelCard, identity: hexTravelIdentity, generation: hexTravelGeneration, logEpoch: hexTravelLogEpoch, rolePreferences: hexTravelRolePreferences, rememberRoles: rememberHexTravelRoles, hexStarted: rememberHexProgress, hexCompleted: notifyHexCompletion, cue: playHexTravelCue, preserveDayDate: preserveDepartingTravelDayDate, prompt: options => HexTravelConsole.prompt(options), registerPendingRoll: info => HexTravelConsole.registerPendingRoll(info), unregisterPendingRoll: (key,token) => HexTravelConsole.unregisterPendingRoll(key,token) });
+  globalThis.ZFTHexTravelConsole = Object.freeze({ publish: publishHexTravelSnapshot, stage: publishHexTravelCard, removeStage: removeHexTravelCard, identity: hexTravelIdentity, generation: hexTravelGeneration, logEpoch: hexTravelLogEpoch, rolePreferences: hexTravelRolePreferences, rememberRoles: rememberHexTravelRoles, hexStarted: rememberHexProgress, hexCompleted: notifyHexCompletion, cue: playHexTravelCue, preserveDayDate: preserveDepartingTravelDayDate, prompt: options => HexTravelConsole.prompt(options), registerPendingRoll: info => HexTravelConsole.registerPendingRoll(info), unregisterPendingRoll: (key,token) => HexTravelConsole.unregisterPendingRoll(key,token), resumeWorkflow: recordId => HexTravelConsole.resumeExpeditionWorkflow(recordId), refresh: () => HexTravelConsole.refresh() });
   HexTravelConsole.onReady();
-  Hooks.on("updateActor", actor => { if (actor?.type === "character") HexTravelConsole.refresh(); });
+
+  // Character updates and D&D5e native Exhaustion ActiveEffect changes can
+  // arrive as separate document operations. Debounce them so a Long Rest or
+  // other Exhaustion change refreshes the roster after the Actor has settled,
+  // without repainting the dashboard for every intermediate effect mutation.
+  let rosterRefreshTimer = null;
+  const scheduleRosterRefresh = () => {
+    if (rosterRefreshTimer) clearTimeout(rosterRefreshTimer);
+    rosterRefreshTimer = setTimeout(() => {
+      rosterRefreshTimer = null;
+      HexTravelConsole.refresh();
+    }, 50);
+  };
+  const isExhaustionEffect = effect => {
+    if (!effect) return false;
+    if (effect.id === "dnd5eexhaustion0") return true;
+    if (effect.statuses?.has?.("exhaustion")) return true;
+    if (effect.getFlag?.("core", "statusId") === "exhaustion") return true;
+    if (effect.flags?.core?.statusId === "exhaustion") return true;
+    if (effect.getFlag?.("dnd5e", "exhaustionLevel") != null) return true;
+    return effect.flags?.dnd5e?.exhaustionLevel != null;
+  };
+  const refreshForExhaustionEffect = effect => {
+    const actor = effect?.parent;
+    if (actor?.type === "character" && isExhaustionEffect(effect)) scheduleRosterRefresh();
+  };
+
+  Hooks.on("updateActor", actor => { if (actor?.type === "character") scheduleRosterRefresh(); });
+  Hooks.on("createActiveEffect", refreshForExhaustionEffect);
+  Hooks.on("updateActiveEffect", refreshForExhaustionEffect);
+  Hooks.on("deleteActiveEffect", refreshForExhaustionEffect);
   // Scoped V13 application hook: only our pending forced-march CON prompts
   // qualify for placement. No global Foundry window or Action HUD changes.
   Hooks.on("renderApplicationV2", (application, element) => {

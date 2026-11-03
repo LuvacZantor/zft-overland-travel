@@ -64,7 +64,7 @@ test("new record snapshots finalized context and does not change supplied object
   assert.deepEqual(record.context.pace, input.pace);
   assert.equal(record.phases.navigation, "completed");
   for (const phase of ["reconnaissance", "support"]) assert.equal(record.phases[phase], "pending");
-  for (const phase of ["travelQuality", "momentum", "event"]) assert.equal(record.phases[phase], "notImplemented");
+  for (const phase of ["travelQuality", "momentum", "event", "eventResolution"]) assert.equal(record.phases[phase], "pending");
   record.context.party[0].name = "Changed copy";
   record.navigation.guide.total = 1;
   record.travel.dice.baseDice[0] = 1;

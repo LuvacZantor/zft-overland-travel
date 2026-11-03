@@ -1,5 +1,5 @@
 export const MODULE_ID = "zft-overland-travel";
-export const MODULE_VERSION = "0.4.0-dev.88";
+export const MODULE_VERSION = "0.4.0-dev.97";
 export const MODULE_TITLE = "ZFT Overland Travel";
 
 export const SETTINGS = Object.freeze({

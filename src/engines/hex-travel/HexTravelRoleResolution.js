@@ -10,6 +10,26 @@ import { cloneHexRecordStore, saveHexRolePhase } from "./HexTravelRecords.js";
 
 const LEDGER_KEY = "hexTravelLedger";
 const PHASE_ORDER = Object.freeze(["reconnaissance", "support"]);
+// GM-client-only workflow state. Rolled-but-unconfirmed values are deliberately
+// not persisted; they exist only so the Roles UI can show the active review.
+const TRANSIENT_ROLE_STATE = new Map();
+const transientKey = (recordId, phase) => `${recordId}:${phase}`;
+function publishTransient(recordId, phase, value, onTransient) {
+  const key = transientKey(recordId, phase);
+  if (value) TRANSIENT_ROLE_STATE.set(key, clone(value));
+  else TRANSIENT_ROLE_STATE.delete(key);
+  try { onTransient?.(); } catch (error) { console.warn("[ZFT][HexTravel] Could not refresh transient role state", error); }
+}
+export function getHexRoleResolutionTransient(recordId, phase = null) {
+  if (phase) return clone(TRANSIENT_ROLE_STATE.get(transientKey(recordId, phase)) ?? null);
+  return Object.fromEntries([...TRANSIENT_ROLE_STATE.entries()]
+    .filter(([key]) => key.startsWith(`${recordId}:`)).map(([key, value]) => [key.split(":").at(-1), clone(value)]));
+}
+export function clearHexRoleResolutionTransient(recordId = null, onTransient = null) {
+  if (recordId === null) TRANSIENT_ROLE_STATE.clear();
+  else for (const key of [...TRANSIENT_ROLE_STATE.keys()]) if (key.startsWith(`${recordId}:`)) TRANSIENT_ROLE_STATE.delete(key);
+  try { onTransient?.(); } catch (error) { console.warn("[ZFT][HexTravel] Could not refresh cleared transient role state", error); }
+}
 const esc = value => String(value ?? "").replace(/[&<>"']/g, char => ({
   "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"
 })[char]);
@@ -166,23 +186,27 @@ async function chooseRecord(records, prompt) {
   return records.find(record => record.id === selected) ?? null;
 }
 
-function reviewRows(plan, rolls) {
+function reviewRows(plan, rolls, rulings = {}) {
   return plan.slots.map(slot => {
     if (slot.status === "unassigned") return `<div class="zft-hex-role-ruling-row is-unavailable"><div><strong>${esc(slot.roleName)}</strong><span>Unassigned for this hex</span></div><span class="zft-hex-role-ruling-empty">No check</span></div>`;
     if (slot.status === "absent") return `<div class="zft-hex-role-ruling-row is-unavailable"><div><strong>${esc(slot.roleName)}</strong><span>Assigned character was not present when this hex started</span></div><span class="zft-hex-role-ruling-empty">No check</span></div>`;
     const roll = rolls[slot.role];
     const passed = Number(roll?.total) >= plan.dc;
+    const selected = rulings[slot.role] ?? "roll";
+    const selectedAttr = value => selected === value ? " selected" : "";
+    const rerolls = Math.max(0, Number(roll?.rerolls) || 0);
     return `<div class="zft-hex-role-ruling-row" data-hex-role-ruling-row="${esc(slot.role)}">
-      <div class="zft-hex-role-ruling-identity"><strong>${esc(slot.actorName)} · ${esc(slot.roleName)}</strong><span>${esc(skillLabel(slot.skill))} ${Number(roll.total)} vs DC ${plan.dc} · Rolled ${passed ? "Success" : "Failure"}</span></div>
+      <div class="zft-hex-role-ruling-identity"><strong>${esc(slot.actorName)} · ${esc(slot.roleName)}</strong><span>${esc(skillLabel(slot.skill))} ${Number(roll.total)} vs DC ${plan.dc} · Rolled ${passed ? "Success" : "Failure"}${rerolls ? ` · Rerolled ×${rerolls}` : ""}</span></div>
       <select name="ruling-${esc(slot.role)}" aria-label="GM ruling for ${esc(slot.roleName)}">
-        <option value="roll">Use Roll (${passed ? "Success" : "Failure"})</option>
-        <option value="success">Count as Success</option>
-        <option value="failure">Count as Failure</option>
+        <option value="roll"${selectedAttr("roll")}>Use Roll (${passed ? "Success" : "Failure"})</option>
+        <option value="success"${selectedAttr("success")}>Count as Success</option>
+        <option value="failure"${selectedAttr("failure")}>Count as Failure</option>
+        <option value="reroll"${selectedAttr("reroll")}>Re-roll Check</option>
       </select></div>`;
   }).join("");
 }
 
-async function resolvePhase(recordId, phase, prompt, registerPending, unregisterPending) {
+async function resolvePhase(recordId, phase, prompt, registerPending, unregisterPending, onTransient) {
   const current = recordFrom(ledger(), recordId);
   if (!current || !unresolved(current, phase)) return false;
   const plan = buildRolePhasePlan(current, phase);
@@ -215,20 +239,80 @@ async function resolvePhase(recordId, phase, prompt, registerPending, unregister
   if (!stillAvailable(recordId, phase)) throw new Error(`${plan.name} changed before GM review.`);
   let rulings = {};
   if (ready.length) {
-    const answer = await prompt({
-      window: { title: `${plan.name} Ruling` }, position: { width: 690 },
-      content: `<section class="zft-hex-role-review"><div class="zft-hex-role-review-heading"><strong>Hex ${plan.recordNumber} · ${esc(plan.name)}</strong><span>Role DC ${plan.dc}</span></div><p>Review each native skill roll. GM overrides affect the saved effective outcome but never replace the original total.</p><div class="zft-hex-role-ruling-list">${reviewRows(plan, rolls)}</div></section>`,
-      buttons: [
-        { action: "confirm", label: "Save Role Results", icon: "fas fa-check", default: true,
-          callback: (_event, button) => Object.fromEntries(ready.map(slot => [slot.role, button.form.elements[`ruling-${slot.role}`].value])) },
-        { action: "cancel", label: "Cancel", callback: () => null }
-      ], close: () => null
-    });
-    if (!answer) {
-      ui.notifications.info(`${plan.name} review canceled. No ${plan.name} result was saved.`);
-      return false;
+    // The GM may request one or both role checks again. Other adjudications are
+    // retained while the selected character rerolls, then the review reopens
+    // with the replacement total. Nothing is persisted until a no-reroll Save.
+    while (true) {
+      const transient = {
+        recordId, recordNumber: plan.recordNumber, phase, name: plan.name, dc: plan.dc,
+        status: "awaitingGmConfirmation",
+        rolls: Object.fromEntries(ready.map(slot => {
+          const roll = rolls[slot.role];
+          const rolledSuccess = Number(roll.total) >= plan.dc;
+          const ruling = rulings[slot.role] ?? "roll";
+          return [slot.role, { role: slot.role, roleName: slot.roleName, actorName: slot.actorName,
+            actorUuid: slot.actorUuid, skill: slot.skill, ability: slot.ability, total: Number(roll.total),
+            rollerId: roll.rollerId, rerolls: Math.max(0, Number(roll.rerolls) || 0), rolledSuccess,
+            ruling, success: ruling === "success" ? true : ruling === "failure" ? false : rolledSuccess }];
+        }))
+      };
+      publishTransient(recordId, phase, transient, onTransient);
+      let answer;
+      try {
+        answer = await prompt({
+          window: { title: `${plan.name} Ruling` }, position: { width: 690 },
+          content: `<section class="zft-hex-role-review"><div class="zft-hex-role-review-heading"><strong>Hex ${plan.recordNumber} · ${esc(plan.name)}</strong><span>Role DC ${plan.dc}</span></div><p>Review each native skill roll. Choose Re-roll Check for any character who should roll again; other selections are preserved while that reroll is requested.</p><div class="zft-hex-role-ruling-list">${reviewRows(plan, rolls, rulings)}</div></section>`,
+          render: (_app, dialog) => {
+            const root = dialog?.element;
+            if (!root) return;
+            root.addEventListener("change", event => {
+              const select = event.target.closest?.('select[name^="ruling-"]');
+              if (!select) return;
+              const role = select.name.slice("ruling-".length);
+              const current = TRANSIENT_ROLE_STATE.get(transientKey(recordId, phase));
+              const row = current?.rolls?.[role];
+              if (!row) return;
+              const ruling = select.value;
+              row.ruling = ruling;
+              row.success = ruling === "success" ? true : ruling === "failure" ? false : row.rolledSuccess;
+              publishTransient(recordId, phase, current, onTransient);
+            });
+          },
+          buttons: [
+            { action: "confirm", label: "Submit Role Rulings", icon: "fas fa-check", default: true,
+              callback: (_event, button) => Object.fromEntries(ready.map(slot => [slot.role, button.form.elements[`ruling-${slot.role}`].value])) },
+            { action: "cancel", label: "Cancel", callback: () => null }
+          ], close: () => null
+        });
+      } finally {
+        publishTransient(recordId, phase, null, onTransient);
+      }
+      if (!answer) {
+        ui.notifications.info(`${plan.name} review canceled. No ${plan.name} result was saved.`);
+        return false;
+      }
+
+      const rerollSlots = ready.filter(slot => answer[slot.role] === "reroll");
+      for (const slot of ready) if (answer[slot.role] !== "reroll") rulings[slot.role] = answer[slot.role];
+      if (!rerollSlots.length) { rulings = answer; break; }
+
+      const rerollResults = await Promise.all(rerollSlots.map(async slot => ({
+        slot,
+        result: await requestRoleRoll({ recordId, phase, slot, actor: actors.get(slot.role), dc: plan.dc,
+          socket, midiVersion: midi.version, registerPending, unregisterPending })
+      })));
+      for (const { slot, result } of rerollResults) {
+        if (!result) {
+          ui.notifications.info(`${slot.roleName} reroll canceled. The prior result remains available for GM review.`);
+          rulings[slot.role] = "roll";
+          continue;
+        }
+        const prior = rolls[slot.role];
+        rolls[slot.role] = { ...result, rerolls: Math.max(0, Number(prior?.rerolls) || 0) + 1 };
+        rulings[slot.role] = "roll";
+      }
+      if (!stillAvailable(recordId, phase)) throw new Error(`${plan.name} changed while a reroll was pending.`);
     }
-    rulings = answer;
   }
   const resolution = buildRolePhaseResolution(plan, rolls, rulings, Date.now());
   await persistPhase(recordId, phase, resolution);
@@ -236,11 +320,51 @@ async function resolvePhase(recordId, phase, prompt, registerPending, unregister
   return true;
 }
 
-/** Resolve every still-pending paired activity for one selected saved hex. */
-export async function resolveHexTravelRolePhases({ prompt, registerPending, unregisterPending } = {}) {
+function validateServices(prompt) {
   if (!game.user?.isGM) throw new Error("Only a GM can resolve expedition role checks.");
   if (game.system?.id !== "dnd5e") throw new Error("Expedition role checks require D&D5e.");
   if (typeof prompt !== "function") throw new Error("Expedition GM prompt service is unavailable.");
+}
+
+/** Resolve only the next incomplete paired activity for one exact saved hex.
+ * Normal dev.94 progression uses this so the GM explicitly advances from
+ * Reconnaissance to Expedition Support. Recovery uses the same saved-state
+ * boundary and never rerolls a completed phase.
+ */
+export async function resolveNextHexTravelRolePhase(recordId, { prompt, registerPending, unregisterPending, onTransient } = {}) {
+  validateServices(prompt);
+  const record = recordFrom(ledger(), recordId);
+  if (!record || record.status === "interrupted") throw new Error("The selected active hex record is unavailable.");
+  const phase = PHASE_ORDER.find(key => unresolved(record, key)) ?? null;
+  if (!phase) return { recordId: record.id, recordNumber: record.number, phase: null, saved: 0, canceled: false, complete: true };
+  const saved = await resolvePhase(record.id, phase, prompt, registerPending, unregisterPending, onTransient);
+  const latest = recordFrom(ledger(), record.id);
+  return {
+    recordId: record.id, recordNumber: record.number, phase, saved: saved ? 1 : 0, canceled: !saved,
+    complete: !!latest && PHASE_ORDER.every(key => !unresolved(latest, key))
+  };
+}
+
+/** Resume the still-pending paired activities for one exact saved hex. */
+export async function resolveHexTravelRoleRecord(recordId, { prompt, registerPending, unregisterPending, onTransient } = {}) {
+  validateServices(prompt);
+  const record = recordFrom(ledger(), recordId);
+  if (!record || record.status === "interrupted") throw new Error("The selected active hex record is unavailable.");
+  let saved = 0;
+  let canceled = false;
+  for (const phase of PHASE_ORDER) {
+    if (!unresolved(recordFrom(ledger(), record.id), phase)) continue;
+    if (!await resolvePhase(record.id, phase, prompt, registerPending, unregisterPending, onTransient)) { canceled = true; break; }
+    saved += 1;
+  }
+  const latest = recordFrom(ledger(), record.id);
+  return { recordId: record.id, recordNumber: record.number, saved, canceled,
+    complete: !!latest && PHASE_ORDER.every(phase => !unresolved(latest, phase)) };
+}
+
+/** Recovery selector for a saved hex whose paired activities are incomplete. */
+export async function resolveHexTravelRolePhases({ prompt, registerPending, unregisterPending, onTransient } = {}) {
+  validateServices(prompt);
   const records = availableRecords(ledger());
   if (!records.length) {
     ui.notifications.info("No saved hex is waiting for Reconnaissance or Expedition Support.");
@@ -248,11 +372,7 @@ export async function resolveHexTravelRolePhases({ prompt, registerPending, unre
   }
   const record = await chooseRecord(records, prompt);
   if (!record) return null;
-  let saved = 0;
-  for (const phase of PHASE_ORDER) {
-    if (!unresolved(recordFrom(ledger(), record.id), phase)) continue;
-    if (!await resolvePhase(record.id, phase, prompt, registerPending, unregisterPending)) break;
-    saved += 1;
-  }
-  return { recordId: record.id, recordNumber: record.number, saved };
+  const result = await resolveHexTravelRoleRecord(record.id, { prompt, registerPending, unregisterPending, onTransient });
+  // Preserve the pre-dev.90 public return shape for existing callers/tests.
+  return { recordId: result.recordId, recordNumber: result.recordNumber, saved: result.saved };
 }

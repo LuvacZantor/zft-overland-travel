@@ -16,6 +16,14 @@ The record is an additive `hexRecords` collection inside the existing `zft-overl
 
 The standalone generic Travel Manager, its expedition state, all remaining role mechanics, Travel Quality, Momentum, Threat, and event resolution retain their existing behavior. Future phases are explicitly `notImplemented`; this build does not roll an event, grant a benefit, or execute those phases.
 
+## Dev.89-dev.90 staged outcome and orchestration extension
+
+Dev.89 keeps schema 1 and extends the same `hexTravelLedger.hexRecords` store rather than creating a second persistence owner. New records begin `travelQuality`, `momentum`, `event`, and `eventResolution` as `pending`. After Reconnaissance and Support are complete, the saved effective role results drive Travel Quality, one persistent Momentum shift, and one Event roll. The record stores the exact Travel Quality point totals, Momentum before/after, raw/modifier/final Event result, and Event Resolution state. Quiet Travel records a completed no-op resolution; Complication, Major Complication, and Opportunity remain gated until explicit GM resolution.
+
+The schema-1 store may also contain additive top-level `momentum` and `threats` fields. `momentum` is the staged Expedition workflow's persistent Momentum owner. `threats` is the explicit multi-Threat collection; Threats persist independently and do not advance merely because travel time or a day advances. Unknown additive store fields continue to survive cloning/writes.
+
+Dev.90 changes orchestration and presentation, not the authoritative storage boundary. Once Navigation/travel dice create the staged record, the normal workflow automatically attempts the first incomplete Reconnaissance/Support/outcome phase and skips already completed phases. Rolled-but-unconfirmed paired-role results remain client-transient and are not added to the record until the GM saves the ruling. Recovery resumes from the saved phase state. None of this commits travel hours or advances world time. The existing travel commit path remains the sole owner of safe/Forced March hour writes and optional world-clock advancement.
+
 ## Baseline and preservation
 
 - GitHub baseline: `LuvacZantor/zft-overland-travel`, `feature/expedition-system`, commit `caccc9f1acd46b97f05c8e60813bfc7efc871fcc`, version `0.4.0-dev.86`.
@@ -45,7 +53,7 @@ Clear Expedition Log retains the ledger and its records. Explicit Reset Travel c
 
 ## Data contract
 
-The ledger field has shape `{ schema: 1, records: [...] }`. Each record contains:
+The ledger field has shape `{ schema: 1, records: [...], momentum?: "...", threats?: [...] }`. The additive `momentum` and `threats` fields are store-level state; each record contains:
 
 | Field | Meaning |
 | --- | --- |
@@ -58,8 +66,9 @@ The ledger field has shape `{ schema: 1, records: [...] }`. Each record contains
 | `navigation` | Original check totals, rolled pass/fail, GM rulings, effective outcomes, role skills, roller IDs, and saved delays |
 | `travel` | Original dice/calculation, rolled hours, committed hours, remaining hours, per-day segments, and status |
 | `status` | `inProgress`, `completed`, or `interrupted` for this travel sequence |
-| `phases` | Navigation/travel status; Reconnaissance/Support are `pending` or `completed` in dev.88 (legacy dev.87 may say `notImplemented`); later phases remain `notImplemented` |
-| `roles` | Optional dev.88 saved Reconnaissance/Support resolutions, including original totals and effective GM outcomes |
+| `phases` | Navigation/travel status plus Reconnaissance, Support, Travel Quality, Momentum, Event, and Event Resolution phase state; legacy records may retain earlier `notImplemented` values |
+| `roles` | Saved Reconnaissance/Support resolutions, including original totals, rolled outcomes, GM rulings, and effective outcomes |
+| `travelQuality`, `momentum`, `event`, `eventResolution` | Saved staged outcome evidence and downstream resolution gate; these do not represent committed travel time |
 | `corrections` | Manual correction history when the active sequence was detached |
 
 Custom DC deliberately keeps terrain and danger `null`, exactly as the existing difficulty selection does. This build does not infer them from the description, scene, token, previous hex, or a preference default.

@@ -1,7 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { startHexRecord } from "../src/engines/hex-travel/HexTravelRecords.js";
-import { resolveHexTravelRolePhases } from "../src/engines/hex-travel/HexTravelRoleResolution.js";
+import { resolveHexTravelRolePhases, getHexRoleResolutionTransient } from "../src/engines/hex-travel/HexTravelRoleResolution.js";
 
 const MODULE = "zft-overland-travel";
 const LEDGER = "hexTravelLedger";
@@ -74,9 +74,9 @@ test("runtime resolves Reconnaissance and Support into the same shared record wi
   const record = after.hexRecords.records[0];
   assert.equal(record.phases.reconnaissance,"completed");
   assert.equal(record.phases.support,"completed");
-  assert.equal(record.phases.travelQuality,"notImplemented");
-  assert.equal(record.phases.momentum,"notImplemented");
-  assert.equal(record.phases.event,"notImplemented");
+  assert.equal(record.phases.travelQuality,"pending");
+  assert.equal(record.phases.momentum,"pending");
+  assert.equal(record.phases.event,"pending");
   assert.equal(record.roles.reconnaissance.grade,"strong");
   assert.equal(record.roles.reconnaissance.results.find(r=>r.role==="scout").rolledSuccess,false);
   assert.equal(record.roles.reconnaissance.results.find(r=>r.role==="scout").success,true);
@@ -95,4 +95,53 @@ test("canceling GM review after rolls writes no role phase", async () => {
   assert.deepEqual(result,{recordId:"hex-1",recordNumber:1,saved:0});
   assert.equal(f.writes.length,0);
   assert.deepEqual(f.get(),before);
+});
+
+
+test("rolled role results are transiently visible while GM confirmation is pending and clear on cancel", async () => {
+  const f = fixture();
+  let observed = null;
+  const result = await resolveHexTravelRolePhases({
+    prompt: async options => {
+      assert.equal(options.window.title,"Reconnaissance Ruling");
+      observed = getHexRoleResolutionTransient("hex-1","reconnaissance");
+      return null;
+    },
+    registerPending:()=>"t", unregisterPending:()=>{}, onTransient:()=>{}
+  });
+  assert.deepEqual(result,{recordId:"hex-1",recordNumber:1,saved:0});
+  assert.equal(observed.status,"awaitingGmConfirmation");
+  assert.equal(observed.rolls.scout.total,14);
+  assert.equal(observed.rolls.scout.rolledSuccess,false);
+  assert.equal(observed.rolls.tracker.total,19);
+  assert.equal(observed.rolls.tracker.rolledSuccess,true);
+  assert.equal(getHexRoleResolutionTransient("hex-1","reconnaissance"),null);
+  assert.equal(f.writes.length,0);
+});
+
+test("GM can request a role-check reroll and the review reopens with the replacement total", async () => {
+  const f = fixture();
+  let scoutCalls=0;
+  globalThis.MidiQOL={socket:()=>({executeAsUser:async(_op,_user,args)=>{
+    const uuid=args.saveDetails.actorUuid;
+    if(uuid==="Actor.scout") return {total:[14,20][Math.min(scoutCalls++,1)]};
+    return {total:{"Actor.tracker":19,"Actor.forager":16,"Actor.coordinator":8}[uuid]};
+  }})};
+  let reconReviews=0;
+  const prompt=async options=>{
+    if(options.window.title==="Reconnaissance Ruling"){
+      reconReviews+=1;
+      return reconReviews===1 ? {scout:"reroll",tracker:"success"} : {scout:"roll",tracker:"success"};
+    }
+    if(options.window.title==="Expedition Support Ruling") return {forager:"roll",coordinator:"failure"};
+    throw new Error(`Unexpected prompt ${options.window.title}`);
+  };
+  await resolveHexTravelRolePhases({prompt,registerPending:()=>"t",unregisterPending:()=>{}});
+  const scout=f.get().hexRecords.records[0].roles.reconnaissance.results.find(r=>r.role==="scout");
+  const tracker=f.get().hexRecords.records[0].roles.reconnaissance.results.find(r=>r.role==="tracker");
+  assert.equal(reconReviews,2);
+  assert.equal(scout.total,20);
+  assert.equal(scout.rerolls,1);
+  assert.equal(scout.success,true);
+  assert.equal(tracker.ruling,"success");
 });

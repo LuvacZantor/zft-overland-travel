@@ -11,8 +11,13 @@ import { HEX_TRAVEL_ACTIVITIES, HEX_TRAVEL_NAVIGATION_SKILL, EXPEDITION_PAIRS, E
 import { DEFAULT_HEX_DIFFICULTY_PREFERENCES } from "./HexDifficulty.js";
 import { DEFAULT_NEW_DAY_PREFERENCES } from "./NewTravelDayPreferences.js";
 import { hexHoursForId } from "./HexTravelHourHistory.js";
-import { cloneHexRecordStore, markHexRecordLedgerCorrection } from "./HexTravelRecords.js";
-import { resolveHexTravelRolePhases } from "./HexTravelRoleResolution.js";
+import { cloneHexRecordStore, markHexRecordLedgerCorrection, hexRecordReadyForTravel } from "./HexTravelRecords.js";
+import { EXPEDITION_EVENT_LABELS, EXPEDITION_MOMENTUM_TRACK, EXPEDITION_MOMENTUM_EVENT_MODIFIER } from "./HexExpeditionOutcome.js";
+import { cloneThreats, HEX_THREAT_STAGES } from "./HexThreatState.js";
+import { resolveHexEventManually, createHexThreat, advanceHexThreat, reduceHexThreat, resolveHexThreat, setHexThreatVisibility } from "./HexExpeditionRuntime.js";
+import { getHexRoleResolutionTransient, clearHexRoleResolutionTransient } from "./HexTravelRoleResolution.js";
+import { resumeHexExpeditionWorkflow } from "./HexExpeditionWorkflow.js";
+import { primaryHexTravelAction } from "./HexTravelPrimaryAction.js";
 import { expeditionClockView, formatCalendariaHud, timeLabel } from "./ExpeditionClockDisplay.js";
 import { ThemeManager } from "../../theme/ThemeManager.js";
 import { ThemeEditor } from "../../theme/ThemeEditor.js";
@@ -249,8 +254,12 @@ export function registerHexTravelSettings() {
   });
   game.settings.register(MODULE_ID, SHOW_KEY, {
     name: "GM display request", scope: "world", config: false,
-    type: Object, default: { requestedAt: 0 },
-    onChange: data => { if (!game.user?.isGM && data?.requestedAt) void HexTravelConsole.showWorkspace(); }
+    type: Object, default: { requestedAt: 0, visible: false },
+    onChange: data => {
+      if (game.user?.isGM || !data?.requestedAt) return;
+      if (data.visible === true) void HexTravelConsole.showWorkspace();
+      else if (data.visible === false) void HexTravelConsole.setMode("hidden");
+    }
   });
   game.settings.register(MODULE_ID, UI_KEY, {
     name: "Overland Travel interface preferences", scope: "client", config: false,
@@ -396,6 +405,31 @@ function attendanceConfig() {
 export function presentRoster() {
   const excluded = new Set(attendanceConfig().excludedActorUuids ?? []);
   return assignedRoster().filter(actor => !excluded.has(actor.uuid));
+}
+
+export function compactRosterDisplayNames(roster = []) {
+  const firstName = actor => String(actor?.name ?? "").trim().split(/\s+/)[0] || "Unknown";
+  const counts = new Map();
+  for (const actor of roster) {
+    const key = firstName(actor).toLocaleLowerCase();
+    counts.set(key, (counts.get(key) ?? 0) + 1);
+  }
+  return new Map(roster.map(actor => {
+    const first = firstName(actor);
+    const key = first.toLocaleLowerCase();
+    return [actor.uuid, counts.get(key) > 1 ? String(actor.name ?? first) : first];
+  }));
+}
+
+export function completedHexIdForAutoCollapse(previousActiveHexCardId, previousPendingTravelHours, ledger = {}) {
+  if (!previousActiveHexCardId || Math.max(0, Number(previousPendingTravelHours) || 0) <= 0) return null;
+  if (previousActiveHexCardId === ledger.activeHexCardId) return null;
+  try {
+    const store = cloneHexRecordStore(ledger.hexRecords);
+    const prior = store.records.find(record => record.id === previousActiveHexCardId);
+    if (prior?.status === "completed" && Math.max(0, Number(prior.travel?.remainingHours) || 0) === 0) return previousActiveHexCardId;
+  } catch { /* malformed records are handled by the normal ledger diagnostics */ }
+  return null;
 }
 
 const stateCard = (key, inner, className = "") => ({ key, html: `<article class="zft-hex-card ${className}" data-hex-card="${esc(key)}">${inner}</article>` });
@@ -694,21 +728,73 @@ function makeCards(snapshot) {
   const hexValid = pending > 0 && total >= pending && num(hexProgress.baseHexes) === num(s.hexes);
   const spent = hexValid ? total - pending : null;
   const safeAvailable = Math.min(safeRemaining, pending);
-  const next = pending
-    ? safeRemaining
-      ? `Next: Continue the current hex. ${safeAvailable} ${safeAvailable === 1 ? "safe travel hour" : "safe travel hours"} available${pending > safeRemaining ? " before Forced March begins" : " to finish the hex"}.`
-      : `Next: Continue Forced March (travel hour ${nextHour}; Constitution save DC ${10 + nextHour - 8}).`
-    : "Next: Choose a New Hex or Start a New Travel Day";
+  let activeRecord = null;
+  let liveRecordStore = cloneHexRecordStore();
+  try {
+    const live = getLedger();
+    liveRecordStore = cloneHexRecordStore(live.hexRecords);
+    activeRecord = live.activeHexCardId
+      ? liveRecordStore.records.find(record => record.id === live.activeHexCardId) ?? null
+      : null;
+  } catch (error) { console.warn("[ZFT][HexTravel] Could not read staged Expedition record for NEXT status", error); }
+  const staged = !!activeRecord && !hexRecordReadyForTravel(activeRecord);
+  let next;
+  if (staged) {
+    if (activeRecord.phases?.reconnaissance !== "completed")
+      next = `Next: Resolve Reconnaissance for Hex ${activeRecord.number} when the table is ready.`;
+    else if (activeRecord.phases?.support !== "completed")
+      next = `Next: Resolve Expedition Support for Hex ${activeRecord.number} when the table is ready.`;
+    else if (activeRecord.phases?.event !== "completed")
+      next = `Next: Expedition outcome calculation is pending for Hex ${activeRecord.number}. Use Recovery only if that automatic outcome step was interrupted.`;
+    else
+      next = `Next: Resolve the ${EXPEDITION_EVENT_LABELS[activeRecord.event?.type] ?? "Event"} for Hex ${activeRecord.number} before travel can be committed.`;
+  } else next = pending
+    ? activeRecord && Number(activeRecord.travel?.committedHours) === 0
+      ? `Next: Hex ${activeRecord.number} is fully resolved. Commit ${pending}h of travel when ready.`
+      : safeRemaining
+        ? `Next: Continue the current hex. ${safeAvailable} ${safeAvailable === 1 ? "safe travel hour" : "safe travel hours"} available${pending > safeRemaining ? " before Forced March begins" : " to finish the hex"}.`
+        : `Next: Continue Forced March (travel hour ${nextHour}; Constitution save DC ${10 + nextHour - 8}).`
+    : "Next: Start Travel for a new hex or begin a New Travel Day";
   const hoursStatus = forced > 0 ? "red" : safeRemaining === 0 ? "amber" : "green";
   const safeStatus = safeRemaining === 0 ? "amber" : "green";
-  const nextStatus = forced > 0 ? "is-forced" : safeRemaining === 0 && pending > 0 ? "is-warning" : "is-neutral";
+  const nextStatus = staged ? "is-warning" : forced > 0 ? "is-forced" : safeRemaining === 0 && pending > 0 ? "is-warning" : "is-neutral";
+  const activeQuality = activeRecord?.travelQuality ?? null;
+  const qualityLabel = activeQuality ? expeditionLabel(activeQuality.quality) : "—";
+  const successPoints = activeQuality ? Math.max(0, Number(activeQuality.successPoints) || 0) : 0;
+  const failurePoints = activeQuality ? Math.max(0, Number(activeQuality.failurePoints) || 0) : 0;
+  const qualityDetail = activeQuality ? `${successPoints} ${successPoints === 1 ? "Success Point" : "Success Points"} · ${failurePoints} ${failurePoints === 1 ? "Failure Point" : "Failure Points"}` : "Current hex not resolved";
+  const persistentMomentum = activeRecord?.momentum?.after ?? liveRecordStore.momentum ?? "neutral";
+  const momentumModifier = Number(EXPEDITION_MOMENTUM_EVENT_MODIFIER[persistentMomentum] ?? 0);
+  const momentumModifierText = `${momentumModifier >= 0 ? "+" : ""}${momentumModifier}`;
+  const momentumShift = activeRecord?.momentum?.shift ?? null;
+  const momentumShiftText = activeRecord?.momentum
+    ? momentumShift > 0 ? `Momentum +${momentumShift}` : momentumShift < 0 ? `Momentum ${momentumShift}` : "Momentum unchanged"
+    : "Awaiting current-hex Travel Quality";
+  const momentumTrack = EXPEDITION_MOMENTUM_TRACK.map(state => {
+    const modifier = Number(EXPEDITION_MOMENTUM_EVENT_MODIFIER[state] ?? 0);
+    const modifierText = `${modifier >= 0 ? "+" : ""}${modifier}`;
+    const active = state === persistentMomentum;
+    return `<span class="${active ? "is-current" : ""}" aria-current="${active ? "true" : "false"}"><i aria-hidden="true"></i><small>${esc(expeditionLabel(state))}</small><b>${esc(modifierText)}</b></span>`;
+  }).join("");
   cards.push(stateCard("overview", `
     <div class="zft-hex-stats zft-hex-stats-overview" aria-label="Current expedition travel summary">
       ${spanStat("DAY", Math.max(1, num(s.day)))}
       ${spanStat("TRAVEL HOURS TODAY", `${hours}h`, hoursStatus, forced > 0 ? "forced" : safeRemaining === 0 ? "limit" : "safe")}
       ${spanStat("HEXES COMPLETE", num(s.hexes))}
-      ${spanStat("TRAVEL HOURS LEFT", pending > 0 ? `${pending}h` : "—", pending > 0 ? "amber" : "")}
+      ${spanStat("HEX TRAVEL REMAINING", pending > 0 ? `${pending}h` : "—", pending > 0 ? "amber" : "")}
     </div>
+    <section class="zft-hex-expedition-state" aria-label="Current expedition state">
+      <span class="zft-hex-expedition-state-title">EXPEDITION STATE</span>
+      <div class="zft-hex-expedition-current">
+        <span><small>THIS HEX · TRAVEL QUALITY</small><strong>${esc(qualityLabel)}</strong><em>${esc(qualityDetail)}</em></span>
+        <span class="zft-hex-expedition-shift"><small>THIS HEX · MOMENTUM CHANGE</small><strong>${esc(momentumShiftText)}</strong><em>${activeRecord?.momentum ? `${esc(expeditionLabel(activeRecord.momentum.before))} → ${esc(expeditionLabel(activeRecord.momentum.after))}` : "No current-hex shift yet"}</em></span>
+      </div>
+      <div class="zft-hex-momentum-state">
+        <div class="zft-hex-momentum-heading"><span><small>EXPEDITION MOMENTUM</small><strong>${esc(expeditionLabel(persistentMomentum))} (${esc(momentumModifierText)})</strong></span><em>${esc(momentumModifierText)} to Event Roll · Carries into the next hex</em></div>
+        <div class="zft-hex-momentum-track" role="img" aria-label="Momentum track. Current state ${esc(expeditionLabel(persistentMomentum))}, ${esc(momentumModifierText)} to Event Roll.">${momentumTrack}</div>
+        <div class="zft-hex-event-chart" aria-label="Event chart"><b>EVENT d20</b><span>1–5 Major</span><span>6–10 Complication</span><span>11–15 Quiet</span><span>16–20 Opportunity</span></div>
+      </div>
+    </section>
     <div class="zft-hex-progress-label zft-hex-safe-label ${safeStatus}"><span>Safe travel hours</span><strong>${safe}/8h</strong></div>
     <div class="zft-hex-progress zft-hex-safe-progress ${hoursStatus}"><div style="width:${Math.round(safe / 8 * 100)}%"></div></div>
     ${hexValid ? `<div class="zft-hex-progress-label zft-hex-hex-label"><span>Current hex progress</span><strong>${spent}/${total}h</strong></div><div class="zft-hex-progress zft-hex-hex-progress"><div style="width:${total ? Math.round(spent / total * 100) : 0}%"></div></div>` : ""}
@@ -732,6 +818,7 @@ function makeCards(snapshot) {
     const outcome = record.html.includes(">SUCCESS</strong>") ? "Navigation success"
       : record.html.includes(">FAILURE</strong>") ? "Navigation failure" : "Navigation resolved";
     return { id: String(record.id), record, decorated, outcome,
+      shared: liveRecordStore.records.find(saved => saved.id === String(record.id)) ?? null,
       tracked: hexHoursForId(s.hexHourSegments, String(record.id)),
       day: Number.isSafeInteger(day) && day > 0 ? day : null,
       at: Number(record.completedAt ?? record.updatedAt) || 0,
@@ -838,7 +925,16 @@ function makeCards(snapshot) {
     if (stage === "navigation") return "Navigation Checks Complete · Awaiting GM Ruling";
     if (stage === "secondary") return "Awaiting GM Navigation Ruling";
     if (stage === "rolling") return "Awaiting Travel Dice";
-    if (stage === "complete" && pending > 0) return "Ready to Continue Travel";
+    if (stage === "complete" && pending > 0) {
+      const shared = liveRecordStore.records.find(saved => saved.id === String(record?.id ?? ""));
+      if (shared && !hexRecordReadyForTravel(shared)) {
+        if (shared.phases?.reconnaissance !== "completed" || shared.phases?.support !== "completed") return "Expedition Roles in Progress";
+        if (shared.phases?.event !== "completed") return "Expedition Outcome in Progress";
+        return `${EXPEDITION_EVENT_LABELS[shared.event?.type] ?? "Event"} Resolution Required`;
+      }
+      if (shared && Number(shared.travel?.committedHours) === 0) return "Ready to Commit Travel";
+      return "Ready to Continue Travel";
+    }
     return "Travel In Progress";
   };
   const renderHex = (segmentDay, { hexItem, marches }) => {
@@ -878,6 +974,8 @@ function makeCards(snapshot) {
     // evaluated dice, GM outcome, pace and total come from the saved card.
     // No duplicate skim rows or second click for the latest hex.
     const rolls = hexTravelColumns(hexItem.decorated, outcome);
+    const sharedHistory = !continued && hexItem.shared ? expeditionHexHistoryHtml(hexItem.shared) :
+      continued && hexItem.shared ? `<div class="zft-hex-expedition-continuation"><small>Expedition roles and Event were resolved when ${esc(hexLabel)} began on Day ${esc(startingDay)}.</small></div>` : "";
     const marchHtml = [...marches].sort((a,b) => b.entry.hour - a.entry.hour).map(renderMarch).join("");
     const hasLiveMarch = isCurrent && hours >= 8 && ["Forced march decision", "Forced march", "Saving throws", "Rerolling", "GM review"].includes(String(snapshot.phase ?? ""));
     const marchHeading = marches.length || hasLiveMarch
@@ -895,7 +993,7 @@ function makeCards(snapshot) {
       ? Math.max(0, rolledHours - priorTracked) : null;
     const carryNote = carriedHours > 0 ? `<div class="zft-hex-hex-day-breakdown is-carried"><small>${esc(carriedHours)}h of unfinished travel carried into Day ${esc(today)}. ${esc(pending)}h still remaining.</small></div>` : "";
     return stateCard(`hex:${id}:day:${segmentDay ?? "undated"}`,
-      `<details class="zft-hex-log-history zft-hex-hex-section ${isCurrent ? "zft-hex-hex-active" : ""} ${hexItem.complete ? "zft-hex-hex-complete" : ""}" data-hex-history data-hex-hex-revision="${esc(revision)}" data-hex-hex-latest="${isLatest ? "true" : "false"}" ${defaultOpen ? "open" : ""}><summary><span class="zft-hex-hex-head-main"><span class="zft-hex-history-label"><i class="fa-solid ${isCurrent ? "fa-hourglass-half" : "fa-map-location-dot"}" aria-hidden="true"></i> ${esc(header)}</span><span class="zft-hex-hex-header-meta">${hourHeadingHtml}${childCount}</span></span>${liveStatus}</summary><div class="zft-hex-hex-contents">${split}${carryNote}${legacyTotalNote}<div class="zft-hex-hex-roll-container">${rolls}</div><div class="zft-hex-hex-events" data-hex-hex-events="${esc(id)}">${marchHeading}${marchHtml}</div></div></details>`,
+      `<details class="zft-hex-log-history zft-hex-hex-section ${isCurrent ? "zft-hex-hex-active" : ""} ${hexItem.complete ? "zft-hex-hex-complete" : ""}" data-hex-history data-hex-hex-revision="${esc(revision)}" data-hex-hex-latest="${isLatest ? "true" : "false"}" ${defaultOpen ? "open" : ""}><summary><span class="zft-hex-hex-head-main"><span class="zft-hex-history-label"><i class="fa-solid ${isCurrent ? "fa-hourglass-half" : "fa-map-location-dot"}" aria-hidden="true"></i> ${esc(header)}</span><span class="zft-hex-hex-header-meta">${hourHeadingHtml}${childCount}</span></span>${liveStatus}</summary><div class="zft-hex-hex-contents">${split}${carryNote}${legacyTotalNote}<div class="zft-hex-hex-roll-container">${rolls}</div>${sharedHistory}<div class="zft-hex-hex-events" data-hex-hex-events="${esc(id)}">${marchHeading}${marchHtml}</div></div></details>`,
       "zft-hex-hex-card zft-hex-hex-parent-card").html;
   };
 
@@ -924,6 +1022,7 @@ function makeCards(snapshot) {
   });
   const currentDayKey = `day:${today}`;
   const roster = presentRoster();
+  const rosterNames = compactRosterDisplayNames(roster);
   const roles = hexTravelRolePreferences();
   const rosterHtml = roster.map(actor => {
     const assignment = Object.entries(roles.assignments ?? {}).find(([key, uuid]) => EXPEDITION_ROLES[key] && uuid === actor.uuid);
@@ -939,13 +1038,13 @@ function makeCards(snapshot) {
     // The immediate GM correction is held until the actor's replicated state catches up.
     const exhaustion = exhaustionDisplayLevel(actor);
     const penalty = exhaustionPenalty(exhaustion);
-    const penaltyParts = penalty.split(/\s*·\s*/);
-    const status = exhaustion ? `<span class="zft-hex-member-exhaustion"><span class="zft-hex-member-condition">Exhaustion ${exhaustion}</span><small class="zft-hex-member-penalty">${penaltyParts.map(part => `<span>${esc(part)}</span>`).join("")}</small></span>` : "";
+    const status = exhaustion ? `<span class="zft-hex-member-exhaustion"><span class="zft-hex-member-condition">Exhaustion ${exhaustion}</span>${penalty ? `<span class="zft-hex-member-exhaustion-separator" aria-hidden="true">·</span><small class="zft-hex-member-penalty">${esc(penalty)}</small>` : ""}</span>` : "";
     const description = definedRole?.tooltip ?? definedRole?.purpose ?? "";
     const roleLabel = definedRole
       ? `<small class="zft-hex-role-tooltip" tabindex="0" aria-label="${esc(assigned)}: ${esc(description)}"><span>${esc(assigned)}</span> <i class="fa-solid fa-circle-info" aria-hidden="true"></i><span class="zft-hex-role-tooltip-pop" role="tooltip">${esc(description)}<em>Primary check: ${esc(check?.label ?? "Ability check")} (${esc(definedRole.ability)})</em></span></small>`
       : `<small>${esc(assigned)}</small>`;
-    return `<div class="zft-hex-party-member zft-hex-roster-refined" data-hex-party-actor="${esc(actor.uuid)}"><span class="zft-hex-portrait" data-hex-actor-sheet="${esc(actor.uuid)}" title="Double-click to open character sheet" role="button" tabindex="0" aria-label="Open ${esc(actor.name)} character sheet">${portrait}</span><span class="zft-hex-member-info"><span class="zft-hex-member-heading"><strong>${esc(actor.name)}</strong>${status}</span>${roleLabel}<span class="zft-hex-member-bonuses">${checkInfo}<span class="zft-hex-member-con" title="Constitution saving throw bonus">CON Save <strong>${esc(signed(con))}</strong></span></span></span></div>`;
+    const displayName = rosterNames.get(actor.uuid) ?? actor.name;
+    return `<div class="zft-hex-party-member zft-hex-roster-refined" data-hex-party-actor="${esc(actor.uuid)}"><span class="zft-hex-portrait" data-hex-actor-sheet="${esc(actor.uuid)}" title="Double-click to open character sheet" role="button" tabindex="0" aria-label="Open ${esc(actor.name)} character sheet">${portrait}</span><span class="zft-hex-member-info"><span class="zft-hex-member-heading"><strong title="${esc(actor.name)}">${esc(displayName)}</strong></span>${roleLabel}<span class="zft-hex-member-bonuses">${checkInfo}<span class="zft-hex-member-con" title="Constitution saving throw bonus">CON Save <strong>${esc(signed(con))}</strong></span></span></span>${status}</div>`;
   }).join("");
   const rosterCollapsed = game.settings.get(MODULE_ID, UI_KEY)?.rosterCollapsed === true;
   cards.push(stateCard("party", `<div class="zft-hex-roster-header"><div class="zft-hex-card-title">Expedition Roster · ${roster.length}</div><div class="zft-hex-roster-header-actions"><button type="button" class="zft-hex-roster-toggle" data-hex-action="roster-toggle" aria-expanded="${!rosterCollapsed}" aria-controls="zft-hex-roster-members" aria-label="${rosterCollapsed ? "Expand" : "Collapse"} Expedition Roster" title="${rosterCollapsed ? "Expand" : "Collapse"} Expedition Roster"><i class="fa-solid fa-angles-${rosterCollapsed ? "down" : "up"}" aria-hidden="true"></i></button><button type="button" class="zft-hex-roles-open" data-hex-action="roles-reference" aria-label="Open expedition roles reference"><i class="fa-solid fa-book-open" aria-hidden="true"></i> Roles</button></div></div><div id="zft-hex-roster-members" class="zft-hex-party-list" ${rosterCollapsed ? "hidden" : ""}>${rosterHtml || "No party members selected"}</div>`));
@@ -1021,6 +1120,11 @@ function roleOutcomeText(result) {
   if (!result || result.status === "unassigned") return { label: "Unassigned", tone: "pending", detail: "No check" };
   if (result.status === "absent") return { label: "Absent", tone: "pending", detail: "No check" };
   if (result.status !== "checked") return { label: "Pending", tone: "pending", detail: "Awaiting check" };
+  if (result.awaitingConfirmation) {
+    const rolled = result.rolledSuccess ? "Success" : "Failure";
+    const provisional = result.ruling && result.ruling !== "roll" ? ` · GM provisional ${result.success ? "Success" : "Failure"}` : "";
+    return { label: "Awaiting GM Confirmation", tone: "pending", detail: `${Number(result.total)} vs DC ${Number(result.dc ?? 0) || "?"} · Rolled ${rolled}${provisional}` };
+  }
   const override = result.ruling && result.ruling !== "roll" ? " · GM override" : "";
   return {
     label: result.success ? "Success" : "Failure",
@@ -1028,18 +1132,58 @@ function roleOutcomeText(result) {
     detail: `${Number(result.total)} vs DC ${Number(result.dc ?? 0) || "?"}${override}`
   };
 }
+function rolePointSummary(record, roleIds = []) {
+  const results = Array.isArray(record?.travelQuality?.results) ? record.travelQuality.results : [];
+  const selected = results.filter(result => roleIds.includes(result?.role));
+  if (!selected.length) return null;
+  const successPoints = selected.reduce((sum, result) => sum + Math.max(0, Number(result?.successPoints) || 0), 0);
+  const failurePoints = selected.reduce((sum, result) => sum + Math.max(0, Number(result?.failurePoints) || 0), 0);
+  const successLabel = successPoints === 1 ? "Success Point" : "Success Points";
+  const failureLabel = failurePoints === 1 ? "Failure Point" : "Failure Points";
+  return { successPoints, failurePoints, text: `${successPoints} ${successLabel} · ${failurePoints} ${failureLabel}` };
+}
+function roleColumnHeader() {
+  return `<div class="zft-hex-role-log-columns" aria-hidden="true"><span>CHARACTER / CHECK</span><span>ROLL</span><span>RESULT</span></div>`;
+}
+function roleGradeExplanation(status, points = null) {
+  const summary = status === "Strong" ? "Both assigned checks succeeded."
+    : status === "Partial" ? "One assigned check succeeded and one failed."
+    : status === "Failed" ? "Both assigned checks failed."
+    : status === "Unassisted" ? "Only the Guide check applied; no Vanguard check contributed."
+    : status === "No assigned checks" ? "No assigned present characters contributed checks to this activity."
+    : "";
+  if (!summary) return null;
+  return { summary, points };
+}
+function rolePhaseHeader(title, status, points = null) {
+  const explanation = roleGradeExplanation(status, points);
+  const aria = explanation ? `${status}. ${explanation.summary}${points ? ` Travel Quality contribution: ${points.text}.` : ""}` : status;
+  const tooltip = explanation ? `<span class="zft-hex-role-grade-tooltip-pop" role="tooltip"><strong>${esc(status)}</strong><span>${esc(explanation.summary)}</span>${points ? `<span class="zft-hex-role-grade-tooltip-points"><b>Travel Quality contribution</b><span><em>Success Points</em><strong>${esc(points.successPoints)}</strong></span><span><em>Failure Points</em><strong>${esc(points.failurePoints)}</strong></span></span>` : ""}</span>` : "";
+  const statusHtml = explanation
+    ? `<span class="zft-hex-role-grade-tooltip" tabindex="0" aria-label="${esc(aria)}"><span>${esc(status)}</span><i class="fa-solid fa-circle-info" aria-hidden="true"></i>${tooltip}</span>`
+    : `<span>${esc(status)}</span>`;
+  return `<header><strong>${esc(title)}</strong><span class="zft-hex-role-log-phase-meta">${statusHtml}</span></header>${points ? `<div class="zft-hex-role-log-points">${esc(points.text)}</div>` : ""}`;
+}
+
 function roleRow(result, fallback) {
   const source = result ?? fallback;
   const outcome = roleOutcomeText(source);
   const name = source?.actorName || (source?.status === "absent" ? "Assigned character absent" : "Unassigned");
   const check = source?.skill ? `${hexRoleSkillLabel(source.skill)} (${String(source.ability ?? "").toUpperCase()})` : "No check";
   const total = source?.status === "checked" && Number.isFinite(Number(source.total)) ? hexTravelD20Total(Number(source.total)) : "—";
-  return `<div class="zft-hex-role-log-row zft-hex-result-${outcome.tone}"><span class="zft-hex-role-log-identity"><strong>${esc(source?.roleName ?? source?.role ?? "Role")}</strong><small>${esc(name)} · ${esc(check)}</small></span><span class="zft-hex-role-log-roll">${total}</span><span class="zft-hex-role-log-verdict">${esc(outcome.label)}</span></div>`;
+  const verdict = source?.awaitingConfirmation
+    ? `<span class="zft-hex-role-log-verdict"><strong>${esc(outcome.label)}</strong><small>Rolled ${source.rolledSuccess ? "Success" : "Failure"}${source.ruling && source.ruling !== "roll" ? ` · Provisional ${source.success ? "Success" : "Failure"}` : ""}</small></span>`
+    : `<span class="zft-hex-role-log-verdict">${esc(outcome.label)}</span>`;
+  return `<div class="zft-hex-role-log-row zft-hex-result-${outcome.tone}"><span class="zft-hex-role-log-identity"><strong>${esc(source?.roleName ?? source?.role ?? "Role")}</strong><small>${esc(name)} · ${esc(check)}</small></span><span class="zft-hex-role-log-roll">${total}</span>${verdict}</div>`;
 }
 function rolePhaseHtml(record, phase, title, roleIds) {
   const saved = record.roles?.[phase];
   const phaseState = record.phases?.[phase];
+  const transient = getHexRoleResolutionTransient(record.id, phase);
   const resultMap = new Map((saved?.results ?? []).map(result => [result.role, result]));
+  if (transient?.status === "awaitingGmConfirmation") {
+    for (const [role, result] of Object.entries(transient.rolls ?? {})) resultMap.set(role, { ...result, status: "checked", dc: transient.dc, awaitingConfirmation: true });
+  }
   const party = new Map((record.context?.party ?? []).map(entry => [entry.actorUuid, entry]));
   const rows = roleIds.map(roleId => {
     const role = EXPEDITION_ROLES[roleId];
@@ -1056,8 +1200,9 @@ function rolePhaseHtml(record, phase, title, roleIds) {
     return roleRow(result, fallback);
   }).join("");
   const grade = saved?.grade === "strong" ? "Strong" : saved?.grade === "partial" ? "Partial" : saved?.grade === "failure" ? "Failed" : saved?.grade === "unassigned" ? "No assigned checks" : null;
-  const status = phaseState === "completed" ? (grade ?? "Completed") : phaseState === "notImplemented" ? "Ready to resolve" : phaseState === "pending" ? "Pending" : esc(phaseState ?? "Pending");
-  return `<section class="zft-hex-role-log-phase ${phaseState === "completed" ? "is-complete" : "is-pending"}"><header><strong>${esc(title)}</strong><span>${esc(status)}</span></header><div class="zft-hex-role-log-rows">${rows}</div></section>`;
+  const status = transient?.status === "awaitingGmConfirmation" ? "Awaiting GM Confirmation" : phaseState === "completed" ? (grade ?? "Completed") : phaseState === "notImplemented" ? "Ready to resolve" : phaseState === "pending" ? "Pending" : esc(phaseState ?? "Pending");
+  const points = rolePointSummary(record, roleIds);
+  return `<section class="zft-hex-role-log-phase ${phaseState === "completed" ? "is-complete" : "is-pending"}">${rolePhaseHeader(title, status, points)}${roleColumnHeader()}<div class="zft-hex-role-log-rows">${rows}</div></section>`;
 }
 function renderRoleLog(storeValue) {
   let store;
@@ -1066,7 +1211,7 @@ function renderRoleLog(storeValue) {
     console.error("[ZFT][HexTravel] Roles tab could not read shared records", error);
     return `<div class="zft-hex-log-placeholder"><i class="fa-solid fa-triangle-exclamation" aria-hidden="true"></i><strong>Expedition Roles unavailable</strong><p>The saved hex record collection could not be read safely.</p></div>`;
   }
-  if (!store.records.length) return `<div class="zft-hex-log-placeholder"><i class="fa-solid fa-users" aria-hidden="true"></i><strong>Expedition Roles</strong><p>Start and commit a new hex to create its shared expedition record.</p><small>Navigation, Reconnaissance, and Expedition Support will then appear here.</small></div>`;
+  if (!store.records.length) return `<div class="zft-hex-log-placeholder"><i class="fa-solid fa-users" aria-hidden="true"></i><strong>Expedition Roles</strong><p>Start a new hex to create its shared expedition record.</p><small>Navigation, Reconnaissance, and Expedition Support will then appear here.</small></div>`;
   return `<div class="zft-hex-role-log-feed">${[...store.records].reverse().map(record => {
     const nav = record.navigation ?? {};
     const navResults = [];
@@ -1081,8 +1226,127 @@ function renderRoleLog(storeValue) {
     const navRows = navResults.map(result => roleRow(result, result)).join("");
     const navGrade = nav.grade === "strong" ? "Strong" : nav.grade === "partial" ? "Partial" : nav.grade === "failure" ? "Failed" : nav.grade === "unassisted" ? "Unassisted" : "Completed";
     const place = [record.context?.identity?.region, record.context?.identity?.world].filter(Boolean).join(" · ");
-    return `<article class="zft-hex-role-log-card"><header class="zft-hex-role-log-card-head"><span><strong>Hex ${esc(record.number)}</strong>${place ? `<small>${esc(place)}</small>` : ""}</span><span class="zft-hex-role-log-status">${esc(record.status)}</span></header><section class="zft-hex-role-log-phase is-complete"><header><strong>Navigation</strong><span>${esc(navGrade)}</span></header><div class="zft-hex-role-log-rows">${navRows}</div></section>${rolePhaseHtml(record,"reconnaissance","Reconnaissance",["scout","tracker"])}${rolePhaseHtml(record,"support","Expedition Support",["forager","coordinator"])}</article>`;
+    const navPoints = rolePointSummary(record, ["guide", "vanguard"]);
+    return `<article class="zft-hex-role-log-card"><header class="zft-hex-role-log-card-head"><span><strong>Hex ${esc(record.number)}</strong>${place ? `<small>${esc(place)}</small>` : ""}</span><span class="zft-hex-role-log-status">${esc(record.status)}</span></header><section class="zft-hex-role-log-phase is-complete">${rolePhaseHeader("Navigation", navGrade, navPoints)}${roleColumnHeader()}<div class="zft-hex-role-log-rows">${navRows}</div></section>${rolePhaseHtml(record,"reconnaissance","Reconnaissance",["scout","tracker"])}${rolePhaseHtml(record,"support","Expedition Support",["forager","coordinator"])}</article>`;
   }).join("")}</div>`;
+}
+
+
+function expeditionHexHistoryHtml(record) {
+  if (!record) return "";
+  const nav = record.navigation ?? {};
+  const navRole = (key, name, skill, ability) => {
+    const value = nav[key];
+    if (!value) return { role:key, roleName:name, skill, ability, status:"unassigned", actorName:null };
+    return { role:key, roleName:name, skill, ability, status:"checked", actorName:value.actorName,
+      total:value.total, rolledSuccess:value.rolledSuccess, ruling:value.ruling, success:value.success, dc:nav.dc };
+  };
+  const navRows = [navRole("guide","Guide","sur","wis"), navRole("vanguard","Vanguard","ath","str")].map(result => roleRow(result, result)).join("");
+  const navGrade = nav.grade === "strong" ? "Strong" : nav.grade === "partial" ? "Partial" : nav.grade === "failure" ? "Failed" : nav.grade === "unassisted" ? "Unassisted" : "Completed";
+  const tq = record.travelQuality;
+  const momentum = record.momentum;
+  const event = record.event;
+  const resolution = record.eventResolution;
+  const eventName = event ? (EXPEDITION_EVENT_LABELS[event.type] ?? event.label ?? expeditionLabel(event.type)) : "Pending";
+  const outcome = `<section class="zft-hex-expedition-history-outcome"><header><strong>Expedition Outcome</strong><span>${hexRecordReadyForTravel(record) ? "Travel ready" : "Staged"}</span></header>
+    <div class="zft-hex-event-stage-grid"><div><span>TRAVEL QUALITY</span><strong>${tq ? esc(expeditionLabel(tq.quality)) : "Pending"}</strong><small>${tq ? `${esc(tq.successPoints)} success pts · ${esc(tq.failurePoints)} failure pts` : "Waiting for roles"}</small></div>
+    <div><span>MOMENTUM</span><strong>${momentum ? esc(expeditionLabel(momentum.after)) : "Pending"}</strong><small>${momentum ? `${esc(expeditionLabel(momentum.before))} → ${esc(expeditionLabel(momentum.after))}` : "Pending"}</small></div>
+    <div><span>EVENT</span><strong>${esc(eventName)}</strong><small>${event ? `d20 ${esc(event.raw)} ${esc(signedEventModifier(event.modifier))} = ${esc(event.final)}` : "Pending"}</small></div>
+    <div><span>RESOLUTION</span><strong>${esc(eventResolutionLabel(record))}</strong><small>${resolution?.status === "manual" && resolution.notes ? esc(resolution.notes) : resolution?.status === "pending" ? "Resolution required before travel commit" : "Saved to this hex"}</small></div></div></section>`;
+  const navPoints = rolePointSummary(record, ["guide", "vanguard"]);
+  return `<div class="zft-hex-expedition-history" aria-label="Expedition roles and outcome for this hex">
+    <section class="zft-hex-role-log-phase is-complete">${rolePhaseHeader("Navigation", navGrade, navPoints)}${roleColumnHeader()}<div class="zft-hex-role-log-rows">${navRows}</div></section>
+    ${rolePhaseHtml(record,"reconnaissance","Reconnaissance",["scout","tracker"])}
+    ${rolePhaseHtml(record,"support","Expedition Support",["forager","coordinator"])}
+    ${outcome}</div>`;
+}
+
+function expeditionLabel(value) {
+  return String(value ?? "").replace(/([a-z])([A-Z])/g, "$1 $2").replace(/\b\w/g, char => char.toUpperCase());
+}
+function signedEventModifier(value) {
+  const n = Number(value) || 0;
+  return `${n >= 0 ? "+" : ""}${n}`;
+}
+function eventResolutionLabel(record) {
+  const resolution = record?.eventResolution;
+  if (!resolution) return "Pending";
+  if (resolution.status === "resolved") return resolution.engine === "quietTravel" ? "Resolved · Nothing happens" : "Resolved";
+  if (resolution.status === "manual") return "Resolved manually";
+  if (resolution.engine === "complication") return `${resolution.severity === "major" ? "Major Complication" : "Complication"} · GM Resolution`;
+  if (resolution.engine === "opportunity") return "Opportunity · GM Resolution";
+  return expeditionLabel(resolution.status || "pending");
+}
+function eventRecordHtml(record) {
+  const rolesReady = record.phases?.reconnaissance === "completed" && record.phases?.support === "completed";
+  const eventReady = record.phases?.event === "completed" && record.event;
+  const travelReady = hexRecordReadyForTravel(record);
+  const place = [record.context?.identity?.region, record.context?.identity?.world].filter(Boolean).join(" · ");
+  const tq = record.travelQuality;
+  const momentum = record.momentum;
+  const event = record.event;
+  const resolution = record.eventResolution;
+  const quality = tq ? expeditionLabel(tq.quality) : "Pending";
+  const qualityDetail = tq ? `${tq.successPoints} success pts · ${tq.failurePoints} failure pts` :
+    rolesReady ? "Ready to calculate" : "Waiting for Reconnaissance and Expedition Support";
+  const momentumDetail = momentum ? `${expeditionLabel(momentum.before)} → ${expeditionLabel(momentum.after)}` : "Pending Travel Quality";
+  const eventDetail = event ? `d20 ${event.raw} ${signedEventModifier(event.modifier)} = ${event.final}` : "Pending Momentum";
+  const eventName = event ? (EXPEDITION_EVENT_LABELS[event.type] ?? event.label ?? expeditionLabel(event.type)) : "Pending";
+  let action = "";
+  if (game.user?.isGM && eventReady && resolution?.status === "pending") {
+    action = `<button type="button" class="zft-hex-event-secondary" data-hex-event-action="manual-event" data-record-id="${esc(record.id)}"><i class="fa-solid fa-pen-to-square" aria-hidden="true"></i> Record Event Resolution</button>`;
+  }
+  const manualNote = resolution?.status === "manual" && resolution.notes
+    ? `<div class="zft-hex-event-note"><strong>GM Resolution</strong><span>${esc(resolution.notes)}</span></div>` : "";
+  const gate = travelReady ? `<span class="zft-hex-event-gate is-ready"><i class="fa-solid fa-circle-check"></i> Travel unlocked</span>` :
+    `<span class="zft-hex-event-gate is-blocked"><i class="fa-solid fa-lock"></i> Travel staged</span>`;
+  return `<article class="zft-hex-event-card ${travelReady ? "is-ready" : "is-staged"}">
+    <header class="zft-hex-event-card-head"><span><strong>Hex ${esc(record.number)}</strong>${place ? `<small>${esc(place)}</small>` : ""}</span>${gate}</header>
+    <div class="zft-hex-event-stage-grid">
+      <div><span>TRAVEL QUALITY</span><strong>${esc(quality)}</strong><small>${esc(qualityDetail)}</small></div>
+      <div><span>MOMENTUM</span><strong>${momentum ? esc(expeditionLabel(momentum.after)) : "Pending"}</strong><small>${esc(momentumDetail)}</small></div>
+      <div><span>EVENT</span><strong>${esc(eventName)}</strong><small>${esc(eventDetail)}</small></div>
+      <div><span>RESOLUTION</span><strong>${esc(eventResolutionLabel(record))}</strong><small>${resolution?.status === "pending" ? "Must resolve before travel hours commit" : "Saved to this hex record"}</small></div>
+    </div>${manualNote}${action ? `<div class="zft-hex-event-actions">${action}</div>` : ""}
+  </article>`;
+}
+function threatCardHtml(threat) {
+  const gm = !!game.user?.isGM;
+  if (!gm && threat.visibility === "hidden") return "";
+  const stage = expeditionLabel(threat.stage);
+  if (!gm && threat.visibility === "partial") {
+    return `<article class="zft-hex-threat-card is-partial"><header><strong>Threat Warning</strong><span>Partial Intelligence</span></header><p>${esc(threat.warning || "Signs of danger have been detected.")}</p></article>`;
+  }
+  const immediate = threat.status === "active" && threat.stage === "immediate";
+  const nextVisibility = threat.visibility === "hidden" ? "partial" : threat.visibility === "partial" ? "full" : "hidden";
+  const controls = gm && threat.status === "active" ? `<div class="zft-hex-threat-actions">
+    ${threat.stage !== "immediate" ? `<button type="button" data-hex-event-action="threat-advance" data-threat-id="${esc(threat.id)}"><i class="fa-solid fa-arrow-up"></i> Advance</button>` : ""}
+    <button type="button" data-hex-event-action="threat-reduce" data-threat-id="${esc(threat.id)}"><i class="fa-solid fa-arrow-down"></i> Reduce</button>
+    <button type="button" data-hex-event-action="threat-visibility" data-threat-id="${esc(threat.id)}" data-threat-visibility="${esc(nextVisibility)}"><i class="fa-solid fa-eye"></i> ${nextVisibility === "hidden" ? "Hide" : nextVisibility === "partial" ? "Reveal Partial" : "Reveal Full"}</button>
+    <button type="button" data-hex-event-action="threat-resolve" data-threat-id="${esc(threat.id)}"><i class="fa-solid fa-circle-check"></i> Resolve</button>
+  </div>` : "";
+  return `<article class="zft-hex-threat-card ${immediate ? "is-immediate" : ""} ${threat.status === "resolved" ? "is-resolved" : ""}">
+    <header><span><strong>${esc(threat.name)}</strong><small>${esc(threat.source?.detail || "Threat")}</small></span><span class="zft-hex-threat-stage">${threat.status === "resolved" ? "Resolved" : esc(stage)}</span></header>
+    ${gm ? `<div class="zft-hex-threat-meta"><span>Players: ${esc(expeditionLabel(threat.visibility))}</span>${threat.createdRecordNumber ? `<span>Created at Hex ${esc(threat.createdRecordNumber)}</span>` : ""}</div>` : ""}
+    ${immediate ? `<p class="zft-hex-threat-immediate"><i class="fa-solid fa-triangle-exclamation"></i> Immediate Threat requires direct GM resolution. Encounter handoff is not automated.</p>` : ""}
+    ${controls}</article>`;
+}
+function renderEventLog(storeValue) {
+  let store;
+  try { store = cloneHexRecordStore(storeValue); }
+  catch (error) {
+    console.error("[ZFT][HexTravel] Events tab could not read shared records", error);
+    return `<div class="zft-hex-log-placeholder"><i class="fa-solid fa-triangle-exclamation" aria-hidden="true"></i><strong>Expedition Events unavailable</strong><p>The saved expedition record collection could not be read safely.</p></div>`;
+  }
+  let threats = [];
+  try { threats = cloneThreats(store.threats); }
+  catch (error) { console.error("[ZFT][HexTravel] Threat records unavailable", error); }
+  const visibleThreats = game.user?.isGM ? threats : threats.filter(threat => threat.visibility !== "hidden");
+  const threatCards = [...visibleThreats].sort((a,b) => (b.lastChangedAt ?? 0) - (a.lastChangedAt ?? 0)).map(threatCardHtml).filter(Boolean).join("");
+  const threatSection = `<section class="zft-hex-threat-section"><header><span><strong>Persistent Threats</strong><small>${game.user?.isGM ? `${threats.filter(t=>t.status === "active").length} active · ${threats.length} total` : `${visibleThreats.filter(t=>t.status === "active").length} known`}</small></span>${game.user?.isGM ? `<button type="button" data-hex-event-action="threat-add"><i class="fa-solid fa-plus"></i> Add Threat</button>` : ""}</header>${threatCards || `<div class="zft-hex-event-empty">${game.user?.isGM ? "No Threats have been recorded." : "No Threat information has been revealed."}</div>`}</section>`;
+  const records = [...store.records].reverse().map(eventRecordHtml).join("");
+  const recordSection = records || `<div class="zft-hex-log-placeholder"><i class="fa-solid fa-map" aria-hidden="true"></i><strong>Expedition Events</strong><p>Start a new hex to create its staged Expedition workflow.</p></div>`;
+  return `<div class="zft-hex-event-log-feed">${threatSection}<section class="zft-hex-event-records">${recordSection}</section></div>`;
 }
 
 function syncCards(container, cards, dayOverrides = null, historyOverrides = null) {
@@ -1154,6 +1418,8 @@ class ExpeditionConsole {
   historyOpenOverrides = new Map();
   pendingRolls = new Map();
   lastDayState = null;
+  lastActiveHexCardId = null;
+  lastPendingTravelHours = null;
   lastMarchTimelineState = null;
   lastDisplaySecond = null;
   lastDetailMinute = null;
@@ -1548,13 +1814,12 @@ class ExpeditionConsole {
             ${game.user.isGM ? `
               <section class="zft-hex-gm"><div class="zft-hex-gm-title"><i class="fa-solid fa-dice-d20"></i> GM Expedition Controls</div>
                 <div class="zft-hex-actions">
-                  <button type="button" data-hex-action="travel"><i class="fa-solid fa-route"></i> Start / Continue</button>
+                  <button type="button" data-hex-action="travel"><i class="fa-solid fa-route"></i> <span data-hex-travel-action-label>Start Travel</span></button>
                   <button type="button" data-hex-action="day"><i class="fa-solid fa-sun"></i> New Travel Day</button>
                   <button type="button" data-hex-action="roles"><i class="fa-solid fa-user-gear"></i> Expedition Roles</button>
-                  <button type="button" data-hex-action="resolve-roles"><i class="fa-solid fa-dice-d20"></i> Resolve Role Checks</button>
+                  <button type="button" data-hex-action="recovery"><i class="fa-solid fa-life-ring"></i> Recovery</button>
                   <button type="button" data-hex-action="attendance"><i class="fa-solid fa-users"></i> Party Attendance</button>
                   <button type="button" data-hex-action="manage"><i class="fa-solid fa-book-open"></i> Edit Travel Ledger</button>
-                  <button type="button" data-hex-action="show-players"><i class="fa-solid fa-display"></i> Show to Players</button>
                   <button type="button" data-hex-action="reset" class="zft-hex-danger"><i class="fa-solid fa-rotate-left"></i> Reset Travel</button>
                   <button type="button" data-hex-action="clear-log" class="zft-hex-danger"><i class="fa-solid fa-trash"></i> Clear Expedition Log</button>
                 </div><div class="zft-hex-pending-rolls" data-hex-pending-rolls hidden></div><div class="zft-hex-attendance-editor" data-hex-editor hidden></div>
@@ -1577,7 +1842,7 @@ class ExpeditionConsole {
       </nav>
       <div class="zft-hex-scroll" id="zft-hex-panel-travel" role="tabpanel" aria-labelledby="zft-hex-tab-travel" data-hex-log-panel="travel" tabindex="0" aria-label="Scrollable expedition travel history"><div class="zft-hex-log-feed" data-hex-cards role="log" aria-label="Expedition travel history"></div></div>
       <div class="zft-hex-scroll" id="zft-hex-panel-roles" role="tabpanel" aria-labelledby="zft-hex-tab-roles" data-hex-log-panel="roles" tabindex="0" hidden><div data-hex-role-cards></div></div>
-      <div class="zft-hex-scroll" id="zft-hex-panel-events" role="tabpanel" aria-labelledby="zft-hex-tab-events" data-hex-log-panel="events" tabindex="0" hidden><div class="zft-hex-log-placeholder"><i class="fa-solid fa-map" aria-hidden="true"></i><strong>Expedition Events</strong><p>Travel Quality, Momentum, Discoveries, Complications, Threat, and Encounters will appear here when their engines are integrated.</p><small>Placeholder only. The existing travel history is unchanged.</small></div></div>
+      <div class="zft-hex-scroll" id="zft-hex-panel-events" role="tabpanel" aria-labelledby="zft-hex-tab-events" data-hex-log-panel="events" tabindex="0" hidden><div data-hex-event-cards></div></div>
       <div class="zft-hex-log-resize" data-hex-resize-log title="Drag to resize expedition log" aria-label="Resize expedition log"><i class="fa-solid fa-up-right-and-down-left-from-center"></i></div>`;
     if (game.user.isGM) {
       const content = node.querySelector(".zft-hex-dashboard-content");
@@ -1594,6 +1859,7 @@ class ExpeditionConsole {
       workflowNode.hidden = true;
       workflowNode.innerHTML = `<header class="zft-hex-workflow-head" data-hex-workflow-drag>
         <i class="fa-solid fa-dice-d20" aria-hidden="true"></i><span>GM Expedition Controls</span>
+        <button type="button" data-hex-action="show-players" data-hex-player-visibility title="Show expedition workspace to connected players"><i class="fa-solid fa-display" aria-hidden="true"></i> <span data-hex-player-visibility-label>Show to Players</span></button>
         <button type="button" data-hex-workflow-action="dock" title="Dock or undock GM Controls to Dashboard"><i class="fa-solid fa-link" aria-hidden="true"></i> <span data-hex-workflow-dock-label>Undock</span></button>
       </header><div class="zft-hex-workflow-content">
         <section class="zft-hex-workflow" data-hex-workflow aria-label="Active GM decision" hidden></section>
@@ -1824,6 +2090,68 @@ class ExpeditionConsole {
   async logClick(event) {
     const tab = event.target.closest("button[data-hex-log-tab]");
     if (tab && this.logElement?.contains(tab)) return void this.selectLogTab(tab.dataset.hexLogTab);
+    const eventButton = event.target.closest("button[data-hex-event-action]");
+    if (eventButton && this.logElement?.contains(eventButton)) {
+      if (!game.user?.isGM || this.busy) return;
+      const action = eventButton.dataset.hexEventAction;
+      const recordId = eventButton.dataset.recordId;
+      const threatId = eventButton.dataset.threatId;
+      this.busy = true;
+      try {
+        if (action === "manual-event") {
+          await this.recordEventResolution(recordId);
+        } else if (action === "threat-add") {
+          const answer = await this.prompt({
+            window: { title: "Add Expedition Threat" }, position: { width: 540 },
+            content: `<section class="zft-hex-threat-form"><p>GM-created Threats persist across hexes and travel days until resolved.</p>
+              <label><span>Threat name</span><input name="name" type="text" maxlength="120" required placeholder="e.g. Wyvern Hunting Territory"></label>
+              <label><span>Source / context</span><input name="source" type="text" maxlength="180" placeholder="Why this Threat exists"></label>
+              <label><span>Starting stage</span><select name="stage">${HEX_THREAT_STAGES.map(stage => `<option value="${stage}">${expeditionLabel(stage)}</option>`).join("")}</select></label>
+              <label><span>Player information</span><select name="visibility"><option value="hidden">Hidden</option><option value="partial">Partial Intelligence</option><option value="full">Full Intelligence</option></select></label>
+              <label><span>Partial warning</span><input name="warning" type="text" maxlength="240" value="Signs of danger have been detected." /></label>
+            </section>`,
+            buttons: [
+              { action: "save", label: "Add Threat", icon: "fas fa-plus", default: true, callback: (_event, button) => ({
+                name: button.form.elements.name.value.trim(), source: button.form.elements.source.value.trim(),
+                stage: button.form.elements.stage.value, visibility: button.form.elements.visibility.value,
+                warning: button.form.elements.warning.value.trim()
+              }) },
+              { action: "cancel", label: "Cancel", callback: () => null }
+            ], close: () => null
+          });
+          if (!answer) return;
+          if (!answer.name) return ui.notifications.warn("Threat name is required.");
+          await createHexThreat(answer);
+          ui.notifications.info(`Threat added: ${answer.name}.`);
+        } else if (action === "threat-advance") {
+          await advanceHexThreat(threatId);
+          ui.notifications.info("Threat advanced one stage.");
+        } else if (action === "threat-reduce") {
+          await reduceHexThreat(threatId);
+          ui.notifications.info("Threat reduced one stage. Emerging Threats resolve when reduced again.");
+        } else if (action === "threat-visibility") {
+          const visibility = eventButton.dataset.threatVisibility;
+          await setHexThreatVisibility(threatId, visibility);
+          ui.notifications.info(`Threat player information set to ${expeditionLabel(visibility)}.`);
+        } else if (action === "threat-resolve") {
+          const confirmed = await this.prompt({
+            window: { title: "Resolve Threat" }, position: { width: 430 },
+            content: `<section class="zft-hex-threat-confirm"><p>Mark this Threat resolved? Its history remains in the expedition record.</p></section>`,
+            buttons: [
+              { action: "resolve", label: "Resolve Threat", icon: "fas fa-circle-check", default: true, callback: () => true },
+              { action: "cancel", label: "Cancel", callback: () => false }
+            ], close: () => false
+          });
+          if (!confirmed) return;
+          await resolveHexThreat(threatId);
+          ui.notifications.info("Threat marked resolved.");
+        }
+      } catch (error) {
+        console.error("[ZFT][HexTravel] Expedition Event/Threat action failed", error);
+        ui.notifications.error(`Expedition action failed: ${error.message}`);
+      } finally { this.busy = false; this.refresh(); }
+      return;
+    }
     const button = event.target.closest("button[data-hex-log-action]");
     if (!button || !this.logElement?.contains(button)) return;
     if (button.dataset.hexLogAction === "latest") {
@@ -2018,6 +2346,10 @@ class ExpeditionConsole {
       this.followLatest = true;
     }
     this.lastDayState = currentDayState;
+    const liveLedger = getLedger();
+    const completedHexId = completedHexIdForAutoCollapse(this.lastActiveHexCardId, this.lastPendingTravelHours, liveLedger);
+    this.lastActiveHexCardId = liveLedger.activeHexCardId || null;
+    this.lastPendingTravelHours = Math.max(0, Number(liveLedger.pending) || 0);
     const cards = makeCards(snapshot);
     const scroller = this.logElement.querySelector('[data-hex-log-panel="travel"]');
     const travelVisible = this.activeLogTab === "travel";
@@ -2031,8 +2363,51 @@ class ExpeditionConsole {
     this.updateClockReadout(true);
     syncCards(dashboard, cards.filter(card => card.key === "party"));
     syncCards(log, cards.filter(card => !["overview", "party"].includes(card.key)), this.dayOpenOverrides, this.historyOpenOverrides);
+    if (completedHexId) {
+      for (const card of cards) {
+        if (!card.key.startsWith(`hex:${completedHexId}:day:`)) continue;
+        this.historyOpenOverrides.set(card.key, false);
+        const node = log.querySelector(`[data-hex-card="${CSS.escape(card.key)}"] > details[data-hex-history]`);
+        if (node) node.open = false;
+      }
+    }
+    if (game.user?.isGM) {
+      const store = cloneHexRecordStore(liveLedger.hexRecords);
+      const active = liveLedger.activeHexCardId ? store.records.find(record => record.id === liveLedger.activeHexCardId) ?? null : null;
+      const travelButton = this.workflowElement?.querySelector('[data-hex-action="travel"]');
+      const travelLabel = travelButton?.querySelector("[data-hex-travel-action-label]");
+      if (travelButton && travelLabel) {
+        const primary = primaryHexTravelAction(liveLedger);
+        // Never silently disable the primary travel action. A staged/locked
+        // hex uses an explicit Resolve Expedition state and clicking it tells
+        // the GM exactly what remains instead of appearing to do nothing.
+        travelButton.disabled = false;
+        travelButton.dataset.hexTravelState = primary.kind;
+        travelButton.dataset.hexTravelReason = primary.reason || "";
+        travelButton.classList.toggle("is-blocked", primary.blocked);
+        travelButton.title = primary.blocked ? primary.reason : primary.kind === "resolve-role"
+          ? primary.reason
+          : primary.kind === "resolve-event"
+            ? primary.reason
+          : primary.kind === "commit"
+            ? "Commit the staged travel hours and advance world time when enabled."
+            : primary.kind === "continue" ? "Continue committing the current hex's remaining travel." : "Start a new hex travel sequence.";
+        travelLabel.textContent = primary.label;
+      }
+      const showData = game.settings.get(MODULE_ID, SHOW_KEY) ?? {};
+      const visible = showData.visible === true && Number(showData.requestedAt) > 0;
+      const showButton = this.workflowElement?.querySelector("[data-hex-player-visibility]");
+      const showLabel = showButton?.querySelector("[data-hex-player-visibility-label]");
+      if (showButton && showLabel) {
+        showLabel.textContent = visible ? "Hide from Players" : "Show to Players";
+        showButton.setAttribute("aria-pressed", String(visible));
+        showButton.title = visible ? "Hide expedition workspace on connected player clients" : "Show expedition workspace to connected players";
+      }
+    }
     const roleFeed = this.logElement.querySelector("[data-hex-role-cards]");
-    if (roleFeed) roleFeed.innerHTML = renderRoleLog(getLedger().hexRecords);
+    if (roleFeed) roleFeed.innerHTML = renderRoleLog(liveLedger.hexRecords);
+    const eventFeed = this.logElement.querySelector("[data-hex-event-cards]");
+    if (eventFeed) eventFeed.innerHTML = renderEventLog(liveLedger.hexRecords);
     // When a new hour begins or travel completes, collapse the prior hour,
     // regardless of saved DOM expansion state. A newly resolved active hour
     // alone may auto-open. Ordinary refreshes preserve deliberate manual
@@ -2373,6 +2748,27 @@ class ExpeditionConsole {
       };
       for (const select of roleSelects) select.addEventListener("change", refreshRoleOptions);
       refreshRoleOptions();
+    } else if (this.panel === "recovery") {
+      const store = cloneHexRecordStore(st.hexRecords);
+      const record = st.activeHexCardId ? store.records.find(entry => entry.id === st.activeHexCardId) ?? null : null;
+      const rolesPending = !!record && (record.phases?.reconnaissance !== "completed" || record.phases?.support !== "completed");
+      const outcomePending = !!record && !rolesPending && record.phases?.event !== "completed";
+      const eventPending = !!record && record.phases?.event === "completed" && record.eventResolution?.status === "pending";
+      const clockPending = !!st.clockSyncPending;
+      const pendingRolls = this.pendingRolls.size;
+      const workflowRunning = this.travelActive;
+      const row = (icon, title, text, action, enabled=true) => `<div class="zft-hex-recovery-row"><span><i class="fa-solid ${icon}" aria-hidden="true"></i><span><strong>${esc(title)}</strong><small>${esc(text)}</small></span></span><button type="button" data-hex-action="${action}" ${enabled ? "" : "disabled"}>${esc(title)}</button></div>`;
+      const resumeText = workflowRunning ? "The normal travel workflow is still active; use its current prompt or pending-roll controls." : record ? rolesPending ? `Hex ${record.number}: resume the first incomplete role stage.` : outcomePending ? `Hex ${record.number}: calculate the saved-role outcome and Event.` : eventPending ? `Hex ${record.number}: role/outcome stages are complete; resolve the Event separately.` : `Hex ${record.number}: expedition stages are already complete.` : "No active staged hex.";
+      editor.innerHTML = `<div class="zft-hex-card-title"><i class="fa-solid fa-life-ring" aria-hidden="true"></i> Expedition Recovery</div>
+        <p>Use recovery only when the normal staged workflow was interrupted. Completed rolls, outcomes, travel hours, and Event results are never rerolled by Resume.</p>
+        <div class="zft-hex-recovery-list">
+          ${row("fa-play", "Resume Workflow", resumeText, "recovery-resume", !workflowRunning && !!record && (rolesPending || outcomePending))}
+          ${row("fa-dice-d20", "Pending Role Rolls", pendingRolls ? `${pendingRolls} active roll request(s). Use the recovery controls shown above this drawer.` : "No active player roll request is waiting on this GM client.", "recovery-pending", pendingRolls > 0)}
+          ${row("fa-pen-to-square", "Event Resolution", eventPending ? `Reopen the unresolved ${EXPEDITION_EVENT_LABELS[record.event?.type] ?? "Event"} for Hex ${record.number}.` : "No Event is waiting for GM resolution.", "recovery-event", eventPending)}
+          ${row("fa-clock-rotate-left", "Clock Reconciliation", clockPending ? "A committed travel clock update requires GM reconciliation." : "No travel clock transaction is waiting for reconciliation.", "recovery-clock", clockPending)}
+          ${row("fa-rotate", "Refresh Saved State", "Rebuild these views from the authoritative saved ledger without changing it.", "recovery-refresh", true)}
+          ${row("fa-clipboard", "Copy Diagnostics", "Copy the current hex-record inspection and write it to the browser console.", "recovery-diagnostics", true)}
+        </div><div class="zft-hex-actions"><button type="button" data-hex-action="panel-cancel">Close</button></div>`;
     } else if (this.panel === "attendance") {
       const excluded = new Set(attendanceConfig().excludedActorUuids ?? []);
       const options = assignedRoster().map(actor => `<label><input type="checkbox" data-hex-actor="${esc(actor.uuid)}" ${excluded.has(actor.uuid) ? "" : "checked"}> <span>${esc(actor.name)}</span></label>`).join("");
@@ -2566,6 +2962,36 @@ class ExpeditionConsole {
     entry.choose({ type: action });
     return true;
   }
+  async resumeExpeditionWorkflow(recordId = null) {
+    if (!game.user?.isGM) throw new Error("Only a GM can resume the Expedition workflow.");
+    const ledger = getLedger();
+    const id = recordId || ledger.activeHexCardId;
+    if (!id) throw new Error("No staged hex is available to resume.");
+    const result = await resumeHexExpeditionWorkflow(id, {
+      prompt: options => this.prompt(options),
+      registerPending: info => this.registerPendingRoll(info),
+      unregisterPending: (key, token) => this.unregisterPendingRoll(key, token),
+      onTransient: () => this.refresh()
+    });
+    this.refresh();
+    return result;
+  }
+  async recordEventResolution(recordId) {
+    const answer = await this.prompt({
+      window: { title: "Record Event Resolution" }, position: { width: 520 },
+      content: `<section class="zft-hex-event-manual"><p>Record how the Event was resolved at the table. Saving the resolution unlocks travel; any time changes, resources, Threat changes, checks, or other consequences remain under normal GM control.</p><label><span>Resolution notes</span><textarea name="notes" rows="4" maxlength="1000" placeholder="What happened, what the party did, and any consequences you handled"></textarea></label></section>`,
+      buttons: [
+        { action: "save", label: "Save Event Resolution", icon: "fas fa-check", default: true,
+          callback: (_event, button) => button.form.elements.notes.value.trim() },
+        { action: "cancel", label: "Cancel", callback: () => null }
+      ], close: () => null
+    });
+    if (answer === null) return false;
+    if (!answer) { ui.notifications.warn("Enter a short resolution note before unlocking travel."); return false; }
+    await resolveHexEventManually(recordId, { notes: answer });
+    ui.notifications.info("Event resolution recorded. The staged hex is ready for travel commit.");
+    return true;
+  }
   async click(event) {
     if (event.target.closest('[data-hex-action="roles-reference"]')) {
       this.openRolesReference();
@@ -2595,23 +3021,38 @@ class ExpeditionConsole {
     // Allow a GM to open Reset while an older travel prompt is awaiting input.
     // Save/Reset themselves are still serialized via this.busy.
     if (this.busy) return;
-    if (action === "resolve-roles") {
-      if (this.travelActive) return ui.notifications.warn("Finish or pause the active travel workflow before resolving the remaining expedition roles.");
+    const editor = this.workflowElement?.querySelector("[data-hex-editor]");
+    if (["roles", "recovery", "attendance", "manage", "reset", "identity", "clear-log"].includes(action)) return this.togglePanel(action);
+    if (action.startsWith("recovery-")) {
       this.busy = true;
       try {
-        await resolveHexTravelRolePhases({
-          prompt: options => this.prompt(options),
-          registerPending: info => this.registerPendingRoll(info),
-          unregisterPending: (key, token) => this.unregisterPendingRoll(key, token)
-        });
+        const state = getLedger();
+        const store = cloneHexRecordStore(state.hexRecords);
+        const record = state.activeHexCardId ? store.records.find(entry => entry.id === state.activeHexCardId) ?? null : null;
+        if (action === "recovery-resume") {
+          if (this.travelActive) return ui.notifications.warn("The normal travel workflow is still active. Use its current prompt or pending-roll controls.");
+          await this.resumeExpeditionWorkflow(record?.id);
+        }
+        else if (action === "recovery-event") {
+          if (!record || record.eventResolution?.status !== "pending") return ui.notifications.info("No Event is waiting for GM resolution.");
+          await this.recordEventResolution(record.id);
+        } else if (action === "recovery-clock") await launchHexTravel({ action: "reconcile" });
+        else if (action === "recovery-refresh") { this.refresh(); ui.notifications.info("Expedition views refreshed from saved state."); }
+        else if (action === "recovery-diagnostics") {
+          const diagnostic = game.zftOverlandTravel?.hexRecords?.inspect?.();
+          const text = JSON.stringify(diagnostic, null, 2);
+          console.log(text);
+          try { await navigator.clipboard?.writeText?.(text); ui.notifications.info("Expedition diagnostics copied and written to the console."); }
+          catch { ui.notifications.info("Expedition diagnostics written to the console. Clipboard access was unavailable."); }
+        } else if (action === "recovery-pending") {
+          this.workflowElement?.querySelector("[data-hex-pending-rolls]")?.scrollIntoView?.({ block: "nearest" });
+        }
       } catch (error) {
-        console.error("[ZFT][HexTravel] ❌ Expedition role resolution failed", error);
-        ui.notifications.error(`Expedition roles stopped: ${error.message}`);
-      } finally { this.busy = false; this.refresh(); }
+        console.error("[ZFT][HexTravel] ❌ Recovery action failed", error);
+        ui.notifications.error(`Recovery stopped: ${error.message}`);
+      } finally { this.busy = false; this.renderPanel(); this.refresh(); }
       return;
     }
-    const editor = this.workflowElement?.querySelector("[data-hex-editor]");
-    if (["roles", "attendance", "manage", "reset", "identity", "clear-log"].includes(action)) return this.togglePanel(action);
     if (action === "panel-cancel") return this.togglePanel(this.panel);
     if (action === "sync-date") {
       try {
@@ -2624,10 +3065,13 @@ class ExpeditionConsole {
       return;
     }
     if (action === "show-players") {
+      const current = game.settings.get(MODULE_ID, SHOW_KEY) ?? {};
+      const visible = current.visible === true && Number(current.requestedAt) > 0;
       const online = game.users.players.filter(u => u.active).length;
-      if (!online) return ui.notifications.warn("No connected players to notify.");
-      await game.settings.set(MODULE_ID, SHOW_KEY, { requestedAt: Date.now(), by: game.user.id });
-      return ui.notifications.info(`Requested expedition console for ${online} connected player(s).`);
+      if (!visible && !online) return ui.notifications.warn("No connected players to notify.");
+      await game.settings.set(MODULE_ID, SHOW_KEY, { requestedAt: Date.now(), by: game.user.id, visible: !visible });
+      this.refresh();
+      return ui.notifications.info(visible ? "Requested the expedition workspace close on connected player clients." : `Requested expedition workspace for ${online} connected player(s).`);
     }
     if (["roles-save", "attendance-save", "manage-save", "reset-save", "identity-save", "clear-log-save"].includes(action)) {
       this.busy = true;
@@ -2675,6 +3119,7 @@ class ExpeditionConsole {
             values[key] = v;
           }
           invalidateHexTravelWorkflows();
+          clearHexRoleResolutionTransient(null, () => this.refresh());
           this.dismissPrompt();
           this.activeTravelTicket += 1;
           this.travelActive = false;
@@ -2690,6 +3135,7 @@ class ExpeditionConsole {
           if (editor.querySelector("input[name='confirmation']")?.value.trim() !== "RESET") return ui.notifications.warn("Type RESET exactly to confirm.");
           // Invalidate any suspended GM rolls/dialogs BEFORE writing the reset.
           invalidateHexTravelWorkflows();
+          clearHexRoleResolutionTransient(null, () => this.refresh());
           this.dismissPrompt();
           this.activeTravelTicket += 1;
           this.travelActive = false;
@@ -2723,6 +3169,44 @@ class ExpeditionConsole {
       return;
     }
     if (["travel", "day"].includes(action)) {
+      if (action === "travel") {
+        const primary = primaryHexTravelAction(getLedger());
+        if (primary.kind === "resolve-role") {
+          if (this.busy) return;
+          this.busy = true;
+          try {
+            const workflow = await this.resumeExpeditionWorkflow(primary.recordId);
+            if (workflow?.outcome?.event?.label) {
+              const pendingResolution = workflow.record?.eventResolution?.status === "pending";
+              ui.notifications.info(`Hex ${primary.recordNumber} Event: ${workflow.outcome.event.label}.${pendingResolution ? " Resolve the Event before committing travel." : " Travel is ready to commit."}`);
+            }
+          } catch (error) {
+            console.error("[ZFT][HexTravel] Role-stage action failed", error);
+            ui.notifications.error(`Expedition action failed: ${error.message}`);
+          } finally {
+            this.busy = false;
+            this.refresh();
+          }
+          return;
+        }
+        if (primary.kind === "resolve-event") {
+          if (this.busy) return;
+          this.busy = true;
+          try { await this.recordEventResolution(primary.recordId); }
+          catch (error) {
+            console.error("[ZFT][HexTravel] Event resolution action failed", error);
+            ui.notifications.error(`Expedition action failed: ${error.message}`);
+          } finally {
+            this.busy = false;
+            this.refresh();
+          }
+          return;
+        }
+        if (primary.blocked) {
+          ui.notifications.warn(`${primary.reason} Use Recovery if the automatic workflow was interrupted.`);
+          return;
+        }
+      }
       if (this.travelActive) {
         // A second click toggles off its own pre-roll/confirmation panel,
         // exactly like the other GM editors. Never terminate a submitted

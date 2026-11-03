@@ -1,47 +1,205 @@
-# ZFT Overland Travel | Current dev.88 Development Handoff
+# ZFT Overland Travel | Current dev.97 Development Handoff
 
-**Checkpoint:** `0.4.0-dev.88`, November 2, 2026.  
+**Current local build:** `0.4.0-dev.97`, November 3, 2026.  
+**Implementation baseline:** complete dev.94 manual-install ZIP, intentionally restored after dev.95/dev.96 Dashboard cosmetic regressions.  
+**Remote baseline:** `LuvacZantor/zft-overland-travel` branch `feature/expedition-system-1.1`, still identical to frozen dev.88 commit `fca67c46e7c1ca5921a031645c9d9fa99063b469`.  
+**Live target:** Foundry V13.351 / D&D5e 5.2.5.  
+**GitHub status:** local build only; no dev.97 remote write, merge, tag, release, or deployment.
+
+## Mandatory continuation baseline
+
+1. Re-read current `zft-standards` before further development.
+2. Treat dev.97 as the owner-directed visual reset point. Dashboard runtime markup/CSS intentionally match dev.94; do not reintroduce dev.95/dev.96 generic tooltip wrappers without a new isolated design and live visual check.
+3. Preserve the manual role-stage workflow, explicit travel commit boundary, six fixed role skills, persistent Momentum, Event bands, Threat state, Forced March/Exhaustion, optional integrations, themes, packs/assets, and exact protected Mount Ironrot source.
+4. Role-grade structured help in the Travel log remains accepted; future transparency help should be implemented without altering normal Dashboard layout or typography.
+5. No GitHub write is implied.
+
+## Dev.97 scope
+
+- Runtime rollback of Dashboard/tooltip presentation to dev.94.
+- Removes dev.95/dev.96 Dashboard tooltip CSS/markup and the orphan tooltip artifact.
+- No gameplay/state behavior changes from dev.94.
+
+See `docs/LOCAL_VALIDATION_DEV97.md` and the dev.97 section at the top of `INTEGRATION_TEST_NOTES.md`.
+
+---
+
+# ZFT Overland Travel | Current dev.94 Development Handoff
+
+**Current local build:** `0.4.0-dev.94`, November 3, 2026.  
+**Implementation baseline:** complete owner-tested dev.93 manual-install ZIP.  
+**Remote baseline:** `LuvacZantor/zft-overland-travel` branch `feature/expedition-system-1.1`, still identical to frozen dev.88 commit `fca67c46e7c1ca5921a031645c9d9fa99063b469`.  
+**Live target:** Foundry V13.351 / D&D5e 5.2.5.  
+**GitHub status:** local build only; no dev.89–dev.94 remote write, merge, tag, release, or deployment.
+
+## Mandatory continuation baseline
+
+1. Re-read current `zft-standards` project/development/versioning/architecture/validation/UI standards before further Foundry work.
+2. Continue from the complete dev.94 package when it is the latest owner-tested build; do not reconstruct current work from remote dev.88.
+3. Preserve the ledger/shared hex-record boundary, explicit travel commit/time boundary, six fixed role skills, reroll/GM adjudication semantics, persistent Momentum, Threat state, Forced March/Exhaustion, themes, packs/assets, optional Calendaria/Rest Recovery integration, and exact `src/expeditions/mount-ironrot/MountIronrotV413.source.js`.
+4. Normal role progression is now manual: Navigation staging → Resolve Reconnaissance → Resolve Expedition Support → automatic Travel Quality/Momentum/Event → Event Resolution when required → Commit Travel. Recovery is not a routine progression control.
+5. No GitHub write is implied by this handoff. Every later remote operation still requires fresh task-specific owner authorization.
+
+## Dev.94 scope
+
+- New hex staging no longer auto-launches Reconnaissance or Support.
+- Primary action explicitly advances one paired activity at a time.
+- Support completion still triggers the saved-role outcome/Event pipeline automatically without committing travel.
+- Dashboard distinguishes current-hex Travel Quality and Momentum shift from persistent Momentum; the five-state rail shows `-2/-1/0/+1/+2`, current Event modifier, carry-forward behavior, and Event-chart ranges.
+- Role-grade tooltips are structured mini-cards with actual Success/Failure Point contributions.
+- All dev.93 Event-resolution/auto-collapse behavior and dev.92 Exhaustion refresh remain preserved.
+
+See `docs/LOCAL_VALIDATION_DEV94.md` and the dev.94 section at the top of `INTEGRATION_TEST_NOTES.md`.
+
+---
+
+# ZFT Overland Travel | Prior dev.93 Development Handoff
+
+**Current local build:** `0.4.0-dev.93`, November 3, 2026.  
+**Implementation baseline:** complete local `0.4.0-dev.92` manual-install package.  
 **Repository:** `LuvacZantor/zft-overland-travel`.  
-**Authoritative source branch:** `feature/expedition-system`; this checkpoint advances the branch from dev.86 to the complete owner-supplied dev.88 source.  
-**Module source evidence:** owner-uploaded `0.4.0-dev.88` manual-install ZIP, 90 module files, SHA-256 `8596a518448d063b5b12754cfa206c81e819f59259722bb0da90268beafc0a6e`.  
-**Design checkpoint:** `docs/EXPEDITION_SYSTEM_DESIGN_1.1_DRAFT.md` plus `docs/COMPLICATION_CONTENT_LIBRARY_DRAFT.md`.  
-**GitHub scope:** development feature-branch checkpoint only. No `main` merge, tag, GitHub Release, or deployment is included.  
-**Evidence:** dev.88 remains locally/simulated validated; live Foundry acceptance remains pending.
+**Remote checkpoint:** `feature/expedition-system-1.1` remains frozen at dev.88 commit `fca67c46e7c1ca5921a031645c9d9fa99063b469`.  
+**GitHub status:** dev.89 through dev.93 remain local only. No remote source write, merge, tag, GitHub Release, or deployment is included.  
+**Live target:** Foundry V13.351 / D&D5e 5.2.5.
 
 ## Mandatory next-chat baseline
 
-1. Re-read current `LuvacZantor/zft-standards/main/PROJECT-INSTRUCTIONS.md` and all applicable current standards, then inspect this repository's actual `feature/expedition-system` HEAD.
-2. Use the complete dev.88 source on this branch as the implementation baseline. Do not fall back to dev.86, dev.77, or an older ZIP.
-3. Read `docs/EXPEDITION_SYSTEM_DESIGN_1.1_DRAFT.md` before further Expedition System design or implementation. The approved design is settled through the Complication Engine foundation.
-4. Read `docs/COMPLICATION_CONTENT_LIBRARY_DRAFT.md` for the 384-entry draft complication content library, Standard/Major framing, suggested responses, outcome guidance, consequence identities, Support applicability, and Threat eligibility.
-5. Preserve the shared hex-record/ledger boundary, planned-vs-committed time separation, all six fixed role skills, themes, packs/assets, optional Calendaria/Rest Recovery behavior, GM/player permissions, and exact original `src/expeditions/mount-ironrot/MountIronrotV413.source.js`.
-6. No future GitHub write is implied by this checkpoint. Each later remote write still requires fresh task-specific owner authorization.
+1. Re-read current ZFT standards and inspect the remote branch before any repository operation.
+2. Use the complete dev.93 package as the implementation baseline if it is the latest owner-tested build; do not reconstruct it from remote dev.88.
+3. Preserve the staged Expedition workflow, explicit Event Resolution and Commit Travel boundaries, rerolls, point scoring, Exhaustion refresh, Travel Quality/Momentum state, two-column roster, Threat state, Forced March/Exhaustion, clock safeguards, themes, packs/assets, integrations, and exact `src/expeditions/mount-ironrot/MountIronrotV413.source.js`.
+4. No GitHub write is implied by this local build. Every remote operation requires fresh task-specific approval.
 
-## Implemented dev.87-dev.88 baseline
+## Dev.93 scope
 
-- **dev.87:** persistent shared travel-sequence/hex record freezes expedition context, party/role assignments, Navigation resolution, travel dice, committed-hour progress, status/corrections, and phase state. The travel ledger remains authoritative for committed hours and world-clock changes.
-- **dev.88:** Reconnaissance (Scout Stealth + Tracker Investigation) and Expedition Support (Forager Survival + Coordinator Persuasion) resolve from the frozen shared record with independent GM adjudication while preserving original and effective outcomes. Roles tab displays Navigation, Reconnaissance, and Support.
-- Travel Quality, Momentum, Event, Complication, Quiet Travel, Opportunity/Discovery, Threat, and Encounter integration described in the 1.1 design remains **design-only** unless a future build explicitly implements it.
+- Manual Major Complication, Complication, and Opportunity outcomes are normal workflow states. The primary GM action names the pending Event and opens Event Resolution directly instead of routing the GM to Recovery.
+- The compact roster displays unique first names, falling back to full names on collisions; underlying Actor identity and all saved/logged names remain unchanged.
+- Strong/Partial/Failed role grades have mouse and keyboard-focus explanations including their actual Travel Quality point contribution.
+- Completing a hex through Commit/Continue Travel automatically collapses the completed hex card; partial/unfinished travel remains open.
+- Momentum rail/Event-chart visualization remains a design candidate and is not implemented in dev.93.
 
-## Approved design checkpoint through Complication
+See `docs/LOCAL_VALIDATION_DEV93.md` and the dev.93 section of `INTEGRATION_TEST_NOTES.md`.
 
-- Staged workflow: Navigation -> Reconnaissance -> Expedition Support -> Travel Quality -> Momentum -> Event -> Event Resolution.
-- Planned travel duration is separate from committed travel time; design-stage delays never advance the ledger or world clock.
-- Reconnaissance controls information quality: Full / Partial / No Advance Intelligence.
-- Support creates hex-local Supply Readiness and Operational Readiness; each may mitigate one relevant consequence by one tier.
-- Travel Quality uses the approved success/failure point model and shifts Momentum only.
-- Event roll is `1d20 + Momentum modifier`, clamped 1-20: **Major Complication 1-5, Complication 6-10, Quiet Travel 11-15, Opportunity 16-20**. These are the four authoritative Event results.
-- Complication uses six categories: Navigation, Environment, Resources, Omen, Social, Magical / Strange. Each category uses `d8 primary -> d8 detail`.
-- **Complication uses Standard severity; Major Complication uses Major severity** against the same rolled complication content. Standard/Major severity uses the shared Tier 0-4 consequence ladder. Category-specific consequences and the full draft content library are documented in the two design files above.
-- Threat is downstream state, **not** one of the four Event Chart results. Complications may be Threat-bearing and later hand off to the Threat Engine.
-- Complication content is intended to become Journal/compendium-backed content with stable metadata; rules/state logic remains in code.
-- Detailed Threat Engine behavior is intentionally deferred.
+---
 
-## Next design target
+# ZFT Overland Travel | Current dev.92 Development Handoff
 
-Continue with **Quiet Travel**. After that: Opportunity / Discovery, Threat, then Encounter.
+**Current local build:** `0.4.0-dev.92`, November 3, 2026.  
+**Implementation baseline:** complete local `0.4.0-dev.91` manual-install package.  
+**Repository:** `LuvacZantor/zft-overland-travel`.  
+**Remote checkpoint:** `feature/expedition-system-1.1` remains frozen at dev.88 commit `fca67c46e7c1ca5921a031645c9d9fa99063b469`.  
+**GitHub status:** dev.89 through dev.92 remain local only. No remote source write, merge, tag, GitHub Release, or deployment is included.  
+**Live target:** Foundry V13.351 / D&D5e 5.2.5.
 
-Do not implement those remaining design-only systems merely because they are documented.
+## Mandatory next-chat baseline
+
+1. Re-read current ZFT standards and inspect the remote branch before any repository operation.
+2. Use the complete dev.92 package as the implementation baseline if it is the latest owner-tested build; do not reconstruct it from remote dev.88.
+3. Preserve the staged Expedition workflow, explicit Commit Travel boundary, rerolls, point-scoring rules, Expedition State, two-column roster, Threat state, Forced March/Exhaustion, clock safeguards, themes, packs/assets, integrations, and exact `src/expeditions/mount-ironrot/MountIronrotV413.source.js`.
+4. No GitHub write is implied by this local build. Every remote operation requires fresh task-specific approval.
+
+## Dev.92 scope
+
+Owner live dev.91 testing found that a Long Rest could update native D&D5e Exhaustion while the open Expedition Roster continued showing the old level. Dev.92 observes character Actor updates plus Exhaustion ActiveEffect create/update/delete events and schedules a settled workspace refresh. The hook is display-only and does not apply or remove Exhaustion.
+
+Presentation changes are limited to the roster Exhaustion footer and role-phase point hierarchy: Exhaustion is one line, and Success/Failure point totals sit on their own line below each role phase heading. Existing dice eye candy, Roll/Result columns, current two-column roster, and gameplay rules remain.
+
+See `docs/LOCAL_VALIDATION_DEV92.md` and the dev.92 section of `INTEGRATION_TEST_NOTES.md`.
+
+---
+
+# ZFT Overland Travel | Current dev.91 Development Handoff
+
+**Current local build:** `0.4.0-dev.91`, November 3, 2026.  
+**Module repository:** `LuvacZantor/zft-overland-travel`.  
+**Local implementation baseline:** complete `0.4.0-dev.90` manual-install package, itself based on the locally tested dev.89 staging implementation.  
+**Frozen remote checkpoint:** `feature/expedition-system-1.1` at `fca67c46e7c1ca5921a031645c9d9fa99063b469` (`0.4.0-dev.88`).  
+**GitHub status:** dev.89/dev.90/dev.91 remain local only. No remote source write, merge, tag, GitHub Release, or deployment is included.  
+**Live target:** Foundry V13.351 / D&D5e 5.2.5. Dev.91 live acceptance pending.
+
+## Mandatory next-chat baseline
+
+1. Read current `zft-standards` instructions before further module/repository work.
+2. Use the complete dev.91 package as the implementation baseline if it is the latest owner-tested build; do not reconstruct it from the older remote dev.88 branch.
+3. Preserve the shared ledger/hex-record authority, planned-vs-committed travel separation, all six fixed role checks, Event chart, Momentum model, multi-Threat state, safe/Forced March commitment, clock checkpointing, themes, packs/assets, optional Calendaria/Rest Recovery behavior, permissions, and exact `src/expeditions/mount-ironrot/MountIronrotV413.source.js`.
+4. No GitHub write is implied by this local build. Any future remote checkpoint requires fresh task-specific approval.
+
+## Dev.91 scope
+
+- Repairs the dev.90 primary-action mismatch that could display **Commit Travel** while the button was silently disabled. The button state now derives from one readiness helper: **Start Travel**, **Resolve Expedition**, **Commit Travel**, or **Continue Travel**. A locked click reports the unresolved stage instead of doing nothing; a ready Commit/Continue action uses the existing travel confirmation and ledger/clock path.
+- Restores selectable **Re-roll Check** during Navigation, Reconnaissance, and Expedition Support GM adjudication. Only selected characters reroll, other rulings are preserved, review reopens, canceled rerolls retain the prior result, and the phase is not saved until a final no-reroll submission. Existing Forced March reroll behavior remains unchanged.
+- Adds player-readable role-log structure: **CHARACTER / CHECK**, **ROLL**, and **RESULT** columns, retaining die icons/totals, plus Success/Failure point totals in each Navigation/Reconnaissance/Support phase header.
+- Adds compact Dashboard **EXPEDITION STATE** for current Travel Quality and persistent Momentum. Historical outcome data remains in Day → Hex history.
+- Converts the Expedition Roster to two columns at normal dashboard widths with a narrow single-column fallback while preserving portraits, role/check data, statuses, sheet access, and permissions.
+- Retains dev.90 automatic staged workflow, Recovery, explicit travel commit boundary, header player visibility, consolidated Travel history, Event/Threat behavior, Forced March/Exhaustion, clock reconciliation, New Travel Day, integrations, and themes.
+
+## Live evidence carried forward
+
+Owner live testing of dev.90 confirmed the new automatic/staged presentation far enough to expose two regressions: the primary **Commit Travel** control could appear to do nothing while the record remained locked, and the previous GM **Re-roll Check** option was missing. Those are observed dev.90 failures and the direct dev.91 repair targets. Earlier dev.89 live evidence for staging, role resolution, Travel Quality/Momentum/Event calculation, Event Resolution, explicit travel/time commit, and New Travel Day remains prior evidence only. None of it certifies dev.91.
+
+## Evidence and next live checks
+
+Local regression and package evidence is recorded in `LOCAL_VALIDATION_DEV91.md`. Live testing should specifically verify: Navigation and paired-role rerolls; the Resolve Expedition/Commit Travel state transition; Commit Travel opening the existing confirmation and advancing ledger/world time only after approval; player-visible role point totals/column headings/die icons; Dashboard Travel Quality/Momentum; two-column roster at normal width and one-column narrow fallback; then the existing cross-day, Forced March, clock, Recovery, Threat, and GM/player regressions.
+
+No future GitHub write is implied. The remote feature branch remains frozen at dev.88 until the owner separately authorizes a specific repository write.
+
+---
+
+# ZFT Overland Travel | Current dev.89 Development Handoff
+
+**Current local build:** `0.4.0-dev.89`, November 2, 2026.  
+**Module repository:** `LuvacZantor/zft-overland-travel`.  
+**Frozen source checkpoint:** `feature/expedition-system` at `fca67c46e7c1ca5921a031645c9d9fa99063b469` (`0.4.0-dev.88`).  
+**Isolated development branch:** `feature/expedition-system-1.1`, created at the same dev.88 commit.  
+**Remote branch status:** branch exists, but dev.89 source is local only. No source commit/push, merge, tag, GitHub Release, or deployment was performed.  
+**Live target:** Foundry V13.351 / D&D5e 5.2.5. Live acceptance pending.
+
+## Dev.89 implementation boundary
+
+The staged Hex Travel workflow now owns Travel Quality, persistent Momentum, Event selection, Event Resolution gating, and the initial multi-Threat state. New hexes stop after Navigation/dice and cannot commit travel hours until Reconnaissance, Support, Travel Quality, Momentum, Event, and Event Resolution are complete. Legacy unfinished hexes with no shared record preserve the old resume path.
+
+Quiet Travel resolves as a no-op. Complication/Major Complication and Opportunity are routed but not yet fully implemented; **Record Manual Resolution** is an explicit transitional bridge that records GM notes only and then unlocks the existing travel commit workflow. It does not fabricate planned-time changes, supplies, consequences, checks, Threat movement, or world-clock changes.
+
+Persistent Threat state is store-level under the same ledger-owned shared record collection, supports multiple simultaneous Threats, and uses `Emerging → Developing → Imminent → Immediate`. Movement and visibility are explicit. There is no automatic time-based escalation. GM-created Threats are supported now; automatic Complication-created Threats and Recon-driven visibility are deferred until those downstream engines are implemented. Immediate Threat displays the direct-resolution requirement; Encounter handoff remains deliberately unintegrated.
+
+## Mandatory preservation
+
+Preserve all dev.88 functionality and data contracts, existing travel/Forced March/Exhaustion and clock checkpoints, themes, packs/assets, optional Calendaria/Rest Recovery behavior, GM/player permissions, and exact `src/expeditions/mount-ironrot/MountIronrotV413.source.js`. Do not wire the older generic `EventEngine.js`, `QuietTravelEngine.js`, or single-Threat generic state into the staged Expedition workflow; they are legacy framework components, not the 1.1 authority.
+
+## Evidence and next work
+
+Local Node regression: **63/63 passed**. This is not live Foundry verification. Next work after dev.89 UI/live testing should be driven by observed workflow friction, then implement the specialized Complication and Opportunity engines, automatic Threat handoffs, and finally redesign Encounter so it operates both standalone and as a travel/Threat handoff.
+
+No future GitHub write is implied by creation of the branch. A source checkpoint on `feature/expedition-system-1.1` still requires fresh task-specific approval.
+
+---
+
+# ZFT Overland Travel | Current dev.88 Development Handoff
+
+**Current local build:** `0.4.0-dev.88`, November 2, 2026.  
+**Source baseline:** complete `0.4.0-dev.87` manual-install ZIP, verified against the owner-uploaded dev.87 copy; file contents matched.  
+**Repository baseline:** `LuvacZantor/zft-overland-travel`, `feature/expedition-system`, commit `caccc9f1acd46b97f05c8e60813bfc7efc871fcc` (`0.4.0-dev.86`).  
+**GitHub status:** unchanged. No commit, push, merge, tag, release, or deployment was authorized or performed.  
+**Current scope:** resolve the remaining paired role checks from the shared hex record and populate the Expedition Log Roles tab. Travel Quality, Momentum, and Events remain unintegrated.
+
+## Dev.88 behavior
+
+- GM control **Resolve Role Checks** selects the latest/specified unresolved shared hex record.
+- Reconnaissance uses saved Scout = Dexterity (Stealth) and Tracker = Intelligence (Investigation).
+- Expedition Support uses saved Forager = Wisdom (Survival) and Coordinator = Charisma (Persuasion).
+- Both assigned/present members of a pair receive native Midi-QOL skill prompts concurrently at the saved hex DC. GM reviews each result independently and may keep the roll, count it as success, or count it as failure.
+- Original total and `rolledSuccess` are retained even when GM ruling changes the effective `success`.
+- Unassigned roles and assigned characters absent from the hex-start party snapshot receive no roll and no invented failure.
+- New records mark `reconnaissance` and `support` as `pending`. Existing dev.87 records whose phases still say `notImplemented` can be resolved once without migration/backfill.
+- Interrupted records reject late role writes. Travel/clock/Forced March/Exhaustion fields are not modified by role resolution.
+- Roles tab reads the same shared records and displays Navigation plus both paired-role phases for GM and player clients.
+
+## Preservation and next integration point
+
+Preserve the dev.87 ledger-owned shared record, all travel-hour and clock checkpoint behavior, six fixed role IDs/skills, original gold/copper themes, packs/assets, optional Calendaria/Rest Recovery behavior, GM/player permissions, and exact `src/expeditions/mount-ironrot/MountIronrotV413.source.js`. The older unreferenced `HexTravelRoleChecks.js` remains untouched and unimported.
+
+The next planned integration increment is Travel Quality → Momentum → Event, using the **effective GM-approved outcomes stored by Navigation, Reconnaissance, and Expedition Support**. Do not derive future results from current role settings or overwrite original totals. Discovery/Complication missing content still must not be invented.
+
+Live Foundry acceptance is still required before any promotion or compatibility claim.
 
 ---
 

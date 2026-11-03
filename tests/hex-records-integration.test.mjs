@@ -2,6 +2,8 @@ import test from "node:test";
 import assert from "node:assert/strict";
 
 import { launchHexTravel } from "../src/engines/hex-travel/HexTravelEngine.js";
+import { saveHexRolePhase, saveHexExpeditionOutcome } from "../src/engines/hex-travel/HexTravelRecords.js";
+import { buildHexExpeditionOutcome } from "../src/engines/hex-travel/HexExpeditionOutcome.js";
 import {
   HexTravelConsole,
   clearHexTravelExpeditionLog,
@@ -37,7 +39,7 @@ function fixture({ ledger = defaultLedger(), clockSync = false, isGM = true } = 
   const state = {
     values, writes: [], prompts: [], answers: [], socketCalls: [],
     skillTotals: [], saveTotals: [], travelDice: [], rollCalls: [],
-    phases: [], stages: [], removed: [], completions: [],
+    phases: [], stages: [], removed: [], completions: [], autoWorkflowCalls: [],
     notifications: [], clockCalls: [], clockFailure: null, nextId: 0
   };
   const actors = ["Guide", "Vanguard", "Scout"].map((name, index) => ({
@@ -146,6 +148,7 @@ function fixture({ ledger = defaultLedger(), clockSync = false, isGM = true } = 
     async stage(id, html, stage, epoch, metadata) { state.stages.push({ id, stage, metadata: clone(metadata) }); },
     async removeStage(id) { state.removed.push(id); },
     async hexStarted() {},
+    async resumeWorkflow(recordId) { state.autoWorkflowCalls.push(recordId); return null; },
     hexCompleted(value) { state.completions.push(clone(value)); },
     async preserveDayDate() {}, cue() {},
     registerPendingRoll() { return "pending-token"; }, unregisterPendingRoll() {}
@@ -166,12 +169,36 @@ function fixture({ ledger = defaultLedger(), clockSync = false, isGM = true } = 
   return state;
 }
 
-async function startHex(f, { base = [2, 2], delay = [], forced = "cancel" } = {}) {
+async function startHex(f, { base = [2, 2], delay = [] } = {}) {
   f.answer(/^Hex Travel$/, SETUP);
   f.answer(/Navigation Ruling$/, USE_ROLLS);
   f.travelDice.push({ base, delay });
-  if (forced !== null) f.answer(/^Forced March/, forced);
   await launchHexTravel({ action: "travel" });
+}
+
+function readyStagedHex(f, { eventRoll = 13 } = {}) {
+  const ledger = f.ledger();
+  const record = ledger.hexRecords.records.find(entry => entry.id === ledger.activeHexCardId);
+  assert.ok(record, "Expected an active staged shared record");
+  const dc = Number(record.context.difficulty.dc);
+  let store = saveHexRolePhase(ledger.hexRecords, record.id, "reconnaissance", {
+    schema:1,phase:"reconnaissance",name:"Reconnaissance",dc,resolvedAt:Date.now(),grade:"partial",results:[
+      {role:"scout",roleName:"Scout",skill:"ste",ability:"dex",status:"checked",total:dc+1,margin:1,rolledSuccess:true,ruling:"roll",success:true},
+      {role:"tracker",roleName:"Tracker",skill:"inv",ability:"int",status:"unassigned",total:null,margin:null,rolledSuccess:null,ruling:null,success:null}
+    ]
+  });
+  store = saveHexRolePhase(store, record.id, "support", {
+    schema:1,phase:"support",name:"Expedition Support",dc,resolvedAt:Date.now()+1,grade:"unassigned",results:[
+      {role:"forager",roleName:"Forager",skill:"sur",ability:"wis",status:"unassigned",total:null,margin:null,rolledSuccess:null,ruling:null,success:null},
+      {role:"coordinator",roleName:"Coordinator",skill:"per",ability:"cha",status:"unassigned",total:null,margin:null,rolledSuccess:null,ruling:null,success:null}
+    ]
+  });
+  const updatedRecord = store.records.find(entry => entry.id === record.id);
+  const outcome = buildHexExpeditionOutcome(updatedRecord,{momentum:store.momentum ?? "neutral",eventRoll,now:Date.now()+2});
+  store = saveHexExpeditionOutcome(store,record.id,outcome);
+  assert.equal(store.records.find(entry=>entry.id===record.id).eventResolution.status,"resolved", "Test helper expects Quiet Travel");
+  f.values.set(LEDGER,{...ledger,hexRecords:store});
+  return store.records.find(entry=>entry.id===record.id);
 }
 
 function assertRecordProgress(f, { count = 1, committed, remaining, status }) {
@@ -234,26 +261,42 @@ test("canceling Navigation Ruling after native checks creates no authoritative r
   f.expectClean();
 });
 
-test("new hex record is persisted after dice, then completed from actual safe hours", async () => {
+test("new hex record is persisted after dice and staged before any travel hours commit", async () => {
   const f = fixture();
-  await startHex(f, { base: [3, 3], forced: null });
+  await startHex(f, { base: [3, 3] });
   f.expectClean();
-  const record = assertRecordProgress(f, { committed: 6, remaining: 0, status: "completed" });
-  assert.equal(f.ledger().hours, 6);
-  assert.equal(f.ledger().pending, 0);
-  assert.equal(f.ledger().hexes, 1);
+  const record = assertRecordProgress(f, { committed: 0, remaining: 6, status: "inProgress" });
+  assert.equal(f.ledger().hours, 0);
+  assert.equal(f.ledger().pending, 6);
+  assert.equal(f.ledger().hexes, 0);
   assert.equal(record.id, f.stages[0].id);
   assert.equal(record.travel.rolledHours, 6);
-  assert.ok(Number.isFinite(record.completedAt));
+  assert.equal(record.completedAt, null);
   assert.equal(record.phases.navigation, "completed");
-  for (const phase of ["reconnaissance", "support"]) assert.equal(record.phases[phase], "pending");
-  for (const phase of ["travelQuality", "momentum", "event"]) assert.equal(record.phases[phase], "notImplemented");
-  const firstWrite = f.ledgerWrites()[0].value;
-  assert.equal(firstWrite.pending, 6);
-  assert.equal(firstWrite.hexRecords.records[0].travel.committedHours, 0);
-  assert.equal(firstWrite.hexRecords.records[0].completedAt, null);
-  assert.equal(firstWrite.hexRecords.records[0].status, "inProgress");
-  assert.equal(f.completions.length, 1);
+  for (const phase of ["reconnaissance", "support", "travelQuality", "momentum", "event", "eventResolution"]) assert.equal(record.phases[phase], "pending");
+  assert.equal(f.completions.length, 0);
+  assert.ok(f.phases.some(entry => entry.phase === "Expedition stages pending"));
+  assert.deepEqual(f.autoWorkflowCalls,[],"A newly staged hex waits for the GM to advance Reconnaissance");
+});
+
+test("GM can request a Navigation reroll and preserve the other role ruling", async () => {
+  const f = fixture();
+  f.skillTotals.push(12, 18, 20);
+  f.answer(/^Hex Travel$/, SETUP);
+  f.answer(/Navigation Ruling$/, { guide: "reroll", vanguard: "failure" });
+  f.answer(/Navigation Ruling$/, { guide: "roll", vanguard: "failure" });
+  f.travelDice.push({ base: [1, 1], delay: [3] });
+  await launchHexTravel({ action: "travel" });
+  f.expectClean();
+  const record = assertRecordProgress(f, { committed: 0, remaining: 5, status: "inProgress" });
+  assert.equal(f.skillCalls().length, 3, "Guide and Vanguard roll once, then Guide rerolls once");
+  assert.equal(f.prompts.filter(title => /Navigation Ruling$/.test(title)).length, 2);
+  assert.equal(record.navigation.guide.total, 20);
+  assert.equal(record.navigation.guide.rolledSuccess, true);
+  assert.equal(record.navigation.guide.ruling, "roll");
+  assert.equal(record.navigation.vanguard.total, 18);
+  assert.equal(record.navigation.vanguard.ruling, "failure", "Vanguard GM ruling survives the Guide reroll");
+  assert.equal(record.navigation.vanguard.delay, 3);
 });
 
 test("GM Navigation overrides and each delay die are frozen before travel progress", async () => {
@@ -264,7 +307,7 @@ test("GM Navigation overrides and each delay die are frozen before travel progre
   f.travelDice.push({ base: [1, 2], delay: [4] });
   await launchHexTravel({ action: "travel" });
   f.expectClean();
-  const record = assertRecordProgress(f, { committed: 7, remaining: 0, status: "completed" });
+  const record = assertRecordProgress(f, { committed: 0, remaining: 7, status: "inProgress" });
   assert.equal(record.navigation.guide.total, 3);
   assert.equal(record.navigation.guide.success, true);
   assert.equal(record.navigation.guide.ruling, "success");
@@ -280,11 +323,12 @@ test("GM Navigation overrides and each delay die are frozen before travel progre
 test("canceling unfinished-hex confirmation preserves the existing record byte-for-byte", async () => {
   const f = fixture({ ledger: { ...defaultLedger(), hours: 7 } });
   await startHex(f);
+  readyStagedHex(f);
   f.expectClean();
   const before = f.ledger();
   const writeCount = f.ledgerWrites().length;
   const skillCount = f.skillCalls().length;
-  f.answer(/^Continue Hex 1\?$/, false);
+  f.answer(/^(?:Commit Travel for Hex|Continue Hex) 1\?$/, false);
   await launchHexTravel({ action: "travel" });
   assert.deepEqual(f.ledger(), before);
   assert.equal(f.ledgerWrites().length, writeCount);
@@ -317,9 +361,10 @@ test("another GM changing the ledger during Navigation cannot be overwritten by 
 test("another GM changing an unfinished hex during confirmation prevents stale progress", async () => {
   const f = fixture({ ledger: { ...defaultLedger(), hours: 7 } });
   await startHex(f);
+  readyStagedHex(f);
   const otherGmLedger = { ...f.ledger(), day: 2, hours: 0 };
   const writeCount = f.ledgerWrites().length;
-  f.answer(/^Continue Hex 1\?$/, () => {
+  f.answer(/^(?:Commit Travel for Hex|Continue Hex) 1\?$/, () => {
     f.values.set(LEDGER, clone(otherGmLedger));
     return true;
   });
@@ -334,10 +379,15 @@ test("another GM changing an unfinished hex during confirmation prevents stale p
 test("forced-march pause and next-day completion retain one ID and never reroll Navigation", async () => {
   const f = fixture({ ledger: { ...defaultLedger(), hours: 7 } });
   await startHex(f);
-  let record = assertRecordProgress(f, { committed: 1, remaining: 3, status: "inProgress" });
+  let record = assertRecordProgress(f, { committed: 0, remaining: 4, status: "inProgress" });
+  readyStagedHex(f);
+  f.answer(/^(?:Commit Travel for Hex|Continue Hex) 1\?$/, true);
+  f.answer(/^Forced March/, "cancel");
+  await launchHexTravel({ action: "travel" });
+  record = assertRecordProgress(f, { committed: 1, remaining: 3, status: "inProgress" });
   const first = clone(record);
   const id = record.id;
-  f.answer(/^Continue Hex 1\?$/, true);
+  f.answer(/^(?:Commit Travel for Hex|Continue Hex) 1\?$/, true);
   f.answer(/^Forced March/, "continue");
   f.answer(/Party CON DC 11$/, { action: "apply", decisions: Object.fromEntries(f.actors.map(a => [a.uuid, "accept"])) });
   f.answer(/^Forced March/, "cancel");
@@ -350,7 +400,7 @@ test("forced-march pause and next-day completion retain one ID and never reroll 
   f.values.set("hexTravelIdentity", { name: "Renamed Later", region: "Elsewhere", world: "Other World" });
   f.actors[0].name = "Renamed Guide";
   f.answer(/^Start New Travel Day$/, { choice: "none", hour: "10", minute: "0", ampm: "PM", openRest: false });
-  f.answer(/^Continue Hex 1\?$/, true);
+  f.answer(/^(?:Commit Travel for Hex|Continue Hex) 1\?$/, true);
   await launchHexTravel({ action: "day" });
   record = assertRecordProgress(f, { committed: 4, remaining: 0, status: "completed" });
   assert.equal(record.id, id);
@@ -372,13 +422,16 @@ test("paused CON review reuses saved rolls and records no hour until party adjud
   f.answer(/^Hex Travel$/, SETUP);
   f.answer(/Navigation Ruling$/, USE_ROLLS);
   f.travelDice.push({ base: [1, 1] });
+  await launchHexTravel({ action: "travel" });
+  readyStagedHex(f);
+  f.answer(/^(?:Commit Travel for Hex|Continue Hex) 1\?$/, true);
   f.answer(/^Forced March/, "continue");
   f.answer(/Party CON DC 11$/, { action: "pause" });
   await launchHexTravel({ action: "travel" });
   const first = assertRecordProgress(f, { committed: 0, remaining: 2, status: "inProgress" });
   assert.equal(f.saveCalls().length, f.actors.length);
   assert.equal(f.ledger().hours, 8);
-  f.answer(/^Continue Hex 1\?$/, true);
+  f.answer(/^(?:Commit Travel for Hex|Continue Hex) 1\?$/, true);
   f.answer(/Party CON DC 11$/, { action: "apply", decisions: Object.fromEntries(f.actors.map(a => [a.uuid, "accept"])) });
   f.answer(/^Forced March/, "cancel");
   await launchHexTravel({ action: "travel" });
@@ -395,7 +448,7 @@ test("legacy unfinished hex keeps its hours and ID without inventing a shared re
     ...defaultLedger(), day: 3, hours: 1, pending: 2,
     activeHexCardId: "legacy-card", hexHourSegments: [{ hexId: "legacy-card", day: 2, hours: 5 }]
   } });
-  f.answer(/^Continue Hex 1\?$/, true);
+  f.answer(/^(?:Commit Travel for Hex|Continue Hex) 1\?$/, true);
   await launchHexTravel({ action: "travel" });
   assert.equal(f.ledger().hours, 3);
   assert.equal(f.ledger().pending, 0);
@@ -411,7 +464,10 @@ test("clock response loss preserves completed record and reconciliation cannot d
   t.mock.method(console, "error", () => {});
   const f = fixture({ clockSync: true });
   f.clockFailure = "after";
-  await startHex(f, { base: [2, 3], forced: null });
+  await startHex(f, { base: [2, 3] });
+  readyStagedHex(f);
+  f.answer(/^(?:Commit Travel for Hex|Continue Hex) 1\?$/, true);
+  await launchHexTravel({ action: "travel" });
   const record = assertRecordProgress(f, { committed: 5, remaining: 0, status: "completed" });
   assert.equal(f.ledger().hours, 5);
   assert.equal(f.ledger().clockSyncPending.seconds, 5 * 3600);
@@ -464,12 +520,12 @@ for (const route of ["legacy dialog", "GM console"]) {
     assert.deepEqual(record.context, before.context);
     assert.deepEqual(record.travel.dice, before.travel.dice);
     assert.deepEqual(record.travel.segments, before.travel.segments);
-    assert.equal(record.travel.committedHours, 1);
+    assert.equal(record.travel.committedHours, 0);
     assert.equal(record.corrections.at(-1).reason, "manualLedgerCorrection");
     // Resuming the GM's corrected unassociated hours may finish the ledger,
     // but must not reopen or add progress to the old shared hex record.
     const detached = clone(record);
-    f.answer(/^Continue Hex 1\?$/, true);
+    f.answer(/^(?:Commit Travel for Hex|Continue Hex) 1\?$/, true);
     await launchHexTravel({ action: "travel" });
     assert.deepEqual(f.records()[0], detached);
     assert.equal(f.records().length, 1);

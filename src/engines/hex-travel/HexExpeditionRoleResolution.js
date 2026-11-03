@@ -83,7 +83,8 @@ export function buildRolePhaseResolution(plan, rolled = {}, rulings = {}, now = 
     return {
       ...copy(slot), status: "checked", total, margin: total - plan.dc,
       rolledSuccess, ruling, success,
-      rollerId: typeof raw?.rollerId === "string" ? raw.rollerId : null
+      rollerId: typeof raw?.rollerId === "string" ? raw.rollerId : null,
+      rerolls: Math.max(0, Number(raw?.rerolls) || 0)
     };
   });
   return {

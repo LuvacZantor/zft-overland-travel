@@ -10,7 +10,7 @@ import { nextClockTarget, readExpeditionClock, clockText, advanceExpeditionClock
 import { normalizeNewDayPreferences } from "./NewTravelDayPreferences.js";
 import { appendHexHours } from "./HexTravelHourHistory.js";
 import { planHexTravelResume } from "./HexTravelResume.js";
-import { cloneHexRecordStore, startHexRecord, syncHexRecordProgress, markHexRecordLedgerCorrection } from "./HexTravelRecords.js";
+import { cloneHexRecordStore, startHexRecord, syncHexRecordProgress, markHexRecordLedgerCorrection, hexRecordReadyForTravel } from "./HexTravelRecords.js";
 
 const DIFFICULTY_PREF_KEY = "hexTravelDifficultyPreferences";
 const CLOCK_SYNC_KEY = "hexTravelAdvanceWorldTime";
@@ -332,7 +332,7 @@ return (async () => {
   }
   // The GM Console exposes these top-level actions. Keep the familiar daily
   // ledger dialog available for legacy/script callers using action="menu".
-  let travelMenu = ["travel", "day", "manage", "reset"].includes(requestedAction) ? requestedAction : await promptWait({
+  let travelMenu = ["travel", "day", "manage", "reset", "reconcile"].includes(requestedAction) ? requestedAction : await promptWait({
     window: { title: `${identity().name} | Daily Travel Ledger` },
     render: colorButtons,
     position: { width: 470 },
@@ -353,6 +353,7 @@ return (async () => {
   // operation, including manual ledger correction. An explicit full Reset
   // remains available as the existing destructive recovery path.
   if (travelMenu !== "reset" && !(await reconcileTravelClock(travelState))) return;
+  if (travelMenu === "reconcile") return;
   if (travelMenu === "manage" || travelMenu === "reset") { await manageLedger(travelState); return; }
   if (travelMenu === "day") {
     if (travelState.hourResolved.length || Object.keys(travelState.hourRolls).length) {
@@ -842,8 +843,17 @@ return (async () => {
         ...recordDetails, id: hexCardId, number: state.hexes + 1, day: state.day, hour: state.hours
       });
       await saveState(state);
+      await publishStatus(state, "Expedition stages pending",
+        "Navigation is saved. Resolve Reconnaissance when ready; Expedition Support follows only when the GM advances it. Travel Quality, Momentum, and the Event resolve after Support.");
+      ui.notifications.info(`Hex ${state.hexes + 1} staged. Resolve Reconnaissance when ready; travel hours remain uncommitted.`);
+      return true;
     }
     if (!state.pending) return true;
+    if (state.activeHexCardId) {
+      const activeRecord = cloneHexRecordStore(state.hexRecords).records.find(record => record.id === state.activeHexCardId);
+      if (activeRecord && !hexRecordReadyForTravel(activeRecord))
+        throw new Error(`Hex ${activeRecord.number} is not ready to commit travel hours. Resolve its Expedition stages and Event first.`);
+    }
     await publishStatus(state, "Travel in progress", "Crossing the current hex.");
 
     const safe = Math.min(state.pending, Math.max(0, 8 - state.hours));
@@ -913,16 +923,26 @@ return (async () => {
   }
 
   if (resuming) {
+    const activeRecord = travelState.activeHexCardId
+      ? cloneHexRecordStore(travelState.hexRecords).records.find(record => record.id === travelState.activeHexCardId)
+      : null;
+    if (activeRecord && !hexRecordReadyForTravel(activeRecord)) {
+      await publishStatus(travelState, "Expedition stages pending",
+        `Hex ${activeRecord.number} is waiting for Expedition Roles and Event Resolution before travel hours can be committed.`);
+      ui.notifications.warn(`Hex ${activeRecord.number}: Expedition resolution is incomplete. Use Recovery if the automatic workflow was interrupted.`);
+      return;
+    }
     // A click on Start / Continue must not spend unfinished travel hours.
     // In particular, beginning another travel day preserves the hex but does
     // not authorize the next safe-hour batch or its world-clock advancement.
     const plan = planHexTravelResume(travelState);
+    const firstCommit = !!activeRecord && Number(activeRecord.travel?.committedHours) === 0;
     // Keep this snapshot for a post-dialog check. Another GM or a reset may
     // change the ledger while the first GM is reading the confirmation.
     const beforeConfirmation = JSON.stringify(travelState);
     const approved = await promptWait({
       toggleKey: "travel",
-      window: { title: `Continue Hex ${plan.hexNumber}?` },
+      window: { title: firstCommit ? `Commit Travel for Hex ${plan.hexNumber}?` : `Continue Hex ${plan.hexNumber}?` },
       position: { width: 440 }, render: colorButtons,
       content: `<section class="zft-hex-resume-confirm" aria-label="Unfinished hex travel confirmation">
         <div class="zft-hex-resume-stats" aria-label="Remaining hex travel and safe hours">
@@ -936,7 +956,7 @@ return (async () => {
         <p class="zft-hex-resume-cancel-note">Cancel preserves the unfinished hex, travel ledger, and world time.</p>
       </section>`,
       buttons: [
-        { action: "continue", label: plan.safeHours === 0 && plan.forcedHours > 0 ? "Review Forced March" : "Continue Traveling", default: true, callback: () => true },
+        { action: "continue", label: plan.safeHours === 0 && plan.forcedHours > 0 ? "Review Forced March" : firstCommit ? "Commit Travel" : "Continue Traveling", default: true, callback: () => true },
         { action: "cancel", label: "Cancel", callback: () => false }
       ], close: () => false
     });
@@ -944,7 +964,7 @@ return (async () => {
     ensureCurrent();
     const currentState = loadState();
     if (JSON.stringify(currentState) !== beforeConfirmation) {
-      warn("Travel progress changed while the confirmation was open. Open Start / Continue again to review the latest hours.");
+      warn(`Travel progress changed while the confirmation was open. Open ${firstCommit ? "Commit Travel" : "Continue Travel"} again to review the latest hours.`);
       return;
     }
     globalThis[LOCK] = { generation: launchEpoch };
@@ -1318,53 +1338,81 @@ return (async () => {
     // Both role checks are sent concurrently, as with Forced March saves.
     // Nothing commits travel time until all assigned role rolls are usable
     // and the GM confirms the final outcomes.
-    const [navResult, secResult] = await Promise.all([
+    let [navResult, secResult] = await Promise.all([
       rollWithRetry(nav, navRoller, HEX_TRAVEL_NAVIGATION_SKILL, true),
       secondary ? rollWithRetry(secondary, secRoller, "ath", false) : Promise.resolve(null)
     ]);
     if (!navResult || (secondary && !secResult)) { await clearProgress(); return; }
-    await publishStage({ stage: "navigation", navResult, secResult });
-    const autoGuide = navResult.total >= DC;
-    const autoVanguard = secondary ? secResult.total >= DC : null;
-    const review = await promptWait({
-      window: { title: `${identity().name} | Navigation Ruling` },
-      render: (event, dialog) => {
-        colorButtons(event, dialog);
-        const update = () => {
-          for (const [key, passed] of [["guide", autoGuide], ["vanguard", autoVanguard]]) {
-            if (passed === null) continue;
-            const select = dialog.element.querySelector(`select[name="${key}Ruling"]`);
-            const preview = dialog.element.querySelector(`[data-hex-final-${key}]`);
-            if (!select || !preview) continue;
-            const rolled = select.value === "roll";
-            const finalSuccess = rolled ? passed : select.value === "success";
-            preview.className = `zft-hex-navigation-final ${finalSuccess ? "is-success" : "is-failure"}`;
-            preview.textContent = `${finalSuccess ? "Success" : "Failure"}${rolled ? " · matches roll" : " · GM override"}`;
-            select.classList.toggle("is-success", finalSuccess);
-            select.classList.toggle("is-failure", !finalSuccess);
-          }
-        };
-        for (const select of dialog.element.querySelectorAll('select[name$="Ruling"]')) select.addEventListener("change", update);
-        update();
-      },
-      position: { width: 470 },
-      content: `<section class="zft-hex-travel-stage zft-hex-navigation-ruling">
-        <div class="zft-hex-navigation-result"><strong class="zft-hex-result-${autoGuide ? "success" : "failure"}">${esc(nav.name)} · Guide</strong><span class="zft-hex-navigation-roll">Survival ${hexTravelD20Total(navResult.total)} vs <strong>DC ${DC}</strong></span><strong class="zft-hex-navigation-verdict ${autoGuide ? "is-success" : "is-failure"}">ROLLED ${autoGuide ? "SUCCESS" : "FAILURE"}</strong></div>
-        <label class="zft-hex-travel-roller"><span>Guide route outcome</span><select name="guideRuling"><option value="roll">Use roll (${autoGuide ? "Success" : "Failure"})</option><option value="success">Override: Success</option><option value="failure">Override: Failure</option></select></label>
-        <div class="zft-hex-navigation-final-line">Final Guide outcome: <strong data-hex-final-guide class="zft-hex-navigation-final"></strong></div>
-        ${secondary ? `<div class="zft-hex-navigation-result"><strong class="zft-hex-result-${autoVanguard ? "success" : "failure"}">${esc(secondary.name)} · Vanguard</strong><span class="zft-hex-navigation-roll">Athletics ${hexTravelD20Total(secResult.total)} vs <strong>DC ${DC}</strong></span><strong class="zft-hex-navigation-verdict ${autoVanguard ? "is-success" : "is-failure"}">ROLLED ${autoVanguard ? "SUCCESS" : "FAILURE"}</strong></div>
-        <label class="zft-hex-travel-roller"><span>Vanguard obstacle outcome</span><select name="vanguardRuling"><option value="roll">Use roll (${autoVanguard ? "Success" : "Failure"})</option><option value="success">Override: Success</option><option value="failure">Override: Failure</option></select></label>
-        <div class="zft-hex-navigation-final-line">Final Vanguard outcome: <strong data-hex-final-vanguard class="zft-hex-navigation-final"></strong></div>` : `<p class="zft-hex-travel-help">No present Vanguard assigned. Only Guide is checked.</p>`}
-        <small class="zft-hex-travel-help">Each failed check adds 1d4 hours. Travel time is rolled only when you confirm.</small>
-      </section>`,
-      buttons: [
-        { action: "confirm", label: "Roll Travel Time", icon: "fas fa-dice", default: true,
-          callback: (_event, button) => ({ guide: button.form.elements.guideRuling.value,
-            vanguard: secondary ? button.form.elements.vanguardRuling.value : null }) },
-        { action: "cancel", label: "Cancel Travel", callback: () => null }
-      ], close: () => null
-    });
-    if (!review) { await clearProgress(); return; }
+    let reviewSelections = { guide: "roll", vanguard: secondary ? "roll" : null };
+    let review = null;
+    let autoGuide = navResult.total >= DC;
+    let autoVanguard = secondary ? secResult.total >= DC : null;
+    while (true) {
+      await publishStage({ stage: "navigation", navResult, secResult });
+      autoGuide = navResult.total >= DC;
+      autoVanguard = secondary ? secResult.total >= DC : null;
+      const selected = (key, value) => reviewSelections[key] === value ? " selected" : "";
+      review = await promptWait({
+        window: { title: `${identity().name} | Navigation Ruling` },
+        render: (event, dialog) => {
+          colorButtons(event, dialog);
+          const update = () => {
+            for (const [key, passed] of [["guide", autoGuide], ["vanguard", autoVanguard]]) {
+              if (passed === null) continue;
+              const select = dialog.element.querySelector(`select[name="${key}Ruling"]`);
+              const preview = dialog.element.querySelector(`[data-hex-final-${key}]`);
+              if (!select || !preview) continue;
+              if (select.value === "reroll") {
+                preview.className = "zft-hex-navigation-final is-pending";
+                preview.textContent = "Re-roll requested";
+                select.classList.remove("is-success", "is-failure");
+                continue;
+              }
+              const rolled = select.value === "roll";
+              const finalSuccess = rolled ? passed : select.value === "success";
+              preview.className = `zft-hex-navigation-final ${finalSuccess ? "is-success" : "is-failure"}`;
+              preview.textContent = `${finalSuccess ? "Success" : "Failure"}${rolled ? " · matches roll" : " · GM override"}`;
+              select.classList.toggle("is-success", finalSuccess);
+              select.classList.toggle("is-failure", !finalSuccess);
+            }
+          };
+          for (const select of dialog.element.querySelectorAll('select[name$="Ruling"]')) select.addEventListener("change", update);
+          update();
+        },
+        position: { width: 470 },
+        content: `<section class="zft-hex-travel-stage zft-hex-navigation-ruling">
+          <div class="zft-hex-navigation-result"><strong class="zft-hex-result-${autoGuide ? "success" : "failure"}">${esc(nav.name)} · Guide</strong><span class="zft-hex-navigation-roll">Survival ${hexTravelD20Total(navResult.total)} vs <strong>DC ${DC}</strong></span><strong class="zft-hex-navigation-verdict ${autoGuide ? "is-success" : "is-failure"}">ROLLED ${autoGuide ? "SUCCESS" : "FAILURE"}</strong></div>
+          <label class="zft-hex-travel-roller"><span>Guide route outcome</span><select name="guideRuling"><option value="roll"${selected("guide","roll")}>Use roll (${autoGuide ? "Success" : "Failure"})</option><option value="success"${selected("guide","success")}>Override: Success</option><option value="failure"${selected("guide","failure")}>Override: Failure</option><option value="reroll"${selected("guide","reroll")}>Re-roll Check</option></select></label>
+          <div class="zft-hex-navigation-final-line">Final Guide outcome: <strong data-hex-final-guide class="zft-hex-navigation-final"></strong></div>
+          ${secondary ? `<div class="zft-hex-navigation-result"><strong class="zft-hex-result-${autoVanguard ? "success" : "failure"}">${esc(secondary.name)} · Vanguard</strong><span class="zft-hex-navigation-roll">Athletics ${hexTravelD20Total(secResult.total)} vs <strong>DC ${DC}</strong></span><strong class="zft-hex-navigation-verdict ${autoVanguard ? "is-success" : "is-failure"}">ROLLED ${autoVanguard ? "SUCCESS" : "FAILURE"}</strong></div>
+          <label class="zft-hex-travel-roller"><span>Vanguard obstacle outcome</span><select name="vanguardRuling"><option value="roll"${selected("vanguard","roll")}>Use roll (${autoVanguard ? "Success" : "Failure"})</option><option value="success"${selected("vanguard","success")}>Override: Success</option><option value="failure"${selected("vanguard","failure")}>Override: Failure</option><option value="reroll"${selected("vanguard","reroll")}>Re-roll Check</option></select></label>
+          <div class="zft-hex-navigation-final-line">Final Vanguard outcome: <strong data-hex-final-vanguard class="zft-hex-navigation-final"></strong></div>` : `<p class="zft-hex-travel-help">No present Vanguard assigned. Only Guide is checked.</p>`}
+          <small class="zft-hex-travel-help">Choose Re-roll Check to request a replacement roll before travel time is rolled. Other GM rulings are preserved.</small>
+        </section>`,
+        buttons: [
+          { action: "confirm", label: "Submit Navigation Rulings", icon: "fas fa-check", default: true,
+            callback: (_event, button) => ({ guide: button.form.elements.guideRuling.value,
+              vanguard: secondary ? button.form.elements.vanguardRuling.value : null }) },
+          { action: "cancel", label: "Cancel Travel", callback: () => null }
+        ], close: () => null
+      });
+      if (!review) { await clearProgress(); return; }
+      const rerollGuide = review.guide === "reroll";
+      const rerollVanguard = secondary && review.vanguard === "reroll";
+      if (!rerollGuide && !rerollVanguard) break;
+      if (!rerollGuide) reviewSelections.guide = review.guide;
+      if (secondary && !rerollVanguard) reviewSelections.vanguard = review.vanguard;
+      const [newGuide, newVanguard] = await Promise.all([
+        rerollGuide ? rollWithRetry(nav, navRoller, HEX_TRAVEL_NAVIGATION_SKILL, true) : Promise.resolve(navResult),
+        rerollVanguard ? rollWithRetry(secondary, secRoller, "ath", false) : Promise.resolve(secResult)
+      ]);
+      if (rerollGuide && newGuide) navResult = newGuide;
+      if (rerollVanguard && newVanguard) secResult = newVanguard;
+      reviewSelections.guide = rerollGuide ? "roll" : reviewSelections.guide;
+      if (secondary) reviewSelections.vanguard = rerollVanguard ? "roll" : reviewSelections.vanguard;
+      if ((rerollGuide && !newGuide) || (rerollVanguard && !newVanguard))
+        ui.notifications.info("A requested Navigation reroll was canceled. The prior result remains available for GM review.");
+    }
     const success = review.guide === "roll" ? autoGuide : review.guide === "success";
     const vanguardSuccess = secondary ? (review.vanguard === "roll" ? autoVanguard : review.vanguard === "success") : null;
     const formula = navigationDiceFormula({ guideSuccess: success, vanguardSuccess });

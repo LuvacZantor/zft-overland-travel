@@ -1,3 +1,151 @@
+# 0.4.0-dev.97 live acceptance addendum
+
+Target: Foundry V13.351 / D&D5e 5.2.5. Dev.97 is a visual reset to dev.94 Dashboard runtime presentation.
+
+1. Replace dev.96 with dev.97 and reload the browser. Confirm the Dashboard typography matches the dev.94 visual baseline: no oversized THIS HEX labels, no compressed Momentum fact rows, and no orphan dark tooltip surface above Hex Travel Remaining.
+2. Hover around Hex Travel Remaining and the Dashboard state cards. No dev.95/dev.96 generic Dashboard tooltip panel should appear; the layout must remain stationary.
+3. Confirm role-grade Strong/Partial/Failed help in the Travel log still works and remains structured.
+4. Confirm manual role progression still stops at Resolve Reconnaissance and Resolve Expedition Support, then calculates Travel Quality/Momentum/Event automatically after Support.
+5. Confirm manual Event Resolution, Commit Travel, completed-hex auto-collapse, compact roster names, Exhaustion refresh, rerolls, Recovery, Forced March, world-time synchronization, and persistent Momentum remain unchanged.
+6. Test normal and narrow Dashboard widths and at least the active theme used in the campaign. Failure is any clipped/vertical label, unexpected font-size change, overlay artifact at rest, or layout shift caused by hovering.
+
+Status: **NOT LIVE VERIFIED**. Local checks are not a substitute for the owner visual pass.
+
+---
+
+# 0.4.0-dev.94 live acceptance addendum
+
+Prerequisites: copied test world; Foundry V13.351 / D&D5e 5.2.5; campaign versions of ZFT Tools and Midi-QOL; optional Calendaria/Rest Recovery as normally installed. Keep dev.93 and a world backup for rollback.
+
+1. Start a fresh hex and complete Navigation/travel dice. **PASS:** the hex stages at `0/Nh` committed and stops. The primary control reads **Resolve Reconnaissance**. No Scout/Tracker prompt starts before the GM clicks it.
+2. Click **Resolve Reconnaissance** and complete/approve those two checks. **PASS:** Recon saves once, the primary control becomes **Resolve Expedition Support**, and no Forager/Coordinator prompt starts before that second click. Existing Re-roll Check behavior remains available in adjudication.
+3. Click **Resolve Expedition Support** and complete/approve those checks. **PASS:** after Support saves, Travel Quality, one Momentum shift, and one Event roll calculate automatically. No travel hours or world time commit during these stages.
+4. For a manual Event, confirm the primary control becomes the specific **Resolve Major Complication / Resolve Complication / Resolve Opportunity** action. Quiet Travel still resolves automatically. After resolution, **Commit Travel** works exactly once.
+5. Inspect Dashboard during/after the staged workflow. **PASS:** THIS HEX shows current Travel Quality and exact Success/Failure Point totals; THIS HEX Momentum Change shows the saved shift; EXPEDITION MOMENTUM highlights the persistent five-state rail, shows the `-2..+2` Event modifier, states that it carries into the next hex, and displays the correct 1–20 Event bands.
+6. Advance to another hex. **PASS:** previous Travel Quality does not masquerade as current-hex state, while Momentum persists into the next hex until changed by a later Travel Quality result.
+7. Hover and keyboard-focus Strong/Partial/Failed. **PASS:** structured tooltip shows the grade explanation and separate Success Points / Failure Points without a run-on paragraph.
+8. Regression: compact first-name roster, Exhaustion live refresh after Long Rest, completed-hex auto-collapse, Recovery, direct Event Resolution, rerolls, Forced March, cross-day continuation, clock sync/reconciliation, New Travel Day, Threat controls, player read-only view, themes/docking/scale.
+
+Failure indicators: automatic role-group launch without GM action, duplicate phase/Event roll, travel/world-time mutation before Commit/Continue, Momentum resetting between hexes, incorrect Event modifier/bands, or any F12 exception.
+
+Status: **NOT LIVE VERIFIED**. Local automation/static/package checks are evidence only.
+
+---
+
+# 0.4.0-dev.93 live acceptance addendum
+
+Target: Foundry V13.351 / D&D5e 5.2.5. Local automated checks are not live acceptance.
+
+1. Stage a hex whose Event is **Major Complication**, **Complication**, or **Opportunity**. Confirm the primary GM button names that Event (for example **Resolve Major Complication**) instead of **Resolve Expedition**. Click it and verify the Event Resolution dialog opens directly. Cancel: no Event resolution or travel-hour change. Save a note: Event remains unchanged, resolution becomes saved, and the primary action becomes **Commit Travel**.
+2. Verify Recovery is not needed during the normal manual Event path. Force/interupt a workflow separately and confirm Recovery still resumes saved incomplete stages without rerolling completed work.
+3. With six roster members, verify unique first names are shown. Add/rename two present characters to share the same first token and verify both show full names instead. Full names must remain in character-sheet accessibility/tooltip text and all log/roll history.
+4. Hover and keyboard-focus Strong, Partial, and Failed role grades. Verify the tooltip explains the grade and the actual Success/Failure Point contribution for that phase.
+5. Resolve an Event, then Commit Travel for a hex that fully fits the available hours. Verify ledger/world time commit exactly once and the just-completed hex card collapses automatically. Reopen it manually and confirm history is intact.
+6. Repeat with a partial commit/Forced March boundary. The active unfinished hex must remain expanded and retain the same Navigation/Roles/Event results.
+7. Regression: rerolls, Long Rest Exhaustion refresh, two-column roster, Travel Quality/Momentum, Event bands, Threat controls, New Travel Day, Calendaria/Rest Recovery, themes, packs/assets, and completion notices remain unchanged.
+
+---
+
+## 0.4.0-dev.92 | Long Rest Exhaustion refresh and role-log presentation
+
+Target: copied/test world on Foundry V13.351 / D&D5e 5.2.5 using the campaign's current Rest Recovery/D&D5e configuration. Keep dev.91 available for rollback.
+
+1. Open the Expedition Dashboard with at least one roster character at Exhaustion > 0. Confirm the roster shows one compact line such as `Exhaustion 1 · −2 D20 Tests · −5 ft. Speed` rather than stacked penalty lines.
+2. Perform a Long Rest through Rest Recovery that reduces/removes Exhaustion. **PASS:** the open Expedition Roster updates without Start Travel, another travel action, closing/reopening the dashboard, or browser refresh. Verify the character sheet and roster agree.
+3. Repeat while a separate player client has the player-facing workspace open. **PASS:** GM and player displays both converge on the same current Exhaustion state after the native Actor/effect update. No player mutation control appears.
+4. Test direct native Exhaustion effect lifecycle in the disposable world: add/increase, update, and remove Exhaustion. **PASS:** roster follows the resulting Actor state after each settled operation; unrelated ActiveEffect changes do not cause visible workflow changes or gameplay mutations.
+5. Inspect Navigation, Reconnaissance, and Expedition Support in the log. **PASS:** phase status remains at upper right, point totals occupy a separate readable line (`N Success Point(s) · N Failure Point(s)`), and the existing CHARACTER/CHECK, ROLL, RESULT headers plus d20 icons/totals remain aligned.
+6. Regression: verify rerolls, Commit/Continue Travel, Travel Quality/Momentum/Event, Forced March, New Travel Day, clock advancement/reconciliation, two-column roster fallback, themes, Recovery, and player read-only behavior are unchanged.
+
+Failure indicators: stale roster after Exhaustion effect deletion/update, duplicate or looping refresh behavior, point totals overlapping status/column headers, loss of d20 icons, or any travel/Actor mutation caused solely by the new display hooks.
+
+Status: **NOT LIVE VERIFIED**. Local automation/static/package checks are evidence only.
+
+---
+
+## 0.4.0-dev.91 | Commit/reroll repair and player-facing state acceptance
+
+Prerequisites: copied test world; Foundry V13.351 / D&D5e 5.2.5; campaign versions of ZFT Tools and Midi-QOL; optional Calendaria/Rest Recovery as normally installed. Retain dev.90 and a world backup for rollback.
+
+1. Start a new hex. In **Navigation Ruling**, choose **Re-roll Check** for one role and a normal ruling for the other, then submit. **PASS:** only the selected role receives a fresh native roll, the other ruling remains selected, the review reopens with the new total, and travel dice are not rolled until a final no-reroll submission. Canceling the requested reroll retains the prior result for review.
+2. Repeat in Reconnaissance or Expedition Support. **PASS:** **Re-roll Check** is selectable; only selected role checks reroll; other rulings remain; the phase is not persisted until final submission. Existing pending-roll recovery remains available.
+3. While a staged Event is unresolved, inspect the primary GM action. **PASS:** it reads **Resolve Expedition**, not Commit Travel, and clicking it gives an explicit reason without changing ledger or world time. Resolve the Event. **PASS:** it changes to **Commit Travel**.
+4. Click **Commit Travel**. **PASS:** the existing commit confirmation opens. Cancel leaves ledger/world time unchanged. Confirm commits the allowed travel hours exactly once and advances world time only when the existing option is enabled. After partial travel the label becomes **Continue Travel**.
+5. Inspect a completed role/outcome log as GM and player. **PASS:** Navigation, Reconnaissance and Expedition Support headers show their aggregate Success/Failure point totals; each role table has **CHARACTER / CHECK**, **ROLL**, **RESULT** headings; d20 icons/totals remain visible; combined Travel Quality still matches those point contributions.
+6. Inspect Dashboard. **PASS:** compact **EXPEDITION STATE** shows current-hex Travel Quality and persistent Momentum regardless of Log tab/scroll position. With no current Travel Quality it shows unavailable rather than reusing an old hex result; Momentum remains visible.
+7. Inspect the Expedition Roster at normal dashboard width. **PASS:** six members occupy two columns/three rows without clipped names, role/check data, exhaustion/status, or portraits; double-click sheet behavior and permissions remain. Narrow/zoomed width falls back to one column without horizontal overflow.
+8. Regression: automatic Recon → Support → Travel Quality → Momentum → Event orchestration, Recovery, Event Resolution, Day → Hex history, Show/Hide Players, cross-day continuation, Forced March/Exhaustion, clock reconciliation, New Travel Day, Threat controls, completion notices/audio, themes, docking/scale, and player read-only behavior.
+
+Diagnostic after major stages:
+
+```js
+console.log(JSON.stringify(game.zftOverlandTravel.hexRecords.inspect(), null, 2));
+```
+
+Failure indicators: dead-looking primary action, travel/world-time mutation before explicit commit approval, reroll causing unrelated roles to reroll or lose rulings, reroll persisting before final adjudication, point totals disagreeing with Travel Quality, roster clipping/overflow, or any F12 exception.
+
+Status: **NOT LIVE TESTED**. Local automation/static/package checks are evidence only.
+
+---
+
+## 0.4.0-dev.90 | Automatic workflow, Recovery, and explicit commit acceptance
+
+Prerequisites: copied test world; Foundry V13.351 / D&D5e 5.2.5; campaign versions of ZFT Tools and Midi-QOL; optional Calendaria/Rest Recovery as normally installed. Retain dev.89 and a world backup for rollback. Dev.89's partial live results are prior evidence only; retest changed dev.90 workflow boundaries.
+
+1. Start a fresh hex and complete Navigation/travel dice. **PASS:** planned hours are staged at `0/Nh` committed and the module automatically begins Reconnaissance without a separate Resolve Role Checks click.
+2. During a Reconnaissance or Support GM ruling, inspect Roles. **PASS:** each completed native roll shows its total, rolled Success/Failure, and **Awaiting GM Confirmation**; a provisional override is reflected. Cancel the GM review: transient results disappear and the saved phase remains Pending.
+3. Complete Reconnaissance and Support. **PASS:** Travel Quality, Momentum and one Event roll resolve automatically afterward. No normal **Resolve Travel Outcome** button is present and refresh does not duplicate the Event or Momentum shift.
+4. Check the primary GM travel button through states. **PASS:** no active hex = **Start Travel**; fully resolved uncommitted hex = **Commit Travel**; partially committed hex = **Continue Travel**. It remains unavailable while Expedition/Event Resolution is incomplete.
+5. Before pressing Commit Travel, compare ledger/world time. **PASS:** Travel Hours Today, per-day segments and world time have not advanced. Press **Commit Travel** and confirm. Only then do the existing safe-hour/Forced March and optional clock writers commit time exactly once.
+6. Force or obtain Quiet Travel. **PASS:** it resolves as nothing happens and reaches Commit Travel without a manual Event action. Force/obtain Major Complication, Complication or Opportunity. **PASS:** travel remains locked and **Record Event Resolution** is required; the dialog uses production GM wording and preserves the original Event roll.
+7. Interrupt the normal staged workflow by canceling a role adjudication. Open **Recovery**. **PASS:** Resume Workflow continues from the first incomplete saved stage; completed stages do not reroll. Pending Role Rolls, Event Resolution, Clock Reconciliation, Refresh Saved State and Copy Diagnostics are state-aware. Recovery cannot start a duplicate Resume while the normal workflow is active.
+8. Inspect the Travel log after a completed staged workflow. **PASS:** under Day → Hex it includes Navigation, Reconnaissance, Expedition Support, Travel Quality, Momentum, Event and Resolution. Roles remains a current operational view. If the same hex crosses a New Travel Day, the later day shows continuation/travel hours without duplicating the role/Event history.
+9. Verify dashboard wording. **PASS:** **HEX TRAVEL REMAINING** is the uncommitted/current-hex remainder, distinct from **TRAVEL HOURS TODAY** which is already committed. NEXT messaging does not say travel is ready while roles/Event Resolution are incomplete.
+10. Test **Show to Players** in the GM Controls header beside Undock with a player client. **PASS:** Show opens the workspace, Hide requests it closed, controls remain GM-only, and a legacy dev.89 request timestamp does not falsely display as currently shown after upgrade.
+11. Cross day with an unfinished hex. **PASS:** existing Navigation/Recon/Support/Travel Quality/Momentum/Event results remain attached to the same hex ID; no stage rerolls. Only remaining travel hours are committed on the later day.
+12. Forced March regression: reach/exceed 8 committed travel hours. **PASS:** existing CON save/GM adjudication/Exhaustion workflow is unchanged; no forced hour or world-time advance occurs before its required decisions are saved.
+13. Refresh/restart with (a) roles pending, (b) Event Resolution pending, and (c) fully resolved but uncommitted travel. **PASS:** saved phase state is reconstructed without duplicate rolls/events; Recovery is available where appropriate; the commit boundary remains explicit.
+14. Regression: manual ledger correction, Reset, Clear Log, Threat controls/visibility, clock reconciliation, New Travel Day, completion notices/audio, five themes, docking/scale, legacy unfinished travel, and player read-only behavior.
+
+Diagnostic after major stages:
+
+```js
+console.log(JSON.stringify(game.zftOverlandTravel.hexRecords.inspect(), null, 2));
+```
+
+Failure indicators: any travel/world-time mutation before explicit Commit/Continue approval, duplicate role/Event resolution, completed stage reroll, Recovery starting a second live workflow, cross-day duplicated role/Event history, player mutation controls, or any exception in F12.
+
+Status: **NOT LIVE TESTED**. Local automation/static/package checks are evidence only.
+
+---
+
+## 0.4.0-dev.89 | Expedition staging and Event/Threat live acceptance
+
+Use a copied test world and retain the currently known campaign build for rollback. Target Foundry V13.351 / D&D5e 5.2.5 with the installed ZFT Tools, Midi-QOL, Calendaria/Rest Recovery configuration used by the campaign.
+
+1. Start a new hex. Complete Navigation and travel dice. **PASS:** the shared record and planned hours are saved, but Travel Today/world time/committed-hour segments do not advance yet. Dashboard NEXT directs the GM to Expedition Roles.
+2. Click **Resolve Role Checks**. Resolve Reconnaissance and Expedition Support, including at least one GM override. **PASS:** Roles tab retains original totals/rulings/effective outcomes; no travel hours or clock time commit.
+3. Open **Events** and click **Resolve Travel Outcome**. **PASS:** one native d20 Event roll occurs, Travel Quality point totals are displayed, Momentum shifts once, and Event shows raw roll, modifier and clamped final result. Refresh/reopen and verify no duplicate roll or Momentum shift.
+4. Exercise or force test data for each Event band: Major Complication 1–5, Complication 6–10, Quiet Travel 11–15, Opportunity 16–20. **PASS:** Quiet says nothing happens and unlocks travel immediately; the other three remain staged pending resolution.
+5. For a pending Complication/Opportunity, use **Record Manual Resolution**. **PASS:** only the GM note/status changes. Planned/committed hours, resources, Threats, Actor data and world time remain unchanged. Travel then unlocks.
+6. Click **Start / Continue** only after Event Resolution. **PASS:** existing confirmation/safe-hour/Forced March/Exhaustion/clock behavior resumes unchanged and commits each hour exactly once. Attempt Start / Continue before resolution and verify it refuses to commit travel.
+7. Create two or more GM Threats with different starting stages and visibility. Advance/reduce one, resolve another, refresh and start a new travel day. **PASS:** identities/stages/history persist independently and no Threat changes merely because a day/hex/time advances.
+8. Test Threat visibility with a player client: Hidden is absent; Partial shows warning/general danger without exact identity/stage; Full shows the named Threat/stage. Players must not receive mutation controls.
+9. Advance a Threat to Immediate. **PASS:** UI states direct resolution is required and does not automatically launch the legacy Encounter engine. Resolve/reduce manually as appropriate.
+10. Regression: legacy unfinished hex without a dev.87+ shared record, cross-day continuation, Forced March pause/resume, clock reconciliation, manual ledger correction, Clear Log, Reset, completion notices/audio, five themes, dock/resize/interface scale, GM/player clients.
+
+Diagnostic after each major stage:
+
+```js
+console.log(JSON.stringify(game.zftOverlandTravel.hexRecords.inspect(), null, 2));
+```
+
+Expected failures to report: any hour/world-time change before Event Resolution, duplicate Event roll/Momentum shift after refresh, hidden Threat visible to player, player mutation ability, Event result outside the corrected four bands, legacy unfinished travel blocked by missing new-state data, or any F12 exception.
+
+Status: **NOT LIVE TESTED**. Automated/static results are local evidence only.
+
+---
+
 ## 0.4.0-dev.88 | Reconnaissance / Support shared-record integration (live verification pending)
 
 1. Install dev.88 over a copied dev.87 test world. Confirm existing Travel history, shared records, role assignments, themes, Forced March history, world-clock setting, and player view remain intact.
