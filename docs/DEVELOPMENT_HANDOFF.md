@@ -30,9 +30,10 @@
 - Reconnaissance controls information quality: Full / Partial / No Advance Intelligence.
 - Support creates hex-local Supply Readiness and Operational Readiness; each may mitigate one relevant consequence by one tier.
 - Travel Quality uses the approved success/failure point model and shifts Momentum only.
-- Event roll is `1d20 + Momentum modifier`, clamped 1-20: Threat 1-5, Complication 6-10, Quiet Travel 11-15, Opportunity 16-20.
+- Event roll is `1d20 + Momentum modifier`, clamped 1-20: **Major Complication 1-5, Complication 6-10, Quiet Travel 11-15, Opportunity 16-20**. These are the four authoritative Event results.
 - Complication uses six categories: Navigation, Environment, Resources, Omen, Social, Magical / Strange. Each category uses `d8 primary -> d8 detail`.
-- Standard/Major severity uses the shared Tier 0-4 consequence ladder. Category-specific consequences and the full draft content library are documented in the two design files above.
+- **Complication uses Standard severity; Major Complication uses Major severity** against the same rolled complication content. Standard/Major severity uses the shared Tier 0-4 consequence ladder. Category-specific consequences and the full draft content library are documented in the two design files above.
+- Threat is downstream state, **not** one of the four Event Chart results. Complications may be Threat-bearing and later hand off to the Threat Engine.
 - Complication content is intended to become Journal/compendium-backed content with stable metadata; rules/state logic remains in code.
 - Detailed Threat Engine behavior is intentionally deferred.
 

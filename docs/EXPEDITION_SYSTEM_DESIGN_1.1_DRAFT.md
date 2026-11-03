@@ -184,14 +184,16 @@ Final Event Chart:
 
 | Final d20 | Event |
 | ---: | --- |
-| 1–5 | Threat |
+| 1–5 | Major Complication |
 | 6–10 | Complication |
 | 11–15 | Quiet Travel |
 | 16–20 | Opportunity |
 
-Threat remains a distinct downstream system. The earlier proposal to replace Threat with “Major Complication” was not accepted.
+These are the four authoritative Event results for Expedition System Design 1.1.
 
-Opportunity is expected to lead into Discovery. Threat is expected to lead into the Threat Engine and potentially the Encounter Engine. Those downstream engines are not fully designed in this checkpoint.
+**Major Complication** uses the same Complication content library as Complication, but resolves using the Major severity column of the shared consequence ladder. **Complication** uses Standard severity.
+
+Threat is **downstream state, not an Event Chart result**. A Complication or Major Complication may be Threat-bearing and can later hand off to the Threat Engine. Opportunity is expected to lead into Discovery. The detailed Opportunity/Discovery, Threat, and Encounter engines are not fully designed in this checkpoint.
 
 ---
 
@@ -245,6 +247,11 @@ Each result should provide:
 Players may use any plausible response. The GM chooses the relevant ability check, skill, tool, save, spell/resource expenditure, roleplay resolution, or no roll when appropriate.
 
 ## Standard vs Major
+
+The Event Chart determines which severity column is used:
+
+- **Complication** → Standard severity
+- **Major Complication** → Major severity
 
 Standard and Major use the **same rolled content result**.
 

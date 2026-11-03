@@ -1,6 +1,6 @@
 # ZFT Overland Travel — Complication Content Library Draft
 
-**Status:** Design draft only. Not implemented. Not committed to GitHub.
+**Status:** Design draft committed to `feature/expedition-system`. Not implemented in the module.
 
 ## Shared resolution model
 
@@ -9,8 +9,8 @@
 - Outcome tiers remain **Strong Success / Success / Failure / Major Failure**.
 - Support mitigation reduces an applicable consequence tier; it does not rewrite the original adjudicated outcome.
 - Navigation delays modify **planned** travel time only. No Complication entry commits time to the ledger or world clock.
-- Standard and Major use the same underlying table result. Major increases scope, persistence, stakes, or consequence rather than replacing the rolled result.
-- Threat remains separate state. A Threat-bearing result may create/advance/reduce Threat according to the approved Complication Engine design; Immediate Threat triggers the Encounter Engine.
+- The Event Chart chooses severity: **Complication uses Standard**, while **Major Complication uses Major**. Both use the same underlying rolled table result; Major increases scope, persistence, stakes, or consequence rather than replacing the result.
+- Threat remains separate downstream state and is **not** an Event Chart result. A Threat-bearing Complication or Major Complication may later create/advance/reduce Threat according to the Threat Engine design; Immediate Threat is expected to trigger the Encounter Engine.
 
 ## Entry schema
 

@@ -14,7 +14,7 @@ The shared dev.87 hex record now drives the two remaining paired expedition acti
 
 The **Roles** tab is no longer a placeholder. It displays Navigation plus the saved Reconnaissance and Expedition Support results for every shared hex record. Unassigned roles and roles whose assigned character was absent when the hex started do not create invented rolls or automatic failures. New dev.88 records mark these two phases `pending`; existing dev.87 records with `notImplemented` can be resolved without reconstructing their context. Interrupted records reject late role results.
 
-This build does **not** calculate Travel Quality, shift Momentum, roll/modify Events, advance Threat, change supplies, alter travel hours, advance world time, or change Forced March/Exhaustion. Those engines remain queued for the next integration increment. Local validation only; live Foundry V13 acceptance pending; GitHub remains unchanged at the dev.86 feature-branch checkpoint.
+This build does **not** calculate Travel Quality, shift Momentum, roll/modify Events, advance Threat, change supplies, alter travel hours, advance world time, or change Forced March/Exhaustion. Those engines remain queued for later integration. Local validation only; live Foundry V13 acceptance pending. The complete dev.88 source and Expedition System 1.1 design checkpoint are now preserved on `feature/expedition-system`.
 
 ## 0.4.0-dev.87 | Shared saved record for each hex travel sequence
 
@@ -54,7 +54,7 @@ Only Vanguard and Tracker have exchanged activity groups. Vanguard remains STR (
 
 ## Expedition roles (feature branch)
 
-The GM **Expedition Roles** panel groups six role assignments into three paired activities: Navigation (Guide + Vanguard), Reconnaissance (Scout + Tracker), and Expedition Support (Forager + Coordinator). Each actor may hold at most one expedition assignment. Their assignments appear in the GM/player Present Party roster. The Navigation pair now rolls and resolves together when a present Vanguard is assigned; the other two category mechanics remain pending. Forced March and Constitution calculations are unchanged. Live Foundry V13 verification remains pending.
+The GM **Expedition Roles** panel groups six role assignments into three paired activities: Navigation (Guide + Vanguard), Reconnaissance (Scout + Tracker), and Expedition Support (Forager + Coordinator). Each actor may hold at most one expedition assignment. Their assignments appear in the GM/player Present Party roster. In dev.88, all three paired role stages can resolve against the frozen shared hex record with independent GM adjudication. Travel Quality, Momentum, the Event Chart, and downstream Event Resolution remain design-only integration work. Forced March and Constitution calculations are unchanged. Live Foundry V13 verification remains pending.
 
 ## Canonical terminology
 
@@ -66,6 +66,8 @@ The GM **Expedition Roles** panel groups six role assignments into three paired 
 Immediate Threat triggers an Encounter.
 
 ## Implemented
+
+> **Legacy generic framework note:** The items below describe capabilities already present in the older generic Overland framework. They are **not** evidence that the new dev.88 staged Expedition workflow has integrated Travel Quality, Momentum, Event Resolution, Quiet Travel, Threat, Discovery, or Encounter handling. The current staged design source of truth is `docs/EXPEDITION_SYSTEM_DESIGN_1.1_DRAFT.md`.
 
 - Persistent world-level expedition state
 - Terrain Base DC and Region Danger modifiers
