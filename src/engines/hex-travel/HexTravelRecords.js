@@ -279,6 +279,35 @@ function readSnapshot() {
   return { ledger, store: cloneHexRecordStore(ledger.hexRecords) };
 }
 
+
+/** Remove only an uncommitted active hex/workflow. Completed history remains. */
+export function resetCurrentHexRecord(records, activeId) {
+  const store = cloneHexRecordStore(records);
+  if (!validId(activeId)) return store;
+  const index = store.records.findIndex(record => record.id === activeId);
+  if (index < 0) return store;
+  const record = store.records[index];
+  if (record.status !== "inProgress") fail(`sequence ${activeId} is not an active in-progress travel.`);
+  if (Number(record.travel?.committedHours) > 0) fail(`sequence ${activeId} already has committed travel hours and cannot be safely restarted.`);
+  store.records.splice(index, 1);
+  if (Array.isArray(store.complications)) store.complications = store.complications.filter(entry => entry?.sourceHexRecordId !== activeId);
+  const previousMomentum = [...store.records].reverse().find(entry => entry?.momentum?.after)?.momentum?.after ?? "neutral";
+  store.momentum = previousMomentum;
+  return store;
+}
+
+export function addPlannedTravelHours(records, id, hours) {
+  const store = cloneHexRecordStore(records);
+  const delta = Number(hours);
+  if (!Number.isSafeInteger(delta) || delta < 0) fail("planned travel adjustment must be a nonnegative integer.");
+  const record = store.records.find(entry => entry.id === id);
+  if (!record) fail(`sequence ${id} does not exist.`);
+  if (record.status !== "inProgress") fail(`sequence ${id} is not active.`);
+  record.travel.rolledHours += delta;
+  record.travel.remainingHours += delta;
+  return store;
+}
+
 /** Read-only public API. All returned data are detached from saved settings. */
 export class HexTravelRecords {
   static current() {

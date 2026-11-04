@@ -14,7 +14,7 @@ test("dev.100 stops after Travel Quality/Momentum and exposes an explicit Roll E
   assert(!workflow.includes("resolveHexExpeditionOutcome(recordId)"));
   assert(primary.includes('kind: "roll-event", label: "Roll Event"'));
   assert(js.includes('if (primary.kind === "roll-event")'));
-  assert(js.includes('rollHexExpeditionEvent(primary.recordId)'));
+  assert(js.includes('rollHexExpeditionEvent(primary.recordId')); // dev.113 may pass Event-roll control options
   assert(js.includes("Awaiting Event Roll"));
 });
 

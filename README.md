@@ -1,13 +1,164 @@
 # ZFT Overland Travel
 
-Current local test package: `0.4.0-dev.110` for Foundry V13 (live validation pending). This is an experimental Expedition System 1.1 build and is not the recommended campaign-session build until live acceptance. The Foundry module ID remains `zft-overland-travel`.
+Current local test package: `0.4.0-dev.126` for Foundry V13 (live validation pending). This is an experimental Expedition System 1.1 build and is not the recommended campaign-session build until live acceptance. The Foundry module ID remains `zft-overland-travel`.
 
 Foundry VTT module implementing Zantor's hex-based overland travel and independent encounter-generation framework.
 
 ## Version
 
-Current module build: **`0.4.0-dev.110`** (development only). The original generic framework was developed as `0.3.1`; its earlier notes remain below for historical context.
+Current module build: **`0.4.0-dev.126`** (development only). The original generic framework was developed as `0.3.1`; its earlier notes remain below for historical context.
 
+
+
+
+## 0.4.0-dev.126 | Complication Details Decision-Aid Cleanup
+
+- Keeps Situation as the primary Complication focal point while reducing metadata to the two items the GM needs before adjudication: Reconnaissance and Mitigation.
+- Mitigation now reports whether Operational Readiness is actually available for the source hex and explains its optional `-1 Consequence Severity` effect when available.
+- Removes Threat Handoff from Details metadata. Threat remains an allowed selectable consequence where the Complication permits it and still records the future Threat Engine handoff when selected.
+- Replaces side-by-side Recovery/Suggested Response cards with one compact vertical guidance block.
+- Converts Allowed Consequences to a compact inline row and compresses Outcome Guidance into a denser two-column decision reference.
+- Preserves dev.125 combined Primary/Detail roll setup, GM reroll/choose-result history, dev.124 GM adjudication, and all deterministic Navigation consequence mechanics.
+
+## 0.4.0-dev.125 | Navigation Generation Workflow + GM Result Control
+
+- Primary Complication and Detail d8 controls now share one Navigation Complication Rolls screen. Normal/normal, exact/exact, and forced Primary plus forced named Detail can be configured before execution; both dice remain real visible Foundry rolls.
+- Named Detail forcing is available when the Primary is already known from an exact/forced Primary configuration. A random Primary can still pair with a normal or exact Detail face without another setup window.
+- Pending Complication Details adds GM Result Control: Reroll Primary + Detail, Reroll Detail, or Choose Results. Original generated rolls and every revision are preserved in additive audit evidence.
+- Complication Details hierarchy is tightened: Reconnaissance / Mitigation / Threat Handoff metadata, compact full-width Recovery row, full-width Suggested Response with a short GM-adjudication note, consequence chips, and existing 2x2 Outcome Guidance.
+- Existing dev.124 adjudication, deterministic Navigation consequences, travel/clock/role behavior, themes, packs/assets, migration, and protected Mount Ironrot source remain preserved.
+
+## 0.4.0-dev.124 | Complication Adjudication Workflow Repair
+
+- Complication resolution is now GM-adjudication-only. The live Roll / Check branch is removed from the Complication workflow.
+- Outcome and consequence are selected on one Resolve Complication surface; Consequence Severity updates dynamically from the selected outcome and optional Operational Readiness.
+- Dashboard Current Step now mirrors the active Complication type and specific situation instead of showing only a generic Event-resolution line.
+- Complication Details uses compact multi-column metadata, guidance, consequence chips, and a two-column outcome reference so it remains usable at 1080p-height layouts.
+- Operational Readiness and character-target checkboxes use fixed custom geometry instead of inheriting malformed full-size Foundry input styling.
+- Navigation content, deterministic consequence tables, travel accounting, roles, Event generation, themes, packs/assets, migration, and protected source are otherwise unchanged from dev.123.
+
+## 0.4.0-dev.123 | Navigation Complication Engine
+
+- Expands Navigation Complications from the Route Obscured prototype to all eight narrative types, each with eight d8 detail results.
+- Adds a separate visible d8 roll for Navigation Complication type and a second d8 for its detail, both using GM roll controls.
+- Keeps Roll / Check and Direct Adjudication as valid recovery paths and renames user-facing consequence Tier terminology to **Consequence Severity**.
+- Removes consequence dice from the live workflow. The GM selects one allowed coded consequence after resolution.
+- Implements deterministic **Lost Time**, **Lost Progress**, **Resource Loss**, **HP Damage**, and **Exhaustion** results, plus a recorded **Threat** handoff for the future Threat Engine.
+- Resource Loss is restricted to Rations, Water, Healer's Kit Uses, Healing Potions, Ammunition, and Light / Fuel.
+- Fixes the Operational Readiness control so it renders as a compact checkbox rather than a stretched generic input.
+- Preserves dev.122 two-column GM controls and all existing travel, role, clock, Forced March, history, theme, migration, pack, and protected-source behavior.
+
+## 0.4.0-dev.122 | Readable two-column GM controls
+
+- Returns the routine GM control surface to a readable **two-column** layout at normal width instead of forcing long workflow labels into three narrow columns.
+- Keeps **Show to Players** in the GM Controls header and preserves the existing two-column button order: workflow/day, roles/attendance, ledger/current reset, all-reset/log-clear.
+- Gives **Reset Current Travel** the same red danger-family treatment as **Reset All Travel** and **Clear Expedition Log**, including a red warning heading in its confirmation surface.
+- Keeps the established button font size; no smaller typography is introduced to make the controls fit.
+- Preserves dev.121 Roll / Check vs Direct Adjudication, Actor-safe roll attribution, neutral ZFT system-roll speaker, opt-in Operational Readiness, consequence math/presentation, hidden routine Recovery, and all dev.120 travel/reset/pending-phase behavior.
+
+## 0.4.0-dev.121 | Flexible Complication resolution and roll ownership
+
+- Complication resolution now begins with an explicit **Roll / Check** versus **Direct Adjudication** choice. Direct adjudication supports spells, resources, roleplay, clever plans, automatic outcomes, and other GM rulings without inventing a d20 roll.
+- Rolled Complication resolution keeps the GM-private normal / exact-d20 / forced-outcome control, but Actor-owned rolls now bind both math and Chat speaker to the Actor selected in Overland Travel. A controlled token on the GM client can no longer replace that Actor.
+- ZFT-owned system dice such as Complication detail and Navigation consequence rolls use the neutral **ZFT Overland Travel** speaker instead of inheriting a controlled token.
+- Operational Readiness mitigation is now explicitly opt-in and unchecked by default. It is recorded as used only when the GM selects it.
+- Complication Log consequence text is human-readable first; tier transitions remain available in the detailed audit view.
+- Routine **Recovery** is removed from the normal GM control surface while its state-aware recovery implementation remains preserved internally for later contextual use.
+- GM controls use a three-column normal layout with responsive fallbacks; **Clear Expedition Log** spans the final two columns to avoid the prior odd single-button row.
+- Player-facing resolved Complication cards add concise outcome guidance and planned-time impact without exposing GM-only tier bookkeeping.
+- Dev.120 pending role previews, Reset Current Travel safety, Navigation consequence math, planned-time-only delay behavior, Event forcing, and deferred Opportunity/Threat/Discovery/Encounter boundaries are preserved.
+
+## 0.4.0-dev.120 | Complication consequence slice and workflow recovery
+
+- Active Travel Log now shows Navigation, Reconnaissance, and Expedition Support assignments as **Pending** as soon as the active hex workflow exists, before Navigation results are saved.
+- Adds **Reset Current Travel**, which restarts only an uncommitted active hex and preserves completed hexes, prior Expedition Log history, day/hour counters, and older results. It refuses to rewind a hex that already has committed travel hours.
+- Adds reusable GM-private roll control for ZFT-owned dice. The Complication detail d8 supports normal, exact-face, or forced-detail selection; the resolution d20 supports normal, exact-face, or semantic outcome. Forced modes still post real visible Foundry rolls.
+- Complication resolution now chooses the resolving Actor/test/DC, performs the visible d20, derives Strong Success / Success / Failure / Major Failure from the roll margin, and begins with no preselected outcome. Reconnaissance remains information-only.
+- Implements the first real **Navigation → Route Obscured** consequence chain: Standard/Major outcome maps to Tier 0–4; applicable Operational Readiness may reduce the tier by one; Navigation delay adds planned travel time only; d4 delay rolls use GM-private roll control and real visible Foundry dice.
+- Saves roll provenance, Support use, consequence tier, and planned-time delta with the Complication record. The Dashboard/Log use the increased planned duration while committed travel/world time remains unchanged until normal travel commit.
+- Refines the player-facing Complication card into an information/result summary instead of a GM audit card.
+- No Opportunity, automatic Threat, Discovery, or Encounter behavior is introduced.
+
+## 0.4.0-dev.119 | Complication UI refinement and roster stability
+
+- Keeps the accepted Complication workflow/mechanics unchanged while refining the GM-facing Details and Expedition Log presentation.
+- Removes repeated Situation prose: the specific complication is the focal text and the Standard/Major frame supplies only the additional context.
+- Replaces the three cramped Reconnaissance/Support/Threat metadata cards with one aligned row-based metadata panel.
+- Keeps Suggested Response secondary, strengthens the four outcome rows with restrained semantic tint, and reduces category/type to classification rather than the primary focal heading.
+- Refines Complications-tab summary cards so the situation and saved outcome scan before classification, and separates GM Resolution notes into their own block.
+- Restores the accepted two-column Expedition Roster at normal Dashboard widths by moving the single-column emergency fallback from 330px to 240px.
+- No Complication mechanics, persistence, Event routing, Travel/clock behavior, consequence automation, Support consumption, Threat/Discovery/Encounter handoff, or Opportunity behavior changes.
+
+## 0.4.0-dev.118 | Complication readability and visual hierarchy
+
+- Raises Complication Detail/Resolve typography from the dev.117 9–11px micro-scale to readable 11–16px body/metadata/outcome text while preserving the existing ZFT theme.
+- Makes the actual situation the visual focal point, with a stronger heading, larger situation title, and readable explanatory frame.
+- Converts Reconnaissance, Support, and Threat into three distinct metadata cards with larger values.
+- Strengthens Suggested Response and Outcome Guidance hierarchy, including larger outcome labels/descriptions and clear success/failure semantic edges.
+- Enlarges selectable resolution cards, notes, and supporting text while preserving keyboard/focus behavior.
+- Widens only the Complication Details and Resolve dialogs from 600px to 640px so the larger typography does not create unnecessary wrapping.
+- No Complication mechanics, persistence, Event routing, consequence automation, Support consumption, Threat/Discovery/Encounter handoff, Opportunity behavior, or Travel/clock logic changes.
+
+## 0.4.0-dev.117 | Complication formatting repair
+
+- Repairs the Complication Detail/Resolution styles so they target the actual `#zft-hex-travel-workflow-window` GM surface instead of an unused selector.
+- Rebuilds the detail hierarchy with severity/status badges, a separated Situation block, aligned Reconnaissance/Support/Threat metadata, Suggested Response, and distinct Outcome Guidance rows.
+- Keeps the resolution workflow focused: context is shown once, then four full-width selectable outcome cards, optional GM notes, and Save/Cancel.
+- Removes the redundant automatic **Cancel / Exit** action from the detail viewer when **Close** is already present.
+- No Complication mechanics, persistence, Event routing, Travel/clock behavior, Support consumption, consequence automation, Threat/Discovery/Encounter handoff, or Opportunity behavior changes.
+
+## 0.4.0-dev.116 | Complication presentation pass
+
+- Replaces gameplay **Open Content** with **View Details**. The Complication Journal remains content storage, while the GM sees the same content through a dedicated ZFT-rendered detail view.
+- Simplifies Complications-tab cards to a concise status summary: hex, severity, category/type, situation, Reconnaissance state, saved outcome, and only the actions needed at the table.
+- Rebuilds Complication resolution around full-width selectable outcome cards for Strong Success / Success / Failure / Major Failure, plus optional GM notes.
+- Removes prototype/debug implementation language and d8 bookkeeping from the normal Complications card.
+- Preserves the dev.115 Complication record/lifecycle, Event forcing, Travel workflow, and all downstream-engine boundaries unchanged.
+
+## 0.4.0-dev.115 | Complication Log action routing repair
+
+Dev.115 is a focused repair of the Complications-tab card actions observed during live dev.114 testing.
+
+- **Open Content** and **Resolve Complication** clicks originating inside the Expedition Log now route to the same existing Complication handlers already used by the main Expedition workspace.
+- The fix does not duplicate Journal or resolution logic; it only connects the Log window to the established handlers.
+- Dev.114 live Complication rendering, dynamic Event-roll fields, active Travel-log Pending role phases, Event math, Complication persistence, travel accounting, and all downstream deferred systems remain unchanged.
+- No new Complication content, consequence automation, Support mechanics, Threat/Encounter handoff, or Opportunity behavior is added.
+
+
+## 0.4.0-dev.114 | Live Complication refresh and workflow clarity
+
+Dev.114 is a focused live-test repair build on dev.113. It does not add new Complication mechanics.
+
+- The **Complications** tab now rerenders from the saved Complication record whenever the Expedition workspace refreshes, so a newly generated or resolved Complication immediately replaces stale placeholder content.
+- The **Roll Event** dialog dynamically shows only the control used by the selected mode: no extra field for normal rolls, exact d20 only for exact forcing, and Event type only for Event-type forcing.
+- The active Travel Log can display **Navigation**, **Reconnaissance**, and **Expedition Support** immediately after Travel Time is available. Navigation shows the saved result and unresolved later roles show **Pending** rather than waiting for the shared-record refresh to become visible.
+- Complication prototype helper text is version-neutral so a newer build cannot display stale dev.112/dev.113 wording.
+- No Event math, Complication content, consequence tiers, Support mechanics, Threat/Encounter handoff, travel accounting, or Opportunity behavior changes.
+
+## 0.4.0-dev.113 | Controlled Event die and Complication outcome
+
+Dev.113 expands the accepted dev.112 slice in only two directions. It adds GM-controlled Event d20 testing while preserving the real Event pipeline, and it lets the GM record the first adjudicated Complication outcome without automating consequences.
+
+- Clicking **Roll Event** now opens a compact GM choice: **Roll Normally**, **Force Exact d20 Result**, or **Force Event Type**.
+- Forced modes still create a Foundry `1d20` roll/chat result. With Dice So Nice active, the supplied d20 face is the result sent through the existing 3D-roll message path.
+- **Force Event Type** does not bypass the Event chart. It calculates which raw d20 faces can reach the selected Event after the current Momentum modifier, chooses one of those faces, displays that d20 result, and then uses the normal Event calculation and routing.
+- The Complications card now shows the applicable **Standard** or **Major** frame for the existing Route Obscured prototype.
+- **Resolve Complication** presents the approved four outcomes: Strong Success, Success, Failure, and Major Failure, plus optional GM notes. The selected outcome is saved on the Complication record and the existing Event-resolution bridge unlocks travel.
+- No consequence tier, time change, Support consumption, resource loss, Threat/Discovery/Encounter handoff, broader Complication library, or Opportunity mechanic is automated in dev.113.
+
+## 0.4.0-dev.112 | First Complication Engine vertical slice
+
+Dev.112 deliberately stays small. It proves the Complication record/lifecycle and Complications-tab handoff without attempting the full 48-Journal/7-RollTable library or consequence automation.
+
+- A Complication/Major Complication Event now hands the GM to **Complications** instead of immediately opening the old manual Event dialog.
+- The first click generates one persistent Complication record and one native **d8 detail roll**. Reopening/refreshing uses the same saved record and never rerolls it.
+- The saved record uses the locked minimal shell: ID, source Hex Travel record ID, Event type, Standard/Major severity, category, primary type, detail, Reconnaissance state, and `pending`/`resolved` status.
+- Reconnaissance maps to **Full Intelligence / Partial Intelligence / No Advance Intelligence** for the Complications-tab presentation.
+- The initial content slice is intentionally only **Navigation → Route Obscured**, with its eight approved detail results.
+- On first generation, the GM lazily receives a world Complication Journal compendium containing the Route Obscured content and outcome guidance. No broad library is seeded yet.
+- **Record Resolution** still uses the existing manual resolution bridge in this build, then marks the Complication record `resolved` and returns control to the established Travel commit workflow.
+- No consequence-tier automation, Support consumption, planned-time changes, Threat/Discovery/Encounter handoff, category/primary RollTables, or Opportunity mechanics are implemented yet.
+- Travel remains locked to its accepted dev.110 behavior. Threat backend data/code remains preserved but has no visible workspace.
 
 ## 0.4.0-dev.110 | Expedition Log tab cleanup
 

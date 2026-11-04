@@ -102,3 +102,42 @@ test("player cannot mutate staged outcome or Threat state",async()=>{
   await assert.rejects(()=>resolveHexExpeditionOutcome("hex-a",{eventRoll:12,now:400}),/Only a GM/);
   await assert.rejects(()=>createHexThreat({name:"Nope",now:400}),/Only a GM/);
 });
+
+test("dev.113 GM-controlled Event die still uses a visible d20 and the normal Event pipeline",async()=>{
+  const shown=[];
+  class FakeRoll {
+    constructor(formula){
+      assert.equal(formula,"1d20");
+      this.dice=[{faces:20,number:1,results:[{result:19,active:true}],_total:19}];
+      this.terms=this.dice;
+      this._total=19;
+    }
+    async evaluate(){return this;}
+    get total(){return this._total;}
+    async toMessage(){shown.push(this.dice[0].results[0].result);return {id:`msg-${shown.length}`};}
+  }
+  globalThis.Roll=FakeRoll;
+  globalThis.ChatMessage={getSpeaker:()=>({alias:"GM"})};
+  globalThis.CONFIG={Dice:{randomUniform:()=>0.5}};
+  try {
+    fixture();
+    await resolveHexExpeditionPreparation("hex-a",{now:350});
+    const exact=await rollHexExpeditionEvent("hex-a",{eventRollControl:{mode:"exact",raw:8},now:400});
+    assert.equal(exact.event.raw,8);
+    assert.equal(exact.event.final,9); // prepared Momentum +1
+    assert.equal(exact.event.type,"complication");
+    assert.equal(shown[0],8);
+
+    fixture();
+    await resolveHexExpeditionPreparation("hex-a",{now:350});
+    const forcedType=await rollHexExpeditionEvent("hex-a",{eventRollControl:{mode:"eventType",type:"complication"},now:400});
+    assert.equal(forcedType.event.raw,7); // prepared candidates are 5..9; midpoint selects 7
+    assert.equal(forcedType.event.final,8);
+    assert.equal(forcedType.event.type,"complication");
+    assert.equal(shown[1],7);
+  } finally {
+    delete globalThis.Roll;
+    delete globalThis.ChatMessage;
+    delete globalThis.CONFIG;
+  }
+});

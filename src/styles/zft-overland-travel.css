@@ -239,7 +239,7 @@
   padding: 9px; background: #263342;
 }
 #zft-hex-travel-console .zft-hex-actions {
-  display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px;
+  display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px;
 }
 #zft-hex-travel-console .zft-hex-actions button { min-width: 0; font-size: 10px; text-align: center; }
 #zft-hex-travel-console .zft-hex-attendance-editor {
@@ -1308,7 +1308,7 @@
 #zft-overland-theme-window .zft-hex-theme-layout {display:grid;grid-template-columns:196px minmax(0,1fr);gap:14px;align-items:start;padding:0 16px 14px;flex:1;}
 #zft-overland-theme-window .zft-hex-theme-preset-column {position:sticky;top:0;padding:12px;background:var(--zft-theme-panel,#2c241d);border:1px solid var(--zft-theme-border,#80603c);border-radius:7px;min-width:0;}
 #zft-overland-theme-window .zft-hex-theme-presets {display:grid;grid-template-columns:1fr;gap:7px;margin-top:9px;}
-#zft-overland-theme-window .zft-hex-theme-preset {text-align:left;display:grid;gap:5px;min-height:56px;font-size:12px;line-height:1.25;white-space:normal;}
+#zft-overland-theme-window .zft-hex-theme-preset {text-align:left;display:grid;gap:5px;min-height:56px;font-size:13px;line-height:1.3;white-space:normal;}
 #zft-overland-theme-window .zft-hex-theme-preset[aria-pressed="true"] {outline:2px solid var(--zft-theme-accent,#dfb36e);outline-offset:-2px;}
 #zft-overland-theme-window .zft-hex-theme-swatches {display:flex;gap:3px;width:100%;}
 #zft-overland-theme-window .zft-hex-theme-swatches>span {flex:1;height:13px;border-radius:2px;border:1px solid #ffffff2b;}
@@ -2320,6 +2320,9 @@
 #zft-hex-travel-workflow-window .zft-hex-gm > .zft-hex-actions {
   display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:5px;
 }
+@container (max-width:230px) {
+  #zft-hex-travel-workflow-window .zft-hex-gm > .zft-hex-actions {grid-template-columns:minmax(0,1fr);}
+}
 #zft-hex-travel-workflow-window .zft-hex-gm > .zft-hex-actions button {
   display:inline-flex;align-items:center;justify-content:center;gap:5px;
   min-height:30px;padding:5px 7px;font-size:11px;line-height:1.2;
@@ -2727,7 +2730,7 @@
 #zft-hex-travel-workflow-window .zft-hex-travel-role-empty {display:grid;place-items:center;color:var(--zft-theme-muted,#c6b69c);}
 #zft-hex-travel-workflow-window .zft-hex-travel-role-identity {display:flex;min-width:0;flex-direction:column;gap:2px;}
 #zft-hex-travel-workflow-window .zft-hex-travel-role-identity .zft-hex-travel-role-label {color:var(--zft-theme-muted,#c5ac91);font-size:10px;font-weight:600;}
-#zft-hex-travel-workflow-window .zft-hex-travel-role-identity strong {font-size:12px;line-height:1.25;color:var(--zft-theme-text,#eadac3);overflow-wrap:break-word;}
+#zft-hex-travel-workflow-window .zft-hex-travel-role-identity strong {font-size:13px;line-height:1.3;color:var(--zft-theme-text,#eadac3);overflow-wrap:break-word;}
 #zft-hex-travel-workflow-window .zft-hex-travel-role-line.is-guide .zft-hex-travel-role-label i {color:var(--zft-theme-success,#98caaa);margin-left:4px;}
 #zft-hex-travel-workflow-window .zft-hex-travel-role-line > small {align-self:center;font-size:10px;text-align:right;line-height:1.35;max-width:116px;color:var(--zft-theme-muted,#c5ac91);}
 @container (max-width:300px) {
@@ -3216,7 +3219,7 @@
 
 /* v0.4.0-dev.80: Expedition Log tab chrome. Travel card styles are untouched. */
 #zft-hex-travel-log .zft-hex-log-tabs {
-  display: grid; grid-template-columns: repeat(2, minmax(0, 1fr));
+  display: grid; grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 4px; padding: 7px 9px 6px; flex: none;
   background: #292018; border-bottom: 1px solid var(--zft-hex-border, #765839);
 }
@@ -3239,6 +3242,12 @@
   padding: 23px 17px; background: #2b231d; text-align: center;
   color: #e8cfab; font-size: 12px; line-height: 1.45;
 }
+
+/* dev.111: engine workspaces replace the generic Events/Threat placeholder. */
+#zft-hex-travel-log .zft-hex-engine-placeholder {margin:10px;}
+#zft-hex-travel-log .zft-hex-engine-placeholder.is-complications {border-left:4px solid var(--zft-theme-failure,#e69a9b);}
+#zft-hex-travel-log .zft-hex-engine-placeholder.is-opportunities {border-left:4px solid var(--zft-theme-success,#98caaa);}
+@media(max-width:430px){#zft-hex-travel-log .zft-hex-log-tabs {grid-template-columns:1fr;} }
 #zft-hex-travel-log .zft-hex-log-placeholder > i { font-size: 23px; color: var(--zft-hex-amber, #eed5a7); }
 #zft-hex-travel-log .zft-hex-log-placeholder strong { font: 600 15px Georgia, serif; }
 #zft-hex-travel-log .zft-hex-log-placeholder p { margin: 0; color: #d4c0a3; }
@@ -3569,8 +3578,8 @@
 #zft-hex-travel-console .zft-hex-expedition-state-grid strong {font-size:13px;line-height:1.2;color:var(--zft-theme-heading,#f0d9b7);}
 #zft-hex-travel-console .zft-hex-expedition-state-grid em {font-size:9px;line-height:1.25;font-style:normal;color:var(--zft-theme-muted,#c4b7a7);overflow-wrap:anywhere;}
 
-/* At normal dashboard width the six roster cards form three compact rows.
-   Extremely narrow/zoomed dashboards fall back to the existing single column. */
+/* At normal dashboard width the six roster cards remain three compact two-card rows.
+   Only an exceptionally narrow party card may fall back to one column. */
 #zft-hex-travel-console .zft-hex-card[data-hex-card="party"] {container-type:inline-size;}
 #zft-hex-travel-console .zft-hex-card[data-hex-card="party"] .zft-hex-party-list {
   grid-template-columns:repeat(2,minmax(0,1fr));gap:5px;
@@ -3592,7 +3601,7 @@
 }
 #zft-hex-travel-console .zft-hex-card[data-hex-card="party"] .zft-hex-roster-refined .zft-hex-member-exhaustion {grid-row:4;}
 #zft-hex-travel-console .zft-hex-card[data-hex-card="party"] .zft-hex-roster-refined .zft-hex-member-bonuses {font-size:10px;}
-@container (max-width:330px) {
+@container (max-width:240px) {
   #zft-hex-travel-console .zft-hex-card[data-hex-card="party"] .zft-hex-party-list {grid-template-columns:1fr;}
   #zft-hex-travel-console .zft-hex-card[data-hex-card="party"] .zft-hex-roster-refined {grid-template-columns:49px minmax(0,1fr);}
   #zft-hex-travel-console .zft-hex-card[data-hex-card="party"] .zft-hex-roster-refined .zft-hex-portrait {width:49px;height:49px;min-width:49px;flex-basis:49px;}
@@ -3744,7 +3753,7 @@
 #zft-hex-travel-log .zft-hex-role-grade-tooltip-points em {font-size:8px;font-style:normal;color:var(--zft-theme-muted,#c4b7a7);}
 #zft-hex-travel-log .zft-hex-role-grade-tooltip-points strong {font-size:12px;color:var(--zft-theme-heading,#f0d9b7);}
 
-@container (max-width:330px) {
+@container (max-width:240px) {
   #zft-hex-travel-console .zft-hex-expedition-current {grid-template-columns:1fr;}
   #zft-hex-travel-console .zft-hex-momentum-heading {display:grid;gap:2px;}
   #zft-hex-travel-console .zft-hex-momentum-heading > em {max-width:none;text-align:left;}
@@ -4233,3 +4242,412 @@
   #zft-hex-travel-log .zft-hex-role-log-roll {min-width:30px;width:30px;}
   #zft-hex-travel-log .zft-hex-role-log-verdict {max-width:90px;}
 }
+
+/* dev.119: concise Complication log summary, readable detail hierarchy, and stable roster presentation. */
+#zft-hex-travel-log .zft-complication-card {
+  margin:10px;padding:12px 14px;display:grid;gap:9px;
+  border:1px solid color-mix(in srgb,var(--zft-theme-border,#80603c) 78%,transparent);
+  border-radius:8px;
+  background:color-mix(in srgb,var(--zft-theme-panel,#2b231d) 97%,var(--zft-theme-heading,#f2e4d0));
+  color:var(--zft-theme-text,#eadac3);
+}
+#zft-hex-travel-log .zft-complication-card.is-pending {border-left:3px solid color-mix(in srgb,var(--zft-theme-failure,#e69a9b) 72%,var(--zft-theme-border,#80603c));}
+#zft-hex-travel-log .zft-complication-card.is-resolved {border-left:3px solid var(--zft-theme-success,#98caaa);}
+#zft-hex-travel-log .zft-complication-card > header {display:flex;justify-content:space-between;gap:12px;align-items:center;}
+#zft-hex-travel-log .zft-complication-card-meta {display:flex;align-items:center;gap:7px;min-width:0;}
+#zft-hex-travel-log .zft-complication-card-meta small,
+#zft-hex-travel-log .zft-complication-card-meta span {font-size:8.5px;font-weight:800;letter-spacing:.085em;color:var(--zft-theme-muted,#c4b7a7);}
+#zft-hex-travel-log .zft-complication-card-meta span {padding:2px 5px;border:1px solid color-mix(in srgb,var(--zft-theme-border,#80603c) 60%,transparent);border-radius:4px;}
+#zft-hex-travel-log .zft-complication-status {font-size:9px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--zft-theme-muted,#c4b7a7);}
+#zft-hex-travel-log .zft-complication-type {font-size:11.5px;line-height:1.25;font-weight:800;color:var(--zft-theme-accent,var(--zft-theme-muted,#c4b7a7));}
+#zft-hex-travel-log .zft-complication-detail {margin:0;font-size:14px;line-height:1.4;font-weight:750;color:var(--zft-theme-heading,#f2e4d0);}
+#zft-hex-travel-log .zft-complication-summary-list {display:grid;gap:0;margin:1px 0 0;}
+#zft-hex-travel-log .zft-complication-summary-list > div {display:grid;grid-template-columns:110px minmax(0,1fr);gap:10px;padding:5px 0;border-bottom:1px solid color-mix(in srgb,var(--zft-theme-border,#80603c) 42%,transparent);}
+#zft-hex-travel-log .zft-complication-summary-list > div:last-child {border-bottom:0;}
+#zft-hex-travel-log .zft-complication-summary-list dt {margin:0;font-size:9px;font-weight:800;color:var(--zft-theme-muted,#c4b7a7);}
+#zft-hex-travel-log .zft-complication-summary-list dd {margin:0;font-size:10.5px;font-weight:800;color:var(--zft-theme-text,#eadac3);}
+#zft-hex-travel-log .zft-complication-resolution-note {display:grid;gap:3px;margin:2px 0 0;padding:8px 10px;border-left:2px solid color-mix(in srgb,var(--zft-theme-success,#98caaa) 70%,var(--zft-theme-border,#80603c));background:color-mix(in srgb,var(--zft-theme-window,#211a15) 70%,transparent);}
+#zft-hex-travel-log .zft-complication-resolution-note > span {font-size:8.5px;font-weight:850;letter-spacing:.07em;text-transform:uppercase;color:var(--zft-theme-muted,#c4b7a7);}
+#zft-hex-travel-log .zft-complication-resolution-note p {margin:0;font-size:10.5px;line-height:1.4;color:var(--zft-theme-text,#eadac3);}
+#zft-hex-travel-log .zft-complication-actions {display:flex;gap:7px;flex-wrap:wrap;margin-top:1px;}
+#zft-hex-travel-log .zft-complication-actions button {min-height:28px;padding:4px 8px;font-size:11px;}
+#zft-hex-travel-log .zft-complication-actions button.is-primary {border-color:color-mix(in srgb,var(--zft-theme-success,#98caaa) 70%,var(--zft-theme-border,#80603c));}
+
+#zft-hex-travel-workflow-window .zft-hex-event-roll-control,
+#zft-hex-travel-workflow-window .zft-complication-resolution {display:grid;gap:12px;min-width:0;}
+#zft-hex-travel-workflow-window .zft-hex-event-roll-control > p {margin:0;line-height:1.4;}
+#zft-hex-travel-workflow-window .zft-hex-event-roll-control label,
+#zft-hex-travel-workflow-window .zft-complication-resolution-notes {display:grid;gap:6px;min-width:0;}
+#zft-hex-travel-workflow-window .zft-hex-event-roll-control select,
+#zft-hex-travel-workflow-window .zft-hex-event-roll-control input,
+#zft-hex-travel-workflow-window .zft-complication-resolution textarea {width:100%;min-height:30px;box-sizing:border-box;}
+
+#zft-hex-travel-workflow-window .zft-complication-detail-view,
+#zft-hex-travel-workflow-window .zft-complication-resolution {display:grid;gap:14px;min-width:0;}
+#zft-hex-travel-workflow-window .zft-complication-detail-header {display:block;margin:0;padding:0 0 2px;border:0;background:transparent;}
+#zft-hex-travel-workflow-window .zft-complication-detail-heading {display:grid;gap:8px;min-width:0;}
+#zft-hex-travel-workflow-window .zft-complication-detail-badges {display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
+#zft-hex-travel-workflow-window .zft-complication-severity,
+#zft-hex-travel-workflow-window .zft-complication-detail-status {
+  display:inline-flex;align-items:center;min-height:24px;padding:3px 9px;border-radius:999px;
+  border:1px solid color-mix(in srgb,var(--zft-theme-border,#80603c) 78%,transparent);
+  font-size:11px;font-weight:800;letter-spacing:.075em;text-transform:uppercase;
+  color:var(--zft-theme-text,#eadac3);background:color-mix(in srgb,var(--zft-theme-panel,#2b231d) 88%,var(--zft-theme-heading,#f2e4d0));
+}
+#zft-hex-travel-workflow-window .zft-complication-detail-status.is-pending {color:var(--zft-theme-warning,#e0b46f);border-color:color-mix(in srgb,var(--zft-theme-warning,#e0b46f) 80%,var(--zft-theme-border,#80603c));}
+#zft-hex-travel-workflow-window .zft-complication-detail-status.is-resolved {color:var(--zft-theme-success,#98caaa);border-color:color-mix(in srgb,var(--zft-theme-success,#98caaa) 80%,var(--zft-theme-border,#80603c));}
+#zft-hex-travel-workflow-window .zft-complication-detail-view h4,
+#zft-hex-travel-workflow-window .zft-complication-resolution h4 {margin:0;font:700 18px/1.25 Georgia,serif;color:var(--zft-theme-text,#eadac3);overflow-wrap:anywhere;}
+#zft-hex-travel-workflow-window .zft-complication-section-label {
+  font-size:11px;font-weight:850;letter-spacing:.09em;text-transform:uppercase;color:var(--zft-theme-accent,var(--zft-theme-heading,#f2e4d0));
+}
+#zft-hex-travel-workflow-window .zft-complication-detail-situation,
+#zft-hex-travel-workflow-window .zft-complication-detail-guidance,
+#zft-hex-travel-workflow-window .zft-complication-detail-resolution,
+#zft-hex-travel-workflow-window .zft-complication-resolution-summary,
+#zft-hex-travel-workflow-window .zft-complication-resolution-choice {
+  display:grid;gap:9px;min-width:0;padding:13px 15px;border:1px solid color-mix(in srgb,var(--zft-theme-border,#80603c) 75%,transparent);
+  border-radius:8px;background:color-mix(in srgb,var(--zft-theme-panel,#2b231d) 94%,var(--zft-theme-heading,#f2e4d0));
+}
+#zft-hex-travel-workflow-window .zft-complication-detail-situation {border-left:4px solid var(--zft-theme-accent,var(--zft-theme-navigationEdge,#9cc8de));}
+#zft-hex-travel-workflow-window .zft-complication-detail-guidance {padding:12px 14px;}
+#zft-hex-travel-workflow-window .zft-complication-situation-title,
+#zft-hex-travel-workflow-window .zft-complication-resolution-summary > strong {font-size:19px;font-weight:850;line-height:1.35;color:var(--zft-theme-heading,#f2e4d0);}
+#zft-hex-travel-workflow-window .zft-complication-detail-resolution > strong {font-size:16px;font-weight:800;line-height:1.35;color:var(--zft-theme-heading,#f2e4d0);}
+#zft-hex-travel-workflow-window .zft-complication-detail-situation p,
+#zft-hex-travel-workflow-window .zft-complication-detail-guidance p,
+#zft-hex-travel-workflow-window .zft-complication-detail-resolution p,
+#zft-hex-travel-workflow-window .zft-complication-resolution-summary p {margin:0;font-size:14px;line-height:1.55;color:var(--zft-theme-text,#eadac3);}
+
+#zft-hex-travel-workflow-window .zft-complication-detail-meta {
+  display:grid;gap:0;margin:0;padding:4px 14px;border:1px solid color-mix(in srgb,var(--zft-theme-border,#80603c) 65%,transparent);border-radius:8px;
+  background:color-mix(in srgb,var(--zft-theme-window,#211a15) 76%,transparent);
+}
+#zft-hex-travel-workflow-window .zft-complication-detail-meta > div {
+  display:grid;grid-template-columns:150px minmax(0,1fr);gap:14px;align-items:center;min-width:0;padding:10px 0;border-bottom:1px solid color-mix(in srgb,var(--zft-theme-border,#80603c) 45%,transparent);
+}
+#zft-hex-travel-workflow-window .zft-complication-detail-meta > div:last-child {border-bottom:0;}
+#zft-hex-travel-workflow-window .zft-complication-detail-meta dt {margin:0;font-size:11px;font-weight:850;letter-spacing:.045em;text-transform:uppercase;color:var(--zft-theme-muted,#c4b7a7);}
+#zft-hex-travel-workflow-window .zft-complication-detail-meta dd {margin:0;font-size:14px;line-height:1.35;font-weight:800;color:var(--zft-theme-heading,#f2e4d0);overflow-wrap:anywhere;}
+#zft-hex-travel-workflow-window .zft-complication-detail-meta > div:nth-child(3) dd {color:var(--zft-theme-warning,#e0b46f);}
+
+#zft-hex-travel-workflow-window .zft-complication-outcome-reference {display:grid;gap:8px;}
+#zft-hex-travel-workflow-window .zft-complication-outcome-reference > div {
+  display:grid;grid-template-columns:128px minmax(0,1fr);gap:14px;align-items:start;padding:11px 13px;
+  border:1px solid color-mix(in srgb,var(--zft-theme-border,#80603c) 58%,transparent);border-left-width:4px;border-radius:7px;
+  background:color-mix(in srgb,var(--zft-theme-window,#211a15) 70%,transparent);
+}
+#zft-hex-travel-workflow-window .zft-complication-outcome-reference strong {font-size:13.5px;line-height:1.35;color:var(--zft-theme-heading,#f2e4d0);}
+#zft-hex-travel-workflow-window .zft-complication-outcome-reference span {font-size:13px;line-height:1.5;color:var(--zft-theme-text,#eadac3);}
+#zft-hex-travel-workflow-window .zft-complication-outcome-reference > .is-strongSuccess {border-left-color:var(--zft-theme-success,#98caaa);background:color-mix(in srgb,var(--zft-theme-window,#211a15) 88%,var(--zft-theme-success,#98caaa));}
+#zft-hex-travel-workflow-window .zft-complication-outcome-reference > .is-success {border-left-color:color-mix(in srgb,var(--zft-theme-success,#98caaa) 68%,var(--zft-theme-border,#80603c));background:color-mix(in srgb,var(--zft-theme-window,#211a15) 94%,var(--zft-theme-success,#98caaa));}
+#zft-hex-travel-workflow-window .zft-complication-outcome-reference > .is-failure {border-left-color:color-mix(in srgb,var(--zft-theme-failure,#e69a9b) 68%,var(--zft-theme-border,#80603c));background:color-mix(in srgb,var(--zft-theme-window,#211a15) 94%,var(--zft-theme-failure,#e69a9b));}
+#zft-hex-travel-workflow-window .zft-complication-outcome-reference > .is-majorFailure {border-left-color:var(--zft-theme-failure,#e69a9b);background:color-mix(in srgb,var(--zft-theme-window,#211a15) 88%,var(--zft-theme-failure,#e69a9b));}
+#zft-hex-travel-workflow-window .zft-complication-outcome-reference > :is(.is-strongSuccess,.is-success) strong {color:var(--zft-theme-success,#98caaa);}
+#zft-hex-travel-workflow-window .zft-complication-outcome-reference > :is(.is-failure,.is-majorFailure) strong {color:var(--zft-theme-failure,#e69a9b);}
+
+#zft-hex-travel-workflow-window .zft-complication-outcome-choices {display:grid;gap:9px;}
+#zft-hex-travel-workflow-window .zft-complication-outcome-card {display:block;min-width:0;cursor:pointer;}
+#zft-hex-travel-workflow-window .zft-complication-outcome-card input {position:absolute;opacity:0;pointer-events:none;}
+#zft-hex-travel-workflow-window .zft-complication-outcome-card > span {
+  display:grid;gap:6px;min-width:0;padding:12px 14px;border:1px solid color-mix(in srgb,var(--zft-theme-border,#80603c) 68%,transparent);
+  border-radius:8px;background:color-mix(in srgb,var(--zft-theme-panel,#2b231d) 96%,transparent);transition:border-color .12s ease,background .12s ease,box-shadow .12s ease;
+}
+#zft-hex-travel-workflow-window .zft-complication-outcome-card > span strong {font-size:14px;line-height:1.25;color:var(--zft-theme-heading,#f2e4d0);}
+#zft-hex-travel-workflow-window .zft-complication-outcome-card > span small {font-size:13px;line-height:1.5;color:var(--zft-theme-text,#eadac3);}
+#zft-hex-travel-workflow-window .zft-complication-outcome-card.is-strongSuccess > span,
+#zft-hex-travel-workflow-window .zft-complication-outcome-card.is-success > span {border-left:4px solid var(--zft-theme-success,#98caaa);}
+#zft-hex-travel-workflow-window .zft-complication-outcome-card.is-failure > span,
+#zft-hex-travel-workflow-window .zft-complication-outcome-card.is-majorFailure > span {border-left:4px solid var(--zft-theme-failure,#e69a9b);}
+#zft-hex-travel-workflow-window .zft-complication-outcome-card input:checked + span {
+  border-color:var(--zft-theme-success,#98caaa);background:color-mix(in srgb,var(--zft-theme-panel,#2b231d) 82%,var(--zft-theme-success,#98caaa));box-shadow:inset 4px 0 0 var(--zft-theme-success,#98caaa),0 0 0 1px color-mix(in srgb,var(--zft-theme-success,#98caaa) 35%,transparent);
+}
+#zft-hex-travel-workflow-window .zft-complication-outcome-card input:focus-visible + span {outline:2px solid var(--zft-theme-heading,#f2e4d0);outline-offset:2px;}
+#zft-hex-travel-workflow-window .zft-complication-resolution-notes > span {font-size:13px;font-weight:800;color:var(--zft-theme-heading,#f2e4d0);}
+#zft-hex-travel-workflow-window .zft-complication-resolution-notes textarea {font-size:13px;line-height:1.5;resize:vertical;}
+#zft-hex-travel-workflow-window .zft-complication-resolution-scope {display:block;font-size:11.5px;line-height:1.45;color:var(--zft-theme-muted,#c4b7a7);}
+
+@media (max-width:720px) {
+  #zft-hex-travel-workflow-window .zft-complication-detail-meta > div {grid-template-columns:125px minmax(0,1fr);gap:10px;}
+  #zft-hex-travel-workflow-window .zft-complication-outcome-reference > div {grid-template-columns:1fr;gap:4px;}
+}
+
+/* dev.114: Event-roll mode reveals only the field that is actually in use. */
+#zft-hex-travel-workflow-window .zft-hex-event-roll-control [data-event-roll-field][hidden] {display:none !important;}
+#zft-hex-travel-workflow-window .zft-hex-event-roll-control [data-event-roll-help] {line-height:1.35;color:var(--zft-theme-muted,#c4b7a7);}
+
+/* dev.120: Complication workflow + GM roll control */
+#zft-hex-travel-workflow-window .zft-complication-roll-setup,
+#zft-hex-travel-workflow-window .zft-gm-roll-control,
+#zft-hex-travel-workflow-window .zft-complication-apply {display:grid;gap:10px;min-width:0;}
+#zft-hex-travel-workflow-window :is(.zft-complication-roll-setup,.zft-gm-roll-control,.zft-complication-apply) > p {margin:0;font-size:13px;line-height:1.45;color:var(--zft-theme-text,#eadac3);}
+#zft-hex-travel-workflow-window :is(.zft-complication-roll-setup,.zft-gm-roll-control,.zft-complication-apply) label {display:grid;gap:5px;min-width:0;}
+#zft-hex-travel-workflow-window :is(.zft-complication-roll-setup,.zft-gm-roll-control,.zft-complication-apply) label > span {font-size:11px;font-weight:850;letter-spacing:.04em;text-transform:uppercase;color:var(--zft-theme-muted,#c4b7a7);}
+#zft-hex-travel-workflow-window .zft-complication-consequence-preview {display:grid;gap:7px;padding:10px 12px;border:1px solid color-mix(in srgb,var(--zft-theme-border,#80603c) 70%,transparent);border-radius:8px;background:color-mix(in srgb,var(--zft-theme-window,#211a15) 84%,transparent);font-size:13px;}
+#zft-hex-travel-workflow-window .zft-complication-consequence-summary {display:grid;gap:4px;margin-top:8px;padding:9px 11px;border-left:3px solid var(--zft-theme-warning,#e0b46f);background:color-mix(in srgb,var(--zft-theme-window,#211a15) 86%,transparent);}
+#zft-hex-travel-workflow-window .zft-complication-consequence-summary strong {font-size:12px;text-transform:uppercase;letter-spacing:.05em;color:var(--zft-theme-warning,#e0b46f);}
+#zft-hex-travel-workflow-window .zft-complication-consequence-summary span {font-size:13px;line-height:1.4;color:var(--zft-theme-text,#eadac3);}
+#zft-hex-travel-log .zft-complication-consequence-summary {display:grid;gap:2px;margin-top:3px;padding:7px 9px;border-left:2px solid var(--zft-theme-warning,#e0b46f);background:color-mix(in srgb,var(--zft-theme-window,#211a15) 88%,transparent);}
+#zft-hex-travel-log .zft-complication-consequence-summary strong {font-size:8.5px;text-transform:uppercase;letter-spacing:.06em;color:var(--zft-theme-warning,#e0b46f);}
+#zft-hex-travel-log .zft-complication-consequence-summary span {font-size:10.5px;line-height:1.35;color:var(--zft-theme-text,#eadac3);}
+#zft-hex-travel-log .zft-complication-player-card {gap:10px;padding:14px 16px;}
+#zft-hex-travel-log .zft-complication-player-kicker {font-size:10px;font-weight:850;letter-spacing:.06em;text-transform:uppercase;color:var(--zft-theme-muted,#c4b7a7);}
+#zft-hex-travel-log .zft-complication-player-intel,
+#zft-hex-travel-log .zft-complication-player-result {display:grid;grid-template-columns:130px minmax(0,1fr);gap:10px;align-items:center;padding:7px 0;border-top:1px solid color-mix(in srgb,var(--zft-theme-border,#80603c) 45%,transparent);}
+#zft-hex-travel-log .zft-complication-player-intel span,
+#zft-hex-travel-log .zft-complication-player-result span {font-size:9px;font-weight:850;text-transform:uppercase;letter-spacing:.05em;color:var(--zft-theme-muted,#c4b7a7);}
+#zft-hex-travel-log .zft-complication-player-intel strong,
+#zft-hex-travel-log .zft-complication-player-result strong {font-size:12px;color:var(--zft-theme-heading,#f2e4d0);}
+#zft-hex-travel-log .zft-complication-player-result.is-strongSuccess strong,
+#zft-hex-travel-log .zft-complication-player-result.is-success strong {color:var(--zft-theme-success,#98caaa);}
+#zft-hex-travel-log .zft-complication-player-result.is-failure strong,
+#zft-hex-travel-log .zft-complication-player-result.is-majorFailure strong {color:var(--zft-theme-failure,#e69a9b);}
+
+
+/* dev.121: Complication resolution method and player-result hierarchy. */
+#zft-hex-travel-workflow-window .zft-complication-method-options {display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-top:10px;}
+#zft-hex-travel-workflow-window .zft-complication-method-options label {display:block;min-width:0;cursor:pointer;}
+#zft-hex-travel-workflow-window .zft-complication-method-options input {position:absolute;opacity:0;pointer-events:none;}
+#zft-hex-travel-workflow-window .zft-complication-method-options span {display:grid;gap:5px;min-height:84px;padding:12px;border:1px solid var(--zft-theme-border,var(--zft-hex-border));border-radius:7px;background:var(--zft-theme-card,var(--zft-hex-panel));}
+#zft-hex-travel-workflow-window .zft-complication-method-options strong {font-size:14px;color:var(--zft-theme-heading,var(--zft-hex-parchment));}
+#zft-hex-travel-workflow-window .zft-complication-method-options small {font-size:11px;line-height:1.4;color:var(--zft-theme-muted,var(--zft-hex-muted));}
+#zft-hex-travel-workflow-window .zft-complication-method-options input:checked + span {border-color:var(--zft-theme-accent,var(--zft-hex-amber));box-shadow:inset 3px 0 0 var(--zft-theme-accent,var(--zft-hex-amber));}
+#zft-hex-travel-workflow-window .zft-complication-consequence-preview small {display:block;margin-top:5px;color:var(--zft-theme-muted,var(--zft-hex-muted));font-size:10.5px;line-height:1.35;}
+#zft-hex-travel-log .zft-complication-player-result small {display:block;margin-top:4px;font-size:11px;line-height:1.35;color:var(--zft-theme-muted,var(--zft-hex-muted));}
+@container (max-width:360px) {#zft-hex-travel-workflow-window .zft-complication-method-options {grid-template-columns:minmax(0,1fr);}}
+
+/* dev.123: Navigation consequence selection and compact Support control. */
+#zft-hex-travel-workflow-window .zft-complication-support-choice {
+  display:flex !important;align-items:flex-start;gap:10px;padding:10px 12px;
+  border:1px solid color-mix(in srgb,var(--zft-theme-border,#80603c) 70%,transparent);
+  border-radius:8px;background:color-mix(in srgb,var(--zft-theme-window,#211a15) 84%,transparent);cursor:pointer;
+}
+#zft-hex-travel-workflow-window .zft-complication-support-choice > input[type="checkbox"],
+#zft-hex-travel-workflow-window .zft-complication-target-choice > input[type="checkbox"] {
+  width:16px !important;height:16px !important;min-width:16px !important;max-width:16px !important;
+  flex:0 0 16px;margin:2px 0 0;padding:0;box-shadow:none;
+}
+#zft-hex-travel-workflow-window .zft-complication-support-choice > span {display:grid;gap:3px;text-transform:none !important;letter-spacing:0 !important;}
+#zft-hex-travel-workflow-window .zft-complication-support-choice > span > strong {font-size:13px;color:var(--zft-theme-heading,#f2e4d0);}
+#zft-hex-travel-workflow-window .zft-complication-support-choice > span > small,
+#zft-hex-travel-workflow-window .zft-complication-support-unavailable {font-size:11px;line-height:1.35;color:var(--zft-theme-muted,#c4b7a7);}
+#zft-hex-travel-workflow-window .zft-complication-consequence-severity {display:flex;align-items:center;justify-content:space-between;gap:12px;padding:8px 10px;border-radius:7px;background:color-mix(in srgb,var(--zft-theme-panel,#2b231d) 88%,transparent);}
+#zft-hex-travel-workflow-window .zft-complication-consequence-severity span {font-size:11px;font-weight:850;letter-spacing:.05em;text-transform:uppercase;color:var(--zft-theme-muted,#c4b7a7);}
+#zft-hex-travel-workflow-window .zft-complication-consequence-severity strong {font-size:18px;color:var(--zft-theme-heading,#f2e4d0);}
+#zft-hex-travel-workflow-window .zft-complication-apply [data-consequence-field][hidden] {display:none !important;}
+#zft-hex-travel-workflow-window .zft-complication-apply [data-consequence-field] {display:grid;gap:9px;padding:10px 12px;border:1px solid color-mix(in srgb,var(--zft-theme-border,#80603c) 55%,transparent);border-radius:8px;background:color-mix(in srgb,var(--zft-theme-panel,#2b231d) 82%,transparent);}
+#zft-hex-travel-workflow-window .zft-complication-target-grid {display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px;}
+#zft-hex-travel-workflow-window .zft-complication-target-choice {display:flex !important;align-items:center;gap:8px;min-width:0;padding:7px 9px;border:1px solid color-mix(in srgb,var(--zft-theme-border,#80603c) 55%,transparent);border-radius:6px;cursor:pointer;}
+#zft-hex-travel-workflow-window .zft-complication-target-choice > span {font-size:12px !important;text-transform:none !important;letter-spacing:0 !important;color:var(--zft-theme-text,#eadac3) !important;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+@container (max-width:360px) {#zft-hex-travel-workflow-window .zft-complication-target-grid {grid-template-columns:minmax(0,1fr);}}
+
+/* dev.124: GM-adjudicated Complication workflow and 1080p-safe information hierarchy. */
+#zft-hex-travel-console .zft-hex-current-step-topline {
+  display:flex;align-items:center;justify-content:space-between;gap:8px;min-width:0;
+}
+#zft-hex-travel-console .zft-hex-current-step-status {
+  flex:0 0 auto;padding:2px 6px;border:1px solid color-mix(in srgb,var(--zft-current-step-color) 65%,var(--zft-theme-border,#715942));
+  border-radius:999px;font-size:8px;line-height:1.1;font-weight:850;letter-spacing:.07em;text-transform:uppercase;
+  color:color-mix(in srgb,var(--zft-current-step-color) 72%,var(--zft-theme-heading,#f0d9b7));
+}
+#zft-hex-travel-console .zft-hex-current-step.has-context {gap:5px;padding:9px 10px 10px;}
+#zft-hex-travel-console .zft-hex-current-step-context {
+  display:block;font-size:11.5px;line-height:1.35;font-weight:750;color:var(--zft-theme-heading,#f0d9b7);
+}
+#zft-hex-travel-console .zft-hex-current-step.has-context > small {
+  padding-top:4px;border-top:1px solid color-mix(in srgb,var(--zft-theme-border,#715942) 42%,transparent);
+  font-size:9.5px;font-weight:750;
+}
+
+#zft-hex-travel-workflow-window .zft-complication-detail-view {
+  gap:8px;
+  max-height:min(82vh,820px);
+  overflow:auto;
+  padding-right:3px;
+}
+#zft-hex-travel-workflow-window .zft-complication-detail-heading {gap:5px;}
+#zft-hex-travel-workflow-window .zft-complication-detail-badges {gap:6px;}
+#zft-hex-travel-workflow-window .zft-complication-detail-situation {
+  gap:6px;padding:10px 12px;
+}
+#zft-hex-travel-workflow-window .zft-complication-situation-title {font-size:17px;line-height:1.28;}
+#zft-hex-travel-workflow-window .zft-complication-detail-situation p,
+#zft-hex-travel-workflow-window .zft-complication-detail-guidance p {font-size:13.5px;line-height:1.45;}
+#zft-hex-travel-workflow-window .zft-complication-detail-meta {
+  grid-template-columns:repeat(2,minmax(0,1fr));gap:0;padding:0;
+}
+#zft-hex-travel-workflow-window .zft-complication-detail-meta > div {
+  display:grid;grid-template-columns:1fr;gap:3px;align-content:start;padding:8px 10px;border-bottom:0;
+  border-right:1px solid color-mix(in srgb,var(--zft-theme-border,#80603c) 45%,transparent);
+}
+#zft-hex-travel-workflow-window .zft-complication-detail-meta > div:last-child {border-right:0;}
+#zft-hex-travel-workflow-window .zft-complication-detail-meta dt {font-size:9px;}
+#zft-hex-travel-workflow-window .zft-complication-detail-meta dd {font-size:12.5px;line-height:1.3;}
+#zft-hex-travel-workflow-window .zft-complication-guidance-list {
+  display:grid;gap:0;min-width:0;border:1px solid color-mix(in srgb,var(--zft-theme-border,#80603c) 58%,transparent);
+  border-radius:7px;background:color-mix(in srgb,var(--zft-theme-window,#211a15) 84%,transparent);overflow:hidden;
+}
+#zft-hex-travel-workflow-window .zft-complication-guidance-row {
+  display:grid;gap:3px;min-width:0;padding:8px 10px;border-bottom:1px solid color-mix(in srgb,var(--zft-theme-border,#80603c) 42%,transparent);
+}
+#zft-hex-travel-workflow-window .zft-complication-guidance-row:last-child {border-bottom:0;}
+#zft-hex-travel-workflow-window .zft-complication-guidance-row p {margin:0;font-size:13px;line-height:1.38;color:var(--zft-theme-text,#eadac3);}
+#zft-hex-travel-workflow-window .zft-complication-guidance-row > small {font-size:10px;line-height:1.3;color:var(--zft-theme-muted,#c4b7a7);}
+#zft-hex-travel-workflow-window .zft-complication-allowed-row {
+  display:grid;grid-template-columns:auto minmax(0,1fr);align-items:center;gap:10px;min-width:0;padding:5px 2px;
+}
+#zft-hex-travel-workflow-window .zft-complication-consequence-chips {display:flex;flex-wrap:wrap;gap:5px;}
+#zft-hex-travel-workflow-window .zft-complication-consequence-chips > span {
+  padding:3px 7px;border:1px solid color-mix(in srgb,var(--zft-theme-border,#80603c) 58%,transparent);border-radius:999px;
+  font-size:10.5px;font-weight:750;color:var(--zft-theme-text,#eadac3);
+}
+#zft-hex-travel-workflow-window .zft-complication-outcome-section {padding:7px 8px;gap:5px;}
+#zft-hex-travel-workflow-window .zft-complication-outcome-reference {
+  grid-template-columns:repeat(2,minmax(0,1fr));gap:5px;
+}
+#zft-hex-travel-workflow-window .zft-complication-outcome-reference > div {
+  grid-template-columns:92px minmax(0,1fr);align-items:start;gap:7px;padding:6px 7px;
+}
+#zft-hex-travel-workflow-window .zft-complication-outcome-reference strong {font-size:11.5px;line-height:1.25;}
+#zft-hex-travel-workflow-window .zft-complication-outcome-reference span {font-size:11.5px;line-height:1.32;}
+
+#zft-hex-travel-workflow-window .zft-complication-adjudication {
+  display:grid;gap:9px;min-width:0;
+}
+#zft-hex-travel-workflow-window .zft-complication-adjudication-summary {
+  display:grid;gap:5px;padding:9px 11px;border:1px solid color-mix(in srgb,var(--zft-theme-border,#80603c) 70%,transparent);
+  border-left:4px solid var(--zft-theme-accent,var(--zft-theme-navigationEdge,#9cc8de));border-radius:8px;
+  background:color-mix(in srgb,var(--zft-theme-panel,#2b231d) 92%,var(--zft-theme-heading,#f2e4d0));
+}
+#zft-hex-travel-workflow-window .zft-complication-adjudication-summary > div {display:grid;gap:2px;}
+#zft-hex-travel-workflow-window .zft-complication-adjudication-summary span {font-size:10px;font-weight:850;letter-spacing:.05em;text-transform:uppercase;color:var(--zft-theme-muted,#c4b7a7);}
+#zft-hex-travel-workflow-window .zft-complication-adjudication-summary strong {font-size:15px;line-height:1.3;color:var(--zft-theme-heading,#f2e4d0);}
+#zft-hex-travel-workflow-window .zft-complication-adjudication-summary small {font-size:11px;line-height:1.35;color:var(--zft-theme-text,#eadac3);}
+#zft-hex-travel-workflow-window .zft-complication-adjudication .zft-complication-outcome-choices {
+  display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px;
+}
+#zft-hex-travel-workflow-window .zft-complication-adjudication .zft-complication-outcome-card > span {
+  min-height:0;padding:8px 10px;gap:3px;
+}
+#zft-hex-travel-workflow-window .zft-complication-adjudication .zft-complication-outcome-card > span strong {font-size:12.5px;}
+#zft-hex-travel-workflow-window .zft-complication-adjudication .zft-complication-outcome-card > span small {font-size:11px;line-height:1.3;}
+#zft-hex-travel-workflow-window .zft-complication-adjudication-controls {
+  display:grid;grid-template-columns:minmax(0,1fr) 210px;gap:8px;align-items:end;min-width:0;
+}
+#zft-hex-travel-workflow-window .zft-complication-adjudication label {display:grid;gap:4px;min-width:0;}
+#zft-hex-travel-workflow-window .zft-complication-adjudication label > span {
+  font-size:10px;font-weight:850;letter-spacing:.05em;text-transform:uppercase;color:var(--zft-theme-muted,#c4b7a7);
+}
+#zft-hex-travel-workflow-window .zft-complication-adjudication select,
+#zft-hex-travel-workflow-window .zft-complication-adjudication textarea {width:100%;box-sizing:border-box;}
+#zft-hex-travel-workflow-window .zft-complication-severity-pair {
+  display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px;
+}
+#zft-hex-travel-workflow-window .zft-complication-severity-pair > span {
+  display:flex;align-items:center;justify-content:space-between;gap:6px;min-height:32px;padding:5px 8px;
+  border-radius:6px;background:color-mix(in srgb,var(--zft-theme-panel,#2b231d) 88%,transparent);
+}
+#zft-hex-travel-workflow-window .zft-complication-severity-pair small {font-size:8.5px;font-weight:850;letter-spacing:.04em;text-transform:uppercase;color:var(--zft-theme-muted,#c4b7a7);}
+#zft-hex-travel-workflow-window .zft-complication-severity-pair strong {font-size:16px;color:var(--zft-theme-heading,#f2e4d0);}
+#zft-hex-travel-workflow-window .zft-complication-adjudication [data-consequence-field][hidden] {display:none !important;}
+#zft-hex-travel-workflow-window .zft-complication-adjudication [data-consequence-field] {
+  display:grid;gap:7px;padding:8px 10px;border:1px solid color-mix(in srgb,var(--zft-theme-border,#80603c) 55%,transparent);border-radius:7px;
+  background:color-mix(in srgb,var(--zft-theme-panel,#2b231d) 82%,transparent);
+}
+#zft-hex-travel-workflow-window .zft-complication-inline-fields {display:grid;grid-template-columns:minmax(0,.75fr) minmax(0,1.25fr);gap:8px;}
+#zft-hex-travel-workflow-window .zft-complication-adjudication .zft-complication-resolution-notes textarea {min-height:58px;max-height:120px;resize:vertical;font-size:12px;line-height:1.35;}
+
+/* Native checkbox geometry is unreliable under Foundry/theme form rules. Use a fixed compact control. */
+#zft-hex-travel-workflow-window .zft-complication-support-choice > input[type="checkbox"],
+#zft-hex-travel-workflow-window .zft-complication-target-choice > input[type="checkbox"] {
+  appearance:none !important;-webkit-appearance:none !important;
+  display:grid !important;place-content:center !important;
+  inline-size:18px !important;block-size:18px !important;min-inline-size:18px !important;max-inline-size:18px !important;
+  min-block-size:18px !important;max-block-size:18px !important;min-height:18px !important;max-height:18px !important;
+  flex:0 0 18px !important;margin:1px 0 0 !important;padding:0 !important;box-sizing:border-box !important;
+  border:1px solid color-mix(in srgb,var(--zft-theme-border,#80603c) 88%,var(--zft-theme-heading,#f2e4d0)) !important;
+  border-radius:4px !important;background:color-mix(in srgb,var(--zft-theme-window,#211a15) 88%,transparent) !important;box-shadow:none !important;
+}
+#zft-hex-travel-workflow-window .zft-complication-support-choice > input[type="checkbox"]::before,
+#zft-hex-travel-workflow-window .zft-complication-target-choice > input[type="checkbox"]::before {
+  content:"✓";font-size:13px;line-height:1;font-weight:900;color:var(--zft-theme-heading,#f2e4d0);transform:scale(0);
+}
+#zft-hex-travel-workflow-window .zft-complication-support-choice > input[type="checkbox"]:checked,
+#zft-hex-travel-workflow-window .zft-complication-target-choice > input[type="checkbox"]:checked {
+  background:color-mix(in srgb,var(--zft-theme-success,#98caaa) 72%,var(--zft-theme-panel,#2b231d)) !important;
+  border-color:var(--zft-theme-success,#98caaa) !important;
+}
+#zft-hex-travel-workflow-window .zft-complication-support-choice > input[type="checkbox"]:checked::before,
+#zft-hex-travel-workflow-window .zft-complication-target-choice > input[type="checkbox"]:checked::before {transform:scale(1);}
+
+@media (max-width:720px) {
+  #zft-hex-travel-workflow-window .zft-complication-detail-meta {grid-template-columns:1fr;}
+  #zft-hex-travel-workflow-window .zft-complication-detail-meta > div {border-right:0;border-bottom:1px solid color-mix(in srgb,var(--zft-theme-border,#80603c) 45%,transparent);}
+  #zft-hex-travel-workflow-window .zft-complication-detail-meta > div:last-child {border-bottom:0;}
+  #zft-hex-travel-workflow-window .zft-complication-outcome-reference,
+  #zft-hex-travel-workflow-window .zft-complication-adjudication .zft-complication-outcome-choices,
+  #zft-hex-travel-workflow-window .zft-complication-adjudication-controls,
+  #zft-hex-travel-workflow-window .zft-complication-inline-fields {grid-template-columns:minmax(0,1fr);}
+}
+
+/* dev.125 Navigation generation and Complication detail hierarchy */
+#zft-hex-travel-workflow-window .zft-navigation-complication-roll-control {
+  display:grid;gap:10px;min-width:0;
+}
+#zft-hex-travel-workflow-window .zft-navigation-complication-roll-control > p {
+  margin:0;font-size:12.5px;line-height:1.42;color:var(--zft-theme-text,#eadac3);
+}
+#zft-hex-travel-workflow-window .zft-navigation-roll-stage-grid {
+  display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px;min-width:0;
+}
+#zft-hex-travel-workflow-window .zft-navigation-roll-stage {
+  display:grid;align-content:start;gap:7px;min-width:0;padding:10px 11px;
+  border:1px solid color-mix(in srgb,var(--zft-theme-border,#80603c) 72%,transparent);border-radius:8px;
+  background:color-mix(in srgb,var(--zft-theme-panel,#2b231d) 90%,transparent);
+}
+#zft-hex-travel-workflow-window .zft-navigation-roll-stage > header {
+  display:flex;align-items:center;justify-content:space-between;gap:8px;padding-bottom:5px;
+  border-bottom:1px solid color-mix(in srgb,var(--zft-theme-border,#80603c) 45%,transparent);
+}
+#zft-hex-travel-workflow-window .zft-navigation-roll-stage > header strong {font-size:14px;color:var(--zft-theme-heading,#f2e4d0);}
+#zft-hex-travel-workflow-window .zft-navigation-roll-stage > header small {
+  padding:2px 6px;border:1px solid color-mix(in srgb,var(--zft-theme-border,#80603c) 65%,transparent);border-radius:999px;
+  font-size:9px;font-weight:850;color:var(--zft-theme-muted,#c4b7a7);
+}
+#zft-hex-travel-workflow-window .zft-navigation-roll-stage label {display:grid;gap:4px;min-width:0;}
+#zft-hex-travel-workflow-window .zft-navigation-roll-stage label > span {
+  font-size:9.5px;font-weight:850;letter-spacing:.05em;text-transform:uppercase;color:var(--zft-theme-muted,#c4b7a7);
+}
+#zft-hex-travel-workflow-window .zft-navigation-roll-stage :is(select,input) {width:100%;box-sizing:border-box;}
+#zft-hex-travel-workflow-window .zft-navigation-roll-stage > small {
+  font-size:10.5px;line-height:1.35;color:var(--zft-theme-muted,#c4b7a7);
+}
+
+#zft-hex-travel-workflow-window .zft-complication-generation-control {
+  display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:8px;padding:6px 8px;
+  border:1px solid color-mix(in srgb,var(--zft-theme-border,#80603c) 55%,transparent);border-radius:7px;
+  background:color-mix(in srgb,var(--zft-theme-window,#211a15) 90%,transparent);
+}
+#zft-hex-travel-workflow-window .zft-complication-generation-control > div:first-child {display:grid;gap:2px;}
+#zft-hex-travel-workflow-window .zft-complication-generation-control > div:first-child > small {
+  font-size:10px;line-height:1.3;color:var(--zft-theme-muted,#c4b7a7);
+}
+#zft-hex-travel-workflow-window .zft-complication-generation-actions {display:flex;flex-wrap:wrap;justify-content:flex-end;gap:5px;}
+#zft-hex-travel-workflow-window .zft-complication-generation-actions button {
+  width:auto;min-height:26px;margin:0;padding:3px 7px;font-size:10px;line-height:1.15;white-space:nowrap;
+}
+/* Inline GM generation controls drive hidden prompt actions so they do not duplicate in the footer. */
+#zft-hex-travel-workflow-window .zft-hex-prompt-actions > button[data-hex-prompt-action="rerollBoth"],
+#zft-hex-travel-workflow-window .zft-hex-prompt-actions > button[data-hex-prompt-action="rerollDetail"],
+#zft-hex-travel-workflow-window .zft-hex-prompt-actions > button[data-hex-prompt-action="chooseResults"] {display:none !important;}
+
+@media (max-width:720px) {
+  #zft-hex-travel-workflow-window .zft-navigation-roll-stage-grid {grid-template-columns:minmax(0,1fr);}
+  #zft-hex-travel-workflow-window .zft-complication-allowed-row {grid-template-columns:minmax(0,1fr);gap:4px;}
+  #zft-hex-travel-workflow-window .zft-complication-generation-control {grid-template-columns:minmax(0,1fr);}
+  #zft-hex-travel-workflow-window .zft-complication-generation-actions {justify-content:flex-start;}
+}
+
+
+/* dev.126: Complication Details decision-aid hierarchy. Threat remains selectable as a consequence, not metadata. */
+#zft-hex-travel-workflow-window .zft-complication-detail-meta > div:nth-child(2) dd {color:var(--zft-theme-heading,#f2e4d0);}

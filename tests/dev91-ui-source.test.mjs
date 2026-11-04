@@ -32,5 +32,5 @@ test("dev.91 restores selectable rerolls for Navigation and paired role adjudica
 test("dev.91 primary travel control does not silently disable a Commit-looking button",()=>{
   assert.match(consoleSource,/primaryHexTravelAction/);
   assert.match(consoleSource,/travelButton\.disabled = false/);
-  assert.match(consoleSource,/Use Recovery if the automatic workflow was interrupted/);
+  assert.match(consoleSource,/saved workflow is interrupted/);
 });

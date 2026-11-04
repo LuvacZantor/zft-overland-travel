@@ -8,7 +8,8 @@ const engineSource = await readFile(new URL("../src/engines/hex-travel/HexTravel
 test("dev.90 dashboard and GM controls expose the staged/commit vocabulary",()=>{
   assert.match(consoleSource,/HEX TRAVEL REMAINING/);
   assert.doesNotMatch(consoleSource,/spanStat\("TRAVEL HOURS LEFT"/);
-  assert.match(consoleSource,/data-hex-action="recovery"/);
+  assert.doesNotMatch(consoleSource,/<button type="button" data-hex-action="recovery"/);
+  assert.match(consoleSource,/"recovery-resume"/);
   assert.doesNotMatch(consoleSource,/data-hex-action="resolve-roles"/);
   assert.match(consoleSource,/data-hex-player-visibility/);
   assert.match(consoleSource,/Start Travel/);

@@ -139,6 +139,20 @@ export function eventTypeFromFinal(final) {
   return EXPEDITION_EVENT_TYPES.OPPORTUNITY;
 }
 
+/** Return the raw d20 faces that route to one Event type after Momentum. */
+export function rawEventRollsForType(type, momentum) {
+  if (!Object.values(EXPEDITION_EVENT_TYPES).includes(type)) fail(`unknown Event type ${String(type)}.`);
+  const normalizedMomentum = normalizeExpeditionMomentum(momentum);
+  const modifier = EXPEDITION_MOMENTUM_EVENT_MODIFIER[normalizedMomentum];
+  const values = [];
+  for (let raw = 1; raw <= 20; raw++) {
+    const final = clamp(raw + modifier, 1, 20);
+    if (eventTypeFromFinal(final) === type) values.push(raw);
+  }
+  if (!values.length) fail(`no raw Event die result can produce ${String(type)} from ${normalizedMomentum} Momentum.`);
+  return values;
+}
+
 export function resolveExpeditionEvent(eventRoll, momentum) {
   const raw = Number(eventRoll);
   if (!Number.isSafeInteger(raw) || raw < 1 || raw > 20) fail("Event die must be an integer from 1 to 20.");

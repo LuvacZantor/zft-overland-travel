@@ -1,3 +1,464 @@
+# ZFT Overland Travel | Current dev.126 Development Handoff
+
+**Current local build:** `0.4.0-dev.126`, November 4, 2026.  
+**Implementation baseline:** complete locally validated dev.125 manual-install ZIP.  
+**Remote baseline:** `LuvacZantor/zft-overland-travel` branch `feature/expedition-engines` remains at dev.110 commit `6f67f30f802b6c1abb07f1437f173645c6e654e0`.  
+**Live target:** Foundry V13.351 / D&D5e 5.2.5.  
+**GitHub status:** local build only; no dev.126 remote write, merge, tag, release, or deployment.
+
+## Dev.126 scope
+
+- Refine pending Complication Details as a decision aid rather than a collection of equal-weight cards.
+- Preserve Situation as the focal content.
+- Reduce metadata to **Reconnaissance** and **Mitigation**. Mitigation reports actual Operational Readiness availability from the source hex and identifies the optional `-1 Consequence Severity` effect when available.
+- Remove pre-resolution **Threat Handoff** metadata. Threat remains selectable later as an allowed consequence and still records the deferred Threat Engine handoff.
+- Stack **Recovery Objective** and **Suggested Response** in one compact full-width guidance list.
+- Make **Allowed Consequences** a compact inline row.
+- Keep **Outcome Guidance** on Details but compress it into a denser two-column reference.
+- Preserve dev.125 one-screen Primary + Detail generation, GM reroll/choose controls and additive generation history; preserve dev.124 GM-adjudication-only resolution and deterministic Navigation consequence application.
+
+## Mandatory preservation
+
+Preserve travel/world-clock checkpoints, role/recon/support outcomes, Momentum/Event state, Forced March/Exhaustion, roster/attendance, saved history, themes, packs/assets, migration, optional integrations, prior Complication records, and exact `src/expeditions/mount-ironrot/MountIronrotV413.source.js`.
+
+## Live checks
+
+1. Open a pending Navigation Complication at 1920×1080 and confirm Situation remains visually dominant.
+2. Verify metadata contains only Reconnaissance and Mitigation; Threat metadata is absent.
+3. Verify Mitigation says Operational Readiness is available only when the source hex actually earned it, otherwise `Unavailable this hex`.
+4. Verify Recovery Objective and Suggested Response read naturally as stacked list sections, not side-by-side cards.
+5. Verify Allowed Consequences is compact and still includes Threat where valid.
+6. Verify Outcome Guidance remains visible and readable with substantially less vertical space.
+7. Recheck dev.125 GM Result Control and dev.124 Resolve Complication behavior afterward.
+
+---
+
+# ZFT Overland Travel | Current dev.125 Development Handoff
+
+**Current local build:** `0.4.0-dev.125`, November 4, 2026.  
+**Implementation baseline:** complete locally validated dev.124 manual-install ZIP.  
+**Remote branch:** `feature/expedition-engines` remains older and was inspected read-only; it is not the implementation baseline for this build.  
+**Live target:** Foundry V13.351 / D&D5e 5.2.5.  
+**GitHub status:** local build only; no dev.125 remote write, merge, tag, release, or deployment.
+
+## Dev.125 scope
+
+- Replace the two-window Navigation generation setup with one staged Primary + Detail control screen. Both d8 rolls remain real visible ZFT rolls.
+- Preserve normal / exact / semantic GM control. A named Detail result is selectable whenever the configured Primary is known; otherwise the screen explains that Detail names depend on the Primary and allows normal or exact Detail d8 instead.
+- Add pending-result GM correction controls: **Reroll Primary + Detail**, **Reroll Detail**, and **Choose Results**. Changing Primary necessarily produces a new Detail.
+- Preserve original generated Primary/Detail rolls plus every GM revision in additive Complication generation evidence. Final saved Primary/Detail remain authoritative.
+- Tighten Complication Details hierarchy: **Reconnaissance / Mitigation / Threat Handoff**, compact full-width Recovery, full-width Suggested Response with concise GM note, Allowed Consequences, compact GM Result Control, then Outcome Guidance.
+- Preserve dev.124 GM-adjudication-only resolution and deterministic consequence behavior unchanged.
+
+## Mandatory preservation
+
+Preserve travel and world-clock checkpoints, roles/recon/support outcomes, Momentum/Event state, Forced March/Exhaustion, roster/attendance, saved history, themes, packs/assets, migration, optional integrations, and exact `src/expeditions/mount-ironrot/MountIronrotV413.source.js`. Existing dev.112–124 Complication records without generation evidence must continue to load.
+
+## Live checks
+
+1. Generate a Navigation Complication with Primary=normal and Detail=normal: one setup screen only, then two visible d8 rolls sequentially.
+2. Configure Primary exact/forced plus Detail exact/forced on the same screen; verify the final saved narrative matches both visible dice.
+3. Verify Force Detail Result is populated from the configured Primary and is unavailable with an explanatory message when Primary remains random.
+4. In pending Details, test Reroll Detail, Reroll Primary + Detail, and Choose Results. Reopen after each; final content must update without changing the source hex/event severity.
+5. Verify Details hierarchy and labels: Mitigation, Threat Handoff Eligible, compact Recovery, Suggested Response, Allowed Consequences, GM Result Control, 2x2 Outcome Guidance.
+6. Resolve normally afterward and recheck dev.124 deterministic consequence application.
+
+---
+
+# ZFT Overland Travel | Current dev.124 Development Handoff
+
+**Current local build:** `0.4.0-dev.124`, November 4, 2026.  
+**Implementation baseline:** complete locally validated dev.123 manual-install ZIP.  
+**Remote baseline:** `LuvacZantor/zft-overland-travel` branch `feature/expedition-engines` remains at the dev.110 checkpoint.  
+**Live target:** Foundry V13.351 / D&D5e 5.2.5.  
+**GitHub status:** local build only; no dev.124 remote write, merge, tag, release, or deployment.
+
+## Dev.124 scope
+
+- Treat owner screenshots as workflow acceptance evidence, not visual-mockup requests.
+- Dashboard **Current Step** now mirrors the active Complication identity and detail (for example `Navigation · False Trail` plus `A route that once worked now ends abruptly`) and states the next action. Expedition Log remains the more detailed history surface.
+- Rework **Complication Details** for 1080p-safe vertical fit using compact multi-column structure rather than a long one-column stack. Existing readable typography is preserved; layout, not micro-text, carries the compression.
+- Remove **Roll / Check** from the live Complication resolution path. Complication resolution is GM adjudication only for now. ZFT-owned generation dice (Event, Navigation primary d8, detail d8) remain unchanged.
+- Merge Outcome and Consequence selection into one **Resolve Complication** screen. Outcome drives Base Consequence Severity; Operational Readiness optionally reduces Final Severity by one; the selected allowed consequence uses the same deterministic dev.123 mechanics.
+- Repair Operational Readiness checkbox geometry with a fixed compact custom checkbox. The same safe geometry applies to character-target checkboxes.
+
+## Preservation
+
+- Preserve all dev.123 Navigation content, eight primary Complications / 64 details, deterministic consequence tables, exact Resource Item scope, Threat handoff, saved Complication compatibility, travel/clock/Forced March behavior, role history, GM/player permissions, themes, packs/assets, migration, optional integrations, and exact protected Mount Ironrot source.
+- Historical roll-attribution helper tests remain because shared ZFT roll infrastructure still exists, but Complication recovery no longer calls that d20 path.
+
+## Live acceptance focus
+
+1. Current Step shows the actual pending Complication and situation, not only generic Event-resolution wording.
+2. View Details fits comfortably at a normal 1080p desktop height and remains readable without micro-fonts.
+3. Resolve opens directly to one adjudication screen containing outcome + consequence. No Roll / Check method screen or d20 resolution workflow appears.
+4. Selecting an outcome immediately calculates Base/Final Consequence Severity; consequence type and optional Operational Readiness remain on the same screen.
+5. Operational Readiness checkbox is compact, aligned, clickable, unchecked by default, and visually stable.
+6. Existing dev.123 consequence application and ordinary travel progression remain unchanged.
+
+---
+
+# ZFT Overland Travel | Current dev.123 Development Handoff
+
+**Current local build:** `0.4.0-dev.123`, November 4, 2026.  
+**Implementation baseline:** complete locally validated dev.122 manual-install ZIP.  
+**Remote baseline:** `LuvacZantor/zft-overland-travel` branch `feature/expedition-engines` remains at the dev.110 checkpoint.  
+**Live target:** Foundry V13.351 / D&D5e 5.2.5.  
+**GitHub status:** local build only; no dev.123 remote write, merge, tag, release, or deployment.
+
+## Dev.123 scope
+
+- Navigation Complications now include Route Obscured, Path Blocked, False Trail, Dangerous Crossing, Forced Detour, Landmark Problem, Route Split, and Progress Lost. Each retains eight narrative d8 detail results.
+- New Complications roll a visible GM-controlled d8 for the primary Navigation Complication and a second visible d8 for that primary's detail. Existing saved Complications are reopened without rerolling.
+- Recovery remains outcome-centric: Roll / Check or Direct Adjudication. Default roll DC uses the saved Navigation DC and remains GM-editable.
+- User-facing `Tier` language is replaced by **Consequence Severity 0–4**. Operational Readiness may explicitly reduce final severity by one.
+- Consequence generation is deterministic and contains no consequence dice. The GM selects one consequence allowed by the chosen Navigation Complication.
+- Implemented coded consequences: Lost Time `0/1/2/4/8` planned hours; Lost Progress `0/10/25/50/100%`; Resource Loss `0/10/25/50/100%`; HP Damage `0/10/20/35/50% max HP`; Exhaustion `+0/+1/+2/+3/+4`; Threat records a downstream handoff with final Consequence Severity.
+- Resource Loss targets are closed to Rations, Water, Healer's Kit Uses, Healing Potions, Ammunition, and Light / Fuel. The GM selects the exact Foundry Item being reduced.
+- Operational Readiness checkbox styling is repaired so it is compact and explicit rather than inheriting full-width input styling.
+- Disease and Curse remain recorded design foundations for later dedicated consequence subsystems; they are not part of the Navigation runtime in dev.123.
+
+## Preservation
+
+- Preserve all dev.122 travel ledger/world-clock behavior, pending role preview, Reset Current Travel safety, two-column GM controls, roster layout, roll attribution, themes, packs/assets, migration, optional integrations, and saved history.
+- Preserve `src/expeditions/mount-ironrot/MountIronrotV413.source.js` verbatim.
+- Existing older Complication records remain readable; deprecated dev.120 consequence helpers remain compatibility-only and are not used by the live dev.123 consequence workflow.
+
+## Validation state
+
+- Active Node regression suite after implementation: **182/182 passed** before final packaging validation. Historical dev.95/dev.96 cosmetic tests remain intentionally excluded.
+- Evidence level remains **locally validated** until owner testing in Foundry V13.351 / D&D5e 5.2.5.
+
+---
+
+# ZFT Overland Travel | Current dev.122 Development Handoff
+
+**Current local build:** `0.4.0-dev.122`, November 4, 2026.  
+**Implementation baseline:** complete owner-live-reviewed `0.4.0-dev.121` manual-install ZIP.  
+**Remote checkpoint:** `LuvacZantor/zft-overland-travel` branch `feature/expedition-engines` remains at dev.110 commit `6f67f30f802b6c1abb07f1437f173645c6e654e0`.  
+**Live target:** Foundry V13.351 / D&D5e 5.2.5.  
+**GitHub status:** local build only; no dev.122 remote write, merge, tag, release, or deployment.
+
+## Dev.122 scope
+
+- Restore routine GM controls to two columns at normal width so active workflow labels remain readable without reducing font size.
+- Keep **Show to Players** in the GM Controls header.
+- Mark **Reset Current Travel** with the same danger-family button treatment as Reset All Travel and Clear Expedition Log, and use a red warning heading in its confirmation panel.
+- Preserve the existing control order so rows remain: workflow/day, roles/attendance, ledger/current reset, all-reset/log-clear.
+- Preserve all dev.121 Complication resolution modes, Actor/system roll attribution, Support opt-in behavior, consequence math, hidden Recovery infrastructure, dev.120 pending phases/current-reset safety, travel accounting, themes, packs/assets, migration, and protected Mount Ironrot source.
+
+## Required live test
+
+1. Verify GM Controls render as two readable buttons per row at normal width and no label is forced into an unreadable narrow column.
+2. Verify Show to Players remains in the header.
+3. Verify Reset Current Travel, Reset All Travel, and Clear Expedition Log all carry visible red warning treatment; open Reset Current Travel and confirm its warning surface is clearly destructive/recovery-oriented.
+4. Re-run the dev.121 functional checks: Direct Adjudication without a d20, Roll / Check with Actor A while controlling Actor B, neutral ZFT speaker for system dice, Operational Readiness opt-in, readable consequence result.
+5. Re-run the dev.120 safety/workflow checks: pending role phases, Reset Current Travel preservation/refusal after committed hours, Event/Complication forcing, planned-time-only Navigation consequences.
+
+---
+
+# ZFT Overland Travel | Current dev.121 Development Handoff
+
+**Current local build:** `0.4.0-dev.121`, November 4, 2026.  
+**Implementation baseline:** complete owner-live-tested `0.4.0-dev.120` manual-install ZIP.  
+**Remote checkpoint:** `LuvacZantor/zft-overland-travel` branch `feature/expedition-engines` remains at dev.110 commit `6f67f30f802b6c1abb07f1437f173645c6e654e0`.  
+**Live target:** Foundry V13.351 / D&D5e 5.2.5.  
+**GitHub status:** local build only; no dev.121 remote write, merge, tag, release, or deployment.
+
+## Dev.121 scope
+
+- Complication resolution is no longer roll-only. The GM explicitly chooses **Roll / Check** or **Direct Adjudication**. Direct adjudication chooses Strong Success / Success / Failure / Major Failure with no fake roll.
+- Rolled resolution retains the GM-private normal/exact/forced-outcome d20 control and still produces a real Foundry roll.
+- Actor-owned ZFT rolls bind the Chat speaker to the Overland Travel selected Actor. The GM's currently controlled token is ignored. System-owned ZFT rolls use neutral speaker **ZFT Overland Travel**.
+- Operational Readiness mitigation is optional and unchecked by default.
+- Consequence summaries lead with readable travel impact; tier transitions remain detailed audit evidence.
+- Routine Recovery is removed from GM controls, but the underlying state-aware Recovery implementation remains intact.
+- Normal GM controls use three columns; Clear Expedition Log spans two columns on the final row, with narrower responsive fallbacks.
+- Player-facing resolved Complication cards include concise result guidance and planned-time impact.
+- Preserve dev.120 Pending role previews, Reset Current Travel safety, Event forcing, Navigation consequence tiers/delay dice, planned-vs-committed time separation, themes, packs/assets, migration, and exact protected Mount Ironrot source.
+
+## Required live test
+
+1. Resolve one Complication through **Direct Adjudication**. Verify no d20 is rolled and the normal consequence/optional Support path still follows the chosen outcome.
+2. Resolve another through **Roll / Check**. Select Actor A while controlling Actor B's token. Verify modifier, Chat speaker, and Critical/Fumble attribution all identify Actor A.
+3. Verify Complication detail and Navigation consequence dice post as **ZFT Overland Travel**, not the controlled token.
+4. Verify Operational Readiness is unchecked by default; test once without it and once explicitly selecting it.
+5. Verify the resolved Log card uses readable consequence wording while View Details retains tier/audit evidence.
+6. Verify routine GM controls have no Recovery button and render as the intended three-column layout at normal width.
+7. Regression: Pending role phases, Reset Current Travel, Event roll forcing, planned-time consequences, travel commit/world-time boundary, roster layout, themes, and player read-only behavior remain unchanged.
+
+---
+
+# ZFT Overland Travel | Current dev.120 Development Handoff
+
+**Current local build:** `0.4.0-dev.120`, November 4, 2026.  
+**Implementation baseline:** complete owner-tested `0.4.0-dev.119` manual-install ZIP.  
+**Remote checkpoint:** `LuvacZantor/zft-overland-travel` branch `feature/expedition-engines` remains at dev.110 commit `6f67f30f802b6c1abb07f1437f173645c6e654e0`.  
+**Live target:** Foundry V13.351 / D&D5e 5.2.5.  
+**GitHub status:** local build only; no dev.120 remote write, merge, tag, release, or deployment.
+
+## Dev.120 scope
+
+- Pending Navigation / Reconnaissance / Expedition Support appear immediately in the active Travel Log using frozen role assignments.
+- Reset Current Travel removes only an uncommitted active hex/workflow and its generated Complication, preserving earlier travel history and counters.
+- Reusable GM-private ZFT roll control now covers the Complication detail d8 (normal/exact/forced detail) and resolution d20 (normal/exact/forced semantic outcome), while still producing visible Foundry rolls.
+- Route Obscured Complication resolution now uses a selected Actor/test/DC, derives the four outcome grades from margin, records roll provenance, and never derives success from Reconnaissance.
+- First Navigation consequence slice is active: severity/outcome → Tier 0–4 → optional Operational Readiness one-tier mitigation → planned-time delay. Tier 2 rolls 1d4; Tier 3–4 roll 2d4. Tier 4 records that a secondary setback remains for GM adjudication.
+- Consequence time modifies planned travel/remaining hours only. It does not commit ledger/world-clock travel until the existing commit workflow runs.
+- Player-facing Complication presentation is simplified to party intelligence and resolution.
+
+## Required live test
+
+1. Start a hex and verify all three role phases appear immediately as Pending in Travel.
+2. Use Reset Current Travel before any committed hour and verify only the active hex disappears; completed history remains.
+3. Force a Complication and resolve it using normal, exact, and forced-outcome d20 modes across repeated tests. Verify the visible die still rolls.
+4. Confirm Partial/Full/None Reconnaissance changes information only and never preselects or modifies the resolution outcome.
+5. Test Standard and Major consequence tiers, with and without Coordinator-created Operational Readiness.
+6. For Tier 2+ delays, verify the visible d4/2d4 consequence roll and that Hex Travel Remaining increases while Travel Hours Today/world time do not change until commit.
+7. Verify the resolved Complication card and View Details retain outcome, Support use, tier transition, delay, and GM notes.
+
+---
+
+# ZFT Overland Travel | Current dev.119 Development Handoff
+
+**Current local build:** `0.4.0-dev.119`, November 4, 2026.  
+**Implementation baseline:** complete owner-live-tested dev.118 manual-install ZIP.  
+**Remote baseline:** `LuvacZantor/zft-overland-travel` branch `feature/expedition-engines` remains at dev.110 checkpoint `6f67f30f802b6c1abb07f1437f173645c6e654e0`.  
+**Live target:** Foundry V13.351 / D&D5e 5.2.5.  
+**GitHub status:** local build only; no dev.119 remote write, merge, tag, release, or deployment.
+
+## Dev.119 scope
+
+- Refine the accepted Complication UI without changing its workflow or saved-state contract.
+- Make the specific situation the focal information and remove duplicated Situation wording.
+- Present Reconnaissance, Support, and Threat as aligned metadata rows rather than three narrow cards.
+- Keep Suggested Response secondary and give outcome rows restrained success/failure tint for faster scanning.
+- Refine the Complications-tab summary card around situation, outcome, and GM resolution notes.
+- Preserve the accepted two-column Expedition Roster at normal Dashboard widths by lowering the emergency one-column breakpoint from 330px to 240px.
+- Preserve all dev.118 Complication mechanics/persistence, Event forcing, Travel/clock/role behavior, themes, packs/assets, migration, and protected Mount Ironrot source.
+
+## Continuation checkpoint
+
+1. Live-test dev.119 in Foundry V13.351 / D&D5e 5.2.5.
+2. Verify the Expedition Roster stays two columns at the normal Dashboard size.
+3. Verify Details scan order is classification → specific situation → context rows → Suggested Response → outcomes, with no repeated situation sentence.
+4. Verify resolved Log cards emphasize the specific situation and saved Outcome, with GM Resolution notes separated.
+5. If accepted, stop Complication presentation iteration and return to Complication mechanics/content.
+6. GitHub remains at dev.110 until fresh explicit approval for a write to `feature/expedition-engines`.
+
+---
+
+# ZFT Overland Travel | Current dev.118 Development Handoff
+
+**Current local build:** `0.4.0-dev.118`, November 4, 2026.  
+**Implementation baseline:** complete owner-live-tested dev.117 manual-install ZIP.  
+**Remote baseline:** `LuvacZantor/zft-overland-travel` branch `feature/expedition-engines` remains at dev.110 checkpoint `6f67f30f802b6c1abb07f1437f173645c6e654e0`.  
+**Live target:** Foundry V13.351 / D&D5e 5.2.5.  
+**GitHub status:** local build only; no dev.118 remote write, merge, tag, release, or deployment.
+
+## Dev.118 scope
+
+- Readability/visual-hierarchy pass only for Complication Details and Resolve Complication.
+- Raise micro-sized labels/body/outcome text to normal readable sizes and increase line-height/section spacing.
+- Make the Complication situation the primary focal block.
+- Present Reconnaissance, Support, and Threat as distinct metadata cards with larger values.
+- Strengthen Suggested Response and Outcome Guidance, including semantic success/failure outcome edges and larger descriptions.
+- Preserve selectable outcome keyboard behavior and saved resolution workflow.
+- Widen only these Complication dialogs from 600px to 640px.
+- Preserve all dev.117 mechanics, persistence, content, Event forcing, Travel/clock/role behavior, themes, packs/assets, migration, and protected Mount Ironrot source.
+
+## Continuation checkpoint
+
+1. Install and visually test dev.118 in Foundry V13.351 / D&D5e 5.2.5.
+2. Verify Situation, metadata, Suggested Response, and Outcome Guidance are readable at normal Foundry zoom.
+3. Verify Resolve cards are clearly distinguishable and the selected state remains obvious.
+4. If readability is accepted, stop Complication UI iteration and continue mechanics/content from dev.118.
+5. GitHub remains at dev.110 until fresh explicit approval for a write to `feature/expedition-engines`.
+
+---
+
+# ZFT Overland Travel | Current dev.117 Development Handoff
+
+**Current local build:** `0.4.0-dev.117`, November 4, 2026.  
+**Implementation baseline:** complete owner-live-tested dev.116 manual-install ZIP.  
+**Remote baseline:** `LuvacZantor/zft-overland-travel` branch `feature/expedition-engines` remains at dev.110 checkpoint `6f67f30f802b6c1abb07f1437f173645c6e654e0`.  
+**Live target:** Foundry V13.351 / D&D5e 5.2.5.  
+**GitHub status:** local build only; no dev.117 remote write, merge, tag, release, or deployment.
+
+## Dev.117 scope
+
+- Formatting-only repair for the Complication Detail and Resolve surfaces.
+- Correct the Complication/Event-roll CSS scope to the actual `#zft-hex-travel-workflow-window` GM window.
+- Present severity and lifecycle state as compact badges, keep category/type as the primary heading, and isolate Situation text from its explanatory frame.
+- Render Reconnaissance, Support, and Threat as aligned metadata rows.
+- Render Suggested Response and the four outcome guidance entries as distinct readable sections/rows.
+- Keep Resolve focused on the situation plus four selectable outcomes and optional notes instead of repeating the full Detail view.
+- Suppress the redundant automatic **Cancel / Exit** control in the Detail viewer because **Close** already exists.
+- Preserve the complete dev.116 Complication content/persistence contract, dev.115 action routing, dev.114 refresh/pending-role UI, dev.113 Event forcing, and all established Travel/clock/role behavior.
+- No consequence automation, Support consumption, Threat/Discovery/Encounter handoff, Opportunity work, or content-library expansion.
+
+## Continuation checkpoint
+
+1. Install and visually test dev.117 in Foundry V13.351 / D&D5e 5.2.5.
+2. Check **View Details** for clean spacing, readable metadata, and distinct outcome guidance at the normal GM Controls width.
+3. Check **Resolve** for four readable selectable outcome cards and no duplicated detail content.
+4. Verify Detail actions are only **Resolve Complication** + **Close** when pending and only **Close** when resolved.
+5. If the presentation is accepted, continue Complication mechanics/content from dev.117 rather than doing another layout pass.
+6. GitHub remains at dev.110 until the owner gives fresh explicit approval for a specific write to `feature/expedition-engines`.
+
+---
+
+# ZFT Overland Travel | Current dev.116 Development Handoff
+
+**Current local build:** `0.4.0-dev.116`, November 4, 2026.  
+**Implementation baseline:** complete owner-live-tested dev.115 manual-install ZIP.  
+**Remote baseline:** `LuvacZantor/zft-overland-travel` branch `feature/expedition-engines` remains at dev.110 checkpoint `6f67f30f802b6c1abb07f1437f173645c6e654e0`.  
+**Live target:** Foundry V13.351 / D&D5e 5.2.5.  
+**GitHub status:** local build only; no dev.116 remote write, merge, tag, release, or deployment.
+
+## Dev.116 scope
+
+- Treat the Complication Journal as backend/content storage rather than the normal GM-facing interface.
+- Replace **Open Content** with a dedicated **View Details** renderer inside the existing ZFT workflow surface.
+- Keep the Complications-tab card concise: hex/severity/state, category/type, situation, Reconnaissance, saved outcome, and minimal actions.
+- Replace the cramped visible-radio resolution layout with accessible full-width selectable outcome cards.
+- Keep resolution mechanics unchanged: one adjudicated outcome plus optional notes; no consequence automation, Support consumption, time/resource mutation, Threat/Discovery/Encounter handoff, or Opportunity work.
+- Preserve all dev.115 Event forcing, Complication persistence, Travel/clock/role behavior, themes, packs/assets, migration, and protected Mount Ironrot source.
+
+## Tomorrow / continuation checkpoint
+
+1. Install and live-test dev.116 in Foundry V13.351 / D&D5e 5.2.5.
+2. Verify **View Details** is preferable to the Journal sheet and that **Resolve** is readable/usable at the current GM Controls width.
+3. Verify the compact Complications card is visually acceptable in pending and resolved states.
+4. If the presentation is accepted, continue Complication mechanics/content from this checkpoint rather than expanding the UI again blindly.
+5. GitHub remains at dev.110 until the owner gives fresh explicit approval for a specific write to `feature/expedition-engines`.
+
+---
+
+# ZFT Overland Travel | Current dev.115 Development Handoff
+
+**Current local build:** `0.4.0-dev.115`, November 4, 2026.  
+**Implementation baseline:** complete owner-tested `0.4.0-dev.114` manual-install ZIP.  
+**Remote baseline:** `LuvacZantor/zft-overland-travel` branch `feature/expedition-engines` remains at dev.110 checkpoint `6f67f30f802b6c1abb07f1437f173645c6e654e0`.  
+**Live target:** Foundry V13.351 / D&D5e 5.2.5.  
+**GitHub status:** local build only; no dev.115 remote write, merge, tag, release, or deployment.
+
+## Dev.115 scope
+
+- Repair Complications-tab card actions so **Open Content** and **Resolve Complication** clicks inside the Expedition Log are delegated to the existing Complication action handlers.
+- Preserve dev.114 live Complication rerender, dynamic Event-roll fields, active Travel-log Pending role phases, dev.113 Event forcing/outcome persistence, and all established travel behavior.
+- No new mechanics or content.
+
+## Validation state
+
+- Active regression target: **145/145** before packaging.
+- Evidence level remains **locally validated** until owner testing in Foundry V13.351 / D&D5e 5.2.5.
+
+---
+
+# ZFT Overland Travel | Current dev.114 Development Handoff
+
+**Current local build:** `0.4.0-dev.114`, November 4, 2026.  
+**Implementation baseline:** complete owner-tested/local `0.4.0-dev.113` manual-install ZIP.  
+**Remote baseline:** `LuvacZantor/zft-overland-travel` branch `feature/expedition-engines` remains at dev.110 checkpoint `6f67f30f802b6c1abb07f1437f173645c6e654e0`.  
+**Live target:** Foundry V13.351 / D&D5e 5.2.5.  
+**GitHub status:** local build only; no dev.114 remote write, merge, tag, release, or deployment.
+
+## Dev.114 scope
+
+- Refresh **Complications** tab content from the authoritative saved Complication collection on every Expedition workspace refresh.
+- Dynamically reveal only the Event-roll field required by the selected Roll mode.
+- Provide an active-hex Travel Log preview after Travel Time so Navigation is visible immediately and unresolved Reconnaissance/Expedition Support show **Pending**; the saved shared hex record replaces the preview when available.
+- Replace stale version-specific Complication prototype helper text with version-neutral wording.
+- Preserve dev.113 Event d20 forcing, Complication generation/outcome persistence, Travel/clock accounting, roles, themes, assets/packs, migration, and protected Mount Ironrot source.
+
+## Validation state
+
+- Active regression target: **144/144** before packaging.
+- Evidence level remains **locally validated** until owner testing in Foundry V13.351 / D&D5e 5.2.5.
+
+---
+
+# ZFT Overland Travel | Current dev.113 Development Handoff
+
+**Current local build:** `0.4.0-dev.113`, November 3, 2026.  
+**Implementation baseline:** complete dev.112 manual-install ZIP.  
+**Remote baseline:** `LuvacZantor/zft-overland-travel` branch `feature/expedition-engines` remains at `6f67f30f802b6c1abb07f1437f173645c6e654e0` (`0.4.0-dev.110`).  
+**Live target:** Foundry V13.351 / D&D5e 5.2.5.  
+**GitHub status:** local build only; no dev.113 remote write, merge, tag, release, or deployment.
+
+## Dev.113 scope
+
+- Preserve the live-confirmed dev.112 Complication handoff and single Route Obscured d8 content slice.
+- Add GM-controlled Event d20 testing: normal roll, exact d20 face, or Event-type selection. Event-type forcing derives a valid raw d20 face from current Momentum and still runs the normal Event calculation/routing.
+- Preserve visible Foundry roll/chat behavior and the existing Dice So Nice message animation path for forced Event rolls.
+- Add Standard/Major Complication frame display and four-outcome GM adjudication with optional notes.
+- Save the selected outcome only; do not apply consequence tiers, time/resource changes, Support mitigation, Threat/Discovery/Encounter handoff, broader Complication content, or Opportunity mechanics.
+- Preserve Travel, role stages, Momentum, Forced March/Exhaustion, clock, themes, packs/assets, migration, backend Threat state, and protected Mount Ironrot source.
+
+## Continuation
+
+Live-test the forced Event roll presentation and the Complication resolution interaction before adding consequence automation or more content. The next expansion should be driven by observed table use, not by pre-building downstream systems.
+
+---
+
+# ZFT Overland Travel | Current dev.112 Development Handoff
+
+**Current local build:** `0.4.0-dev.112`, November 3, 2026.  
+**Implementation baseline:** complete locally validated `0.4.0-dev.111` package.  
+**Repository:** `LuvacZantor/zft-overland-travel`.  
+**Working branch:** `feature/expedition-engines`, based on committed dev.110 checkpoint `6f67f30f802b6c1abb07f1437f173645c6e654e0`.  
+**Live target:** Foundry V13.351 / D&D5e 5.2.5.  
+**GitHub status:** local build only; no dev.112 commit/push, merge, tag, release, or deployment.
+
+## Dev.112 scope
+
+- Preserve the accepted **Travel | Complications | Opportunities** tab architecture from dev.111 and leave Travel unchanged.
+- Implement one narrow Complication vertical slice only: **Navigation → Route Obscured → d8 detail**.
+- Persist the minimal Complication record shell under the existing Hex record store and enforce only `pending → resolved`.
+- Generate the Complication once; refresh/reopen never rerolls it.
+- Map saved Reconnaissance grade to Full/Partial/No Advance Intelligence for display.
+- Lazily seed one world Complication Journal entry for Route Obscured when the GM first generates a Complication.
+- Use the existing manual Event-resolution bridge to finish the prototype record; do not automate consequence tiers, Support, time, Threat, Discovery, or Encounter yet.
+- Preserve existing Threat backend state/runtime, packs/assets, migration, themes, permissions, Forced March/Exhaustion, world-clock behavior, and protected Mount Ironrot source.
+
+## Next expansion only after live testing
+
+If this slice feels correct in Foundry, expand the content architecture toward the agreed **7 RollTables + 48 Journals** and replace the manual resolution bridge incrementally with the approved four-outcome consequence model. Do not bulk-build those systems before the owner validates this interaction model.
+
+---
+
+# ZFT Overland Travel | Prior dev.111 Development Handoff
+
+**Current local build:** `0.4.0-dev.111`, November 3, 2026.  
+**Implementation baseline:** committed `0.4.0-dev.110` checkpoint.  
+**Repository:** `LuvacZantor/zft-overland-travel`.  
+**Working branch:** `feature/expedition-engines`, created from dev.110 commit `6f67f30f802b6c1abb07f1437f173645c6e654e0`.  
+**Live target:** Foundry V13.351 / D&D5e 5.2.5.  
+**GitHub status:** dev.111 was local only; no dev.111 commit/push, merge, tag, release, or deployment.
+
+## Dev.111 scope
+
+- Keep **Travel** unchanged as the authoritative chronological overland-travel log.
+- Replace the generic **Events** tab with separate **Complications** and **Opportunities** tabs.
+- Remove the visible Persistent Threat placeholder/workspace for now while preserving its backend state/runtime code and any saved Threat data.
+- Establish empty engine-owned workspaces only. Do not define or persist a new Complication/Opportunity record contract until that design is deliberately worked out.
+- Preserve all dev.110 travel, role, Travel Quality, Momentum, Event, Forced March/Exhaustion, clock, themes, packs/assets, migrations, permissions, and protected Mount Ironrot behavior.
+
+## Working engine model
+
+- Event outcomes route to sibling branches: Major Complication/Complication → Complication Engine; Quiet Travel → no additional engine for now; Opportunity → Opportunity Engine.
+- Complication may later hand off to Threat or directly to Encounter.
+- Opportunity may later hand off to Discovery or directly to Encounter.
+- Threat and Discovery are downstream systems to design after Complication and Opportunity.
+- Encounter is a shared downstream engine and must support hostile/dangerous as well as neutral/friendly/beneficial contexts supplied by the upstream engine.
+
+## Next design task
+
+Define the **Complication Engine record/data contract**: what one complication records, lifecycle/status, Reconnaissance disclosure, Support interaction, consequence resolution, and downstream references. Do not add those mechanics to Travel.
+
+---
+
 # ZFT Overland Travel | Current dev.110 Development Handoff
 
 **Current local build:** `0.4.0-dev.110`, November 3, 2026.  

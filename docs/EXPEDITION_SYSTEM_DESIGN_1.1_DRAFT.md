@@ -1,16 +1,67 @@
 # Expedition System Design 1.1 Draft
 
-**Status:** Approved design checkpoint through the Threat Engine baseline. Dev.91 implements automatic orchestration of the staged role/outcome sequence, the explicit travel-commit boundary, Recovery controls, consolidated hex history, the dev.89 Travel Quality/Momentum/Event pipeline, Quiet Travel no-op, Event-resolution gate, and initial persistent multi-Threat framework; downstream specialized engines remain incomplete as noted.
+**Status:** Active engine-design baseline. The travel/role/Travel Quality/Momentum/Event pipeline is established through dev.110. Dev.111 separates the engine workspaces without changing Travel. Complication and Opportunity are the next sibling engines to define; Threat and Discovery follow downstream; Encounter is a shared downstream engine rather than a Threat-only endpoint.
 
 **Module:** ZFT Overland Travel  
 **Repository:** `LuvacZantor/zft-overland-travel`  
-**Working implementation baseline:** `0.4.0-dev.91` local experimental build  
-**GitHub development branch:** `feature/expedition-system-1.1` (remote branch currently still points to the frozen dev.88 checkpoint)  
-**Verified GitHub checkpoint before this local design update:** `fca67c46e7c1ca5921a031645c9d9fa99063b469`  
+**Working implementation baseline:** `0.4.0-dev.110` committed checkpoint; dev.111 local workspace split  
+**GitHub development branch:** `feature/expedition-engines`  
+**Verified GitHub checkpoint before this local design update:** `6f67f30f802b6c1abb07f1437f173645c6e654e0` (`0.4.0-dev.110`)  
 **Live target:** Foundry V13.351 / D&D5e 5.2.5. Live acceptance remains pending.  
-**Local build note:** dev.91 automatically proceeds through Reconnaissance → Expedition Support → Travel Quality → Momentum → Event after a hex is staged, while preserving a separate explicit **Commit Travel** boundary before any travel/world-time mutation. It also adds Recovery and consolidated Day → Hex history. Specialized Complication, Opportunity/Discovery, automatic Threat handoffs, and redesigned Encounter integration remain future work. This local implementation has not been pushed to the remote branch.
+**Local build note:** dev.111 changes only Expedition Log ownership surfaces: Travel remains locked; generic Events/Persistent Threat UI is removed; Complications and Opportunities are separate empty workspaces pending their engine contracts. No new Complication/Opportunity schema is approved by this build.
 
 ---
+
+# Engine-branch working model — November 3, 2026
+
+## UI ownership
+
+The Expedition Log has three engine-aligned surfaces:
+
+1. **Travel** — locked chronological travel history. It already does its job and should not absorb detailed downstream engine records.
+2. **Complications** — owns Complication and Major Complication engine records once that contract is designed.
+3. **Opportunities** — owns Opportunity engine records once that contract is designed.
+
+The generic **Events** tab is retired. The visible Persistent Threat placeholder is also removed for now. Existing Threat state/runtime code and saved data are preserved until the Threat Engine is deliberately revisited.
+
+## Event branching
+
+Complication and Opportunity are sibling outcomes on opposite sides of the Event spectrum; neither feeds the other.
+
+- `1–5` Major Complication → Complication Engine (Major severity)
+- `6–10` Complication → Complication Engine (Standard severity)
+- `11–15` Quiet Travel → no separate engine requirement for now
+- `16–20` Opportunity → Opportunity Engine
+
+## Downstream layer
+
+Development order is deliberate, not a runtime dependency chain:
+
+1. Complication Engine
+2. Opportunity Engine
+3. Threat and Discovery systems
+4. Encounter Engine integration
+
+A Complication may later produce/affect a **Threat** or hand directly to an Encounter when appropriate. An Opportunity may later produce a **Discovery** or hand directly to an Encounter. Threat and Discovery are persistent downstream concepts to define after the two Event-side engines.
+
+The **Encounter Engine is shared downstream infrastructure**, not inherently hostile. Its upstream context may be hostile/dangerous (for example Threat), obstructive/tense (for example some Complications), or neutral/friendly/beneficial (for example Opportunity or Discovery).
+
+## Current design boundary
+
+Dev.111 does **not** define the Complication or Opportunity persistence schema. The next design task is to decide exactly what a Complication record captures and how its lifecycle, disclosure, mitigation, consequences, and downstream references work. That contract belongs to the Complications workspace, not Travel.
+
+---
+
+## Current Complication prototype decisions (dev.112)
+
+The owner explicitly chose a small, test-first implementation path before expanding the full content library. The locked starting points are:
+
+- Minimal Complication record shell: `id`, `sourceHexRecordId`, `eventType`, `severity`, `category`, `primaryType`, `detail`, `reconnaissanceState`, `status`.
+- Persistent lifecycle: only `pending → resolved`. Cancel/reopen/refresh never deletes or rerolls a generated Complication.
+- Content architecture target remains **7 RollTables + 48 primary-type Journals** (6 categories × 8 primary types, each Journal holding its eight detail results), but dev.112 implements only one vertical slice before scaling it.
+- Prototype slice: **Navigation → Route Obscured → d8 detail**.
+- Resolution remains GM-driven and outcome-centric. The existing manual resolution bridge is retained for dev.112 so consequence automation can be tested later without changing the record/lifecycle foundation.
+- Threat and Discovery remain later downstream systems. Encounter is shared downstream infrastructure and is not Threat-only; future Opportunity/Discovery paths may also hand off neutral/friendly encounters.
 
 # 1. Implemented baseline
 
