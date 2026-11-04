@@ -27,5 +27,5 @@ export const EXPEDITION_ROLES = Object.freeze({
   scout: { name: "Scout", skill: "ste", ability: "DEX", purpose: "Advance reconnaissance and warning", tooltip: "Moves ahead of the party to investigate the route and identify danger without attracting attention." },
   vanguard: { name: "Vanguard", skill: "ath", ability: "STR", purpose: "Physical obstacles and safe crossings", tooltip: "Handles physical obstacles, difficult crossings, and hazardous terrain to help the party travel safely." },
   forager: { name: "Forager", skill: "sur", ability: "WIS", purpose: "Food, water, and resources", tooltip: "Searches for food, water, medicinal plants, and other useful natural resources." },
-  coordinator: { name: "Coordinator", skill: "per", ability: "CHA", purpose: "Morale and group cohesion", tooltip: "Maintains morale, encourages companions, and keeps the expedition working together." }
+  coordinator: { name: "Coordinator", skill: "per", ability: "CHA", purpose: "Expedition readiness and coordination", tooltip: "Coordinates the expedition, keeps companions organized, and maintains operational readiness during travel." }
 });

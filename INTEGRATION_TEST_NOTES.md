@@ -1,3 +1,180 @@
+# 0.4.0-dev.110 | Remove duplicate Roles/hex Event log surfaces
+
+Target: Foundry V13.351 / D&D5e 5.2.5. Baseline is the owner-supplied current live dev.109 ZIP.
+
+1. Open the Expedition Log. **PASS:** only **Travel** and **Events** tabs are present; keyboard Left/Right/Home/End navigation works between those two tabs.
+2. Expand a hex in **Travel**. **PASS:** Navigation, Reconnaissance, Expedition Support, Travel Quality, Momentum, Event, and Event Resolution remain present exactly once as saved hex history.
+3. Open **Events**. **PASS:** no per-hex Travel Quality/Momentum/Event/Resolution cards are repeated there. Persistent Threats remains visible.
+4. As GM, add, advance, reduce, change visibility, and resolve a Threat. **PASS:** the existing Threat workflow is unchanged. With a player client, verify Hidden/Partial/Full visibility behavior remains unchanged.
+5. Open **Expedition Roles** from GM Controls and use the roster Roles reference. **PASS:** assignments, saved preferences, role reference, native rolls, rerolls, and adjudication still function; removal of the Roles log tab does not remove the actual role system.
+6. Regression: Current Step/primary action, explicit Roll Event/Resolve Event, Commit/Continue Travel, completed-hex collapse, Travel Decision/Forced March, Exhaustion severity, world-clock synchronization, New Travel Day, themes, docking/scale, and player read-only behavior.
+
+Failure indicators: missing role/Event evidence in Travel history, missing Threat controls/state, Roles assignment control removed, duplicate hex cards still present in Events, tab keyboard navigation failure, or any F12 exception.
+
+Status: **NOT LIVE VERIFIED** for dev.110. Local/static/package checks are evidence only.
+
+---
+
+# 0.4.0-dev.109 | Exhaustion severity wash and compact role columns
+
+1. Inspect the Expedition Roster with characters at Exhaustion 0 and 1+. Confirm the blue/teal/violet phase edge remains visible and Exhaustion adds a separate red background wash without changing card height or two-column alignment.
+2. Compare Exhaustion levels 1 through higher levels where practical. Confirm the card wash and upper-right number become progressively more intense while normal characters remain unmarked.
+3. Hover and keyboard-focus the Exhaustion number. Confirm the tooltip is substantially more compact than dev.108, red-tinted, and shows **Exhaustion N**, **D20 Tests**, and **Speed** in 2024-rules worlds. Confirm higher levels intensify the same tooltip geometry rather than changing its size.
+4. Confirm native Actor Exhaustion/rest changes still refresh the marker/wash and that Exhaustion 0 removes both without shifting roster geometry.
+5. In Navigation, Reconnaissance, and Expedition Support rows, confirm the d20 is materially closer to Result than dev.108 and remains under ROLL.
+6. Exercise **Awaiting GM Confirmation**. Confirm it wraps only inside Result and cannot push the die left. Check normal and narrow widths.
+7. Regression: phase colors, Travel Decision, New Travel Day carry-forward, role scoring/DCs, Travel Time, Travel Quality, Momentum, Event resolution, Commit/Continue accounting, Threats, Forced March mechanics, completed-hex collapse, packs/assets, and protected Mount Ironrot source remain unchanged.
+
+Status before owner test: **LOCALLY VALIDATED / NOT LIVE VERIFIED**.
+
+# 0.4.0-dev.108 | Roster phase identity, Exhaustion badge, and Roll alignment
+
+1. Inspect the Expedition Roster at normal width. Confirm Guide/Vanguard cards have restrained Navigation blue, Scout/Tracker cards Reconnaissance teal, and Forager/Coordinator cards Expedition Support violet. Card dimensions and two-column alignment must remain unchanged.
+2. With a character at Exhaustion 0, confirm no status marker or blank placeholder appears. Increase a character to Exhaustion 1+ and confirm a compact red level number appears in the upper-right without adding a row or changing card height.
+3. Hover and keyboard-focus the red Exhaustion level. In a 2024-rules world confirm the body-level help shows **Exhaustion N**, cumulative **D20 Tests** penalty, and cumulative **Speed** penalty. Confirm the marker updates/disappears after native Exhaustion changes or a rest.
+4. Verify long character names do not overlap the Exhaustion level; truncation/ellipsis may occur but card dimensions must not change.
+5. In Navigation, Reconnaissance, and Expedition Support Log rows, confirm the d20 remains inside the fixed Roll column but is right-aligned toward Result. Long **Awaiting GM Confirmation** text must still wrap only in Result and must not move the die.
+6. Verify all five themes and narrow widths. Phase tinting must remain distinguishable but subtle; green/red outcome semantics must remain separate.
+7. Regression: Travel Decision, New Travel Day carry-forward, role scoring/DCs, Travel Time, Travel Quality, Momentum, Event resolution, Commit/Continue accounting, Threats, Forced March/Exhaustion mechanics, completed-hex collapse, packs/assets, and protected Mount Ironrot source remain unchanged.
+
+Status before owner test: **LOCALLY VALIDATED / NOT LIVE VERIFIED**.
+
+# 0.4.0-dev.107 | Travel Decision, quiet info toasts, and role-die alignment
+
+1. At a Forced March boundary with unfinished hex hours, choose **Pause / Exit**. Confirm Dashboard **CURRENT STEP** becomes **Travel Decision**, names the remaining hours, and distinguishes **Continue Travel = Forced March** from **New Travel Day = carry the remaining hours forward with a fresh daily allowance**.
+2. Choose New Travel Day from that paused state. Confirm no additional travel hour is committed to the old day; the unfinished hex persists with the same remaining hours and the new day starts with a fresh daily allowance.
+3. Repeat routine Hex Travel actions that formerly produced purple Foundry informational toasts (pause/store, role save/adjudication, Event save, player show/hide, ledger/identity save). Confirm no purple info toast appears. Warnings, errors, required prompts, and the dedicated Hex Complete notification must still appear when applicable.
+4. During Navigation, Reconnaissance, and Expedition Support, inspect both saved and **Awaiting GM Confirmation** rows. Confirm the modified check total is centered inside the red d20 icon.
+5. While **Awaiting GM Confirmation** is present, confirm its text wraps within the Result column and the d20 remains centered under the **ROLL** heading rather than shifting left/right.
+6. Verify normal/narrow widths and all five themes. Long character names and pending Result text must not overlap the die or move it outside the Roll column.
+7. Regression: Travel Time, role scoring, DCs, Travel Quality, Momentum, Event roll/resolution, Commit/Continue accounting, cross-day history, Threats, Forced March/Exhaustion, completed-hex collapse, packs/assets, and protected Mount Ironrot source remain unchanged.
+
+Status before owner test: **LOCALLY VALIDATED / NOT LIVE VERIFIED**.
+
+# 0.4.0-dev.106 | Travel Log role deduplication
+
+1. Expand an active/current hex. Confirm the top of the hex now begins with **Travel Time** rather than a second Navigation roll block.
+2. Confirm Travel Time still shows the saved total duration, base 2d4, pace, and any Guide/Vanguard delay dice/hours exactly as before.
+3. Confirm the lower **Navigation** phase shows Guide and Vanguard, their roll/results, Strong/Partial/Failed grade, Travel Quality points, and the saved `DC N` in the phase header.
+4. Confirm Reconnaissance, Expedition Support, Expedition Outcome, semantic colors, Current Step, primary-action phase color, and completed-hex collapse are unchanged.
+5. Refresh/reload and inspect completed/current history. No saved roll, duration, delay, point, DC, or expedition-state data should change. Legacy cards with pre-Vanguard Secondary evidence must retain that historical evidence.
+6. Verify GM/player views and all five themes at normal and narrow widths.
+
+Local/static validation is not live Foundry acceptance.
+
+## 0.4.0-dev.105 | Completed-hex collapse live check
+
+1. Complete a hex through the normal Commit/Continue Travel path. **PASS** if the completed hex closes automatically while the current Day group remains open.
+2. Refresh/reload the Dashboard. **PASS** if the latest completed hex remains collapsed instead of auto-opening because it is the newest record.
+3. Start or resume unfinished travel. **PASS** if the active/incomplete hex can still open automatically and remains actionable.
+4. Manually reopen a completed historical hex. **PASS** if its details remain available for inspection and no saved expedition data is altered.
+5. Regression: Current Step/button phase colors, role-grade semantic colors, explicit Roll Event, Event resolution, travel/world-time commit boundary, cross-day travel, Threats, Forced March/Exhaustion, player view, themes, and help overlays remain unchanged.
+
+Status before owner test: **LOCALLY VALIDATED / NOT LIVE VERIFIED**.
+
+## 0.4.0-dev.104 | Final cosmetic stabilization live check
+
+1. With no active hex, confirm **Current Step: Start Travel** and the primary **Start Travel** GM button share the same blue Navigation identity.
+2. Progress through the workflow and confirm the primary button follows Current Step: **Resolve Reconnaissance** teal, **Resolve Expedition Support** violet, **Roll/Resolve Event** orange, **Commit/Continue Travel** blue, and Forced March red when applicable.
+3. Confirm only the primary travel/workflow action receives the strong phase treatment; New Travel Day and secondary GM controls remain visually distinct.
+4. Verify hover/focus strengthens the current phase color without changing button size, label, keyboard behavior, or layout.
+5. Re-run the dev.103 checks for Current Step placement, Strong/Partial/Failed Log colors, semantic outcome colors, and New Travel Day wording.
+6. Regression: explicit Roll Event, Event resolution, Commit/Continue boundary, cross-day travel, Threats, Forced March/Exhaustion, player view, themes, scaling, and body-level help remain unchanged.
+
+Status before owner test: **LOCALLY VALIDATED / NOT LIVE VERIFIED**.
+
+## 0.4.0-dev.103 | Workflow hierarchy and semantic color live check
+
+1. Open Dashboard during each phase. **PASS** if **CURRENT STEP** appears directly below Current Expedition and before Day/Travel Hours/Hex result tiles; the old lower NEXT blurb is absent.
+2. Verify Current Step changes without changing mechanics: Navigation/start, Resolve Reconnaissance, Resolve Expedition Support, Travel Quality/Momentum recovery edge, Roll Event, Event Resolution, Commit/Continue Travel, and Forced March.
+3. Verify phase identity remains restrained and readable in all themes: Navigation blue, Reconnaissance teal, Expedition Support violet, Event orange; travel/forced-march states remain clearly labeled.
+4. In Travel Log and Roles tab, verify **Strong = green, Partial = amber, Failed = red**, and Awaiting GM Confirmation = amber. Specifically reproduce two Reconnaissance failures and confirm the phase header reads **Failed** in red.
+5. Verify Navigation / Reconnaissance / Expedition Support cards have subtle blue / teal / violet accents without recoloring individual success/failure verdicts incorrectly.
+6. Verify Expedition Outcome/Event tiles use semantic state color consistently with the Dashboard while labels remain readable and color is not the only signal.
+7. Open Start New Travel Day with an unfinished hex. **PASS** if the prior day's traveled hours are stated, the new day is described as a fresh daily allowance, and the unfinished hex is separately described as carrying forward. No `0h on Day N` line should appear.
+8. Regression: explicit Roll Event, Event resolution, Commit Travel, ledger/world-time boundary, cross-day continuation, Threats, Forced March/Exhaustion, themes, player view, and body-level help remain unchanged.
+
+Status before owner test: **LOCALLY VALIDATED / NOT LIVE VERIFIED**.
+
+## 0.4.0-dev.102 | Active saved Event render repair
+
+1. Install dev.102 over dev.101 without resetting travel. Reopen the existing world that already has a current/saved Event. **PASS** if Dashboard and Expedition Log populate normally instead of remaining blank.
+2. Confirm the Dashboard **THIS HEX · EVENT** card shows the existing saved Event and semantic state color. It must not reroll or replace that Event on reload.
+3. Refresh the browser and reopen Dashboard/Log. **PASS** if the same state reconstructs without an `HexTravelConsole.js` uncaught promise error.
+4. Continue the normal explicit Event-resolution / Commit Travel path and confirm ledger/world-time behavior is unchanged.
+
+This repair is locally validated only until exercised in Foundry V13.351 / D&D5e 5.2.5.
+
+## 0.4.0-dev.101 | Dashboard Event at-a-glance live check
+
+1. Complete Navigation, Reconnaissance and Expedition Support. Before clicking **Roll Event**, confirm Dashboard Expedition State shows the resolved Travel Quality/Momentum state plus **THIS HEX · EVENT — Awaiting Event Roll**. No Event die should exist yet.
+2. Hover/focus the Event state. Confirm the body-level help overlay contains the four Event bands and does not change Dashboard size/typography.
+3. Click **Roll Event**. Confirm the Dashboard Event state changes to the saved Major Complication / Complication / Quiet Travel / Opportunity result and shows compact `d20 + Momentum = final` plus resolution state.
+4. Hover/focus the resolved Event. Confirm raw d20, Momentum modifier, final result, resolution, and Event bands are present in help.
+5. Confirm the old permanent `EVENT d20` legend is no longer visible beneath the Momentum rail.
+6. Confirm semantic Event color is supplementary only and remains readable across all five themes and GM/player views.
+7. Regression: explicit Roll Event timing, Event resolution gating, Commit Travel, travel/world-time accounting, Threats, Forced March/Exhaustion, roster/help overlays, and Momentum mechanics remain unchanged.
+
+Local/static/package validation is not live Foundry acceptance.
+
+---
+
+# 0.4.0-dev.100 live acceptance addendum
+
+Target: Foundry V13.351 / D&D5e 5.2.5. Dev.100 closes the pre-engine workflow/transparency pass.
+
+1. Start a fresh hex and progress through Navigation → Resolve Reconnaissance → Resolve Expedition Support. **PASS:** after Support saves, Travel Quality and Momentum appear, but no Event d20/chat result exists and the primary action reads **Roll Event**. Ledger hours/world time remain unchanged.
+2. Refresh/reload before clicking Roll Event. **PASS:** the saved Travel Quality/Momentum remain unchanged, Event stays unrolled, and **Roll Event** remains the next action. Recovery does not roll it.
+3. Click **Roll Event**. **PASS:** exactly one d20 is rolled, the saved Momentum modifier is applied, the Event result is persisted, and a second click cannot reroll/replace it. Quiet Travel unlocks **Commit Travel**; Major Complication / Complication / Opportunity expose their specific Resolve action.
+4. Before Travel Quality exists, inspect Momentum Change. **PASS:** the main value is **Pending** with subordinate **Awaiting Travel Quality** text; no oversized multi-line pending headline.
+5. Inspect semantic color. **PASS:** Successful/improved trends read positive, Neutral/unchanged reads amber/neutral, Poor/worsened reads negative, and the Momentum rail progresses visually from red at Deteriorating through green at Favored. Labels and `−2..+2` values remain readable in all cases.
+6. Hover/focus each roster role in both columns near viewport edges. **PASS:** help is body-level and viewport-clamped; it does not cover the adjacent card because of nested absolute positioning, alter roster geometry, or leave a popup at rest.
+7. Recheck dev.99 transparency surfaces, header mountain double-click compact control, GM/player views, all five themes, normal/narrow widths, Event/Forced March help, and role-grade help.
+8. End-to-end regression: resolve Event if required → Commit Travel. Verify ledger/world-time boundary, cross-day/Forced March behavior, completed-hex collapse, Threat state, Exhaustion refresh, and no F12 exceptions.
+
+Failure indicators: Event rolls before the GM clicks Roll Event, Event rerolls on refresh/recovery, roster tooltip escapes the viewport, state color changes font/layout, color becomes the only indicator, or travel/world time changes before Commit/Continue.
+
+Status: **NOT LIVE VERIFIED**.
+
+---
+
+# 0.4.0-dev.99 live acceptance addendum
+
+Target: Foundry V13.351 / D&D5e 5.2.5. Dev.99 completes the pre-engine transparency rollout on the dev.98 body-level help pattern.
+
+1. Confirm Dashboard typography, Travel Quality/Momentum card geometry, summary tile size, Momentum rail and Event-chart sizing still match dev.98/dev.97. No help surface may exist at rest.
+2. Hover/focus **Hex Travel Remaining** and **Safe Travel Hours**. Help must appear outside the Dashboard layout and disappear cleanly without moving or resizing anything.
+3. In the Expedition Roster, verify role help identifies the role purpose, phase (Navigation / Reconnaissance / Expedition Support), and fixed primary check. Coordinator must describe expedition readiness/coordination, not a morale subsystem.
+4. In the Events tab, hover/focus a resolved Event result. Verify raw d20, Momentum state/modifier, final result, correct 1–20 chart band, and resolution state. Player view must not reveal GM-only data.
+5. During an active Forced March and on a completed Forced March history entry, inspect the info help. Active help must state that the hour is not committed until adjudication resolves; completed help must identify the saved travel hour and CON DC.
+6. Dashboard header: the old top-right minimize button must be absent. Double-click the gold mountain/triangle at far left; Dashboard collapses to the floating icon. Expand it, then focus the mountain and press Enter/Space; same result. Normal header dragging elsewhere still works.
+7. Run one end-to-end hex regression: Navigation → Reconnaissance → Expedition Support → Travel Quality/Momentum/Event → Event resolution if required → Commit Travel. Verify ledger/world-time boundaries and completed-hex collapse.
+8. Check all five themes, normal/narrow widths, GM and player clients, and viewport-edge tooltip placement.
+
+Failure indicators: any typography/box-size regression, orphan tooltip, help changing travel state, wrong Event math/band, Forced March help claiming an uncommitted hour is committed, or mountain double-click interfering with normal header drag.
+
+Status: **NOT LIVE VERIFIED**.
+
+---
+
+# 0.4.0-dev.98 live acceptance addendum
+
+Target: Foundry V13.351 / D&D5e 5.2.5. Dev.98 is a narrow transparency experiment on the dev.97 visual baseline.
+
+1. Replace dev.97 with dev.98 and hard-reload the browser. Confirm Dashboard typography, box sizing, summary tiles, Momentum rail, and spacing still match the dev.97/dev.94 visual baseline.
+2. Inspect THIS HEX · TRAVEL QUALITY. PASS if Success Points and Failure Points are distinct compact rows with no oversized labels, wrap artifacts, or changed heading/value font sizes.
+3. Inspect EXPEDITION MOMENTUM. PASS if Event Roll Modifier and Persistence are separate readable rows while Prepared/Neutral/etc. and the five-state rail retain their dev.97 sizing.
+4. Hover and keyboard-focus Travel Quality, Momentum Change, and Expedition Momentum. PASS if one structured help panel appears near the target without moving/resizing any Dashboard element. Move/focus away; it should disappear.
+5. Resize or move the Dashboard near viewport edges and repeat the help checks. PASS if the help panel stays inside the viewport and never leaves an orphan dark surface after hover/focus ends.
+6. Confirm no generic Dashboard help appears over Hex Travel Remaining, Safe Travel Hours, Event, or Forced March in dev.98; those are deliberately deferred.
+7. Regression: manual Recon/Support progression, Event Resolution, Commit Travel, completed-hex auto-collapse, compact roster, Exhaustion refresh, rerolls, Recovery, Forced March, clock integration, Momentum persistence, player read-only behavior, themes and scaling remain unchanged.
+
+Failure indicators: any font-size change versus dev.97, tooltip surface embedded in or above the Dashboard at rest, layout shift on hover, clipped help overlay, or any travel/state mutation caused by help.
+
+Status: **NOT LIVE VERIFIED**. Local tests are not a substitute for the visual pass.
+
+---
+
 # 0.4.0-dev.97 live acceptance addendum
 
 Target: Foundry V13.351 / D&D5e 5.2.5. Dev.97 is a visual reset to dev.94 Dashboard runtime presentation.

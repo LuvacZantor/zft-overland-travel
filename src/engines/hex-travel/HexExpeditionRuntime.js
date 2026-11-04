@@ -1,7 +1,11 @@
 /** Foundry adapter for staged Expedition System 1.1 outcomes and Threats. */
 import { MODULE_ID } from "../../constants/module-constants.js";
-import { buildHexExpeditionOutcome, expeditionMomentumFromStore } from "./HexExpeditionOutcome.js";
-import { cloneHexRecordStore, saveHexExpeditionOutcome, saveHexEventManualResolution } from "./HexTravelRecords.js";
+import {
+  buildHexExpeditionOutcome, buildHexExpeditionPreparation, buildHexExpeditionEvent, expeditionMomentumFromStore
+} from "./HexExpeditionOutcome.js";
+import {
+  cloneHexRecordStore, saveHexExpeditionOutcome, saveHexExpeditionPreparation, saveHexExpeditionEvent, saveHexEventManualResolution
+} from "./HexTravelRecords.js";
 import { cloneThreats, createThreat, advanceThreat, reduceThreat, resolveThreat, setThreatVisibility } from "./HexThreatState.js";
 
 const LEDGER_KEY = "hexTravelLedger";
@@ -41,6 +45,35 @@ async function nativeEventRoll(record) {
     catch (error) { console.warn("[ZFT][HexTravel] Event die animation unavailable", error); }
   }
   return total;
+}
+
+export async function resolveHexExpeditionPreparation(recordId, { now = Date.now() } = {}) {
+  assertGm();
+  const ledger = readLedger();
+  const record = recordFrom(ledger, recordId);
+  if (!record) throw new Error("The selected hex record no longer exists.");
+  const momentum = expeditionMomentumFromStore(cloneHexRecordStore(ledger.hexRecords));
+  const preparation = buildHexExpeditionPreparation(record, { momentum, now });
+  const hexRecords = saveHexExpeditionPreparation(ledger.hexRecords, recordId, preparation);
+  await writeStore(ledger, hexRecords);
+  return copy(preparation);
+}
+
+export async function rollHexExpeditionEvent(recordId, { eventRoll = null, now = Date.now() } = {}) {
+  assertGm();
+  const initialLedger = readLedger();
+  const record = recordFrom(initialLedger, recordId);
+  if (!record) throw new Error("The selected hex record no longer exists.");
+  const raw = typeof eventRoll === "function" ? await eventRoll(record) :
+    Number.isSafeInteger(eventRoll) ? eventRoll : await nativeEventRoll(record);
+  const eventOutcome = buildHexExpeditionEvent(record, { eventRoll: raw, now });
+
+  // Re-read after the asynchronous Event die. The save rejects duplicate or
+  // stale Momentum state rather than overwriting a newer GM action.
+  const currentLedger = readLedger();
+  const hexRecords = saveHexExpeditionEvent(currentLedger.hexRecords, recordId, eventOutcome);
+  await writeStore(currentLedger, hexRecords);
+  return copy(eventOutcome);
 }
 
 export async function resolveHexExpeditionOutcome(recordId, { eventRoll = null, now = Date.now() } = {}) {

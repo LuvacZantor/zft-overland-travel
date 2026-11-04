@@ -198,6 +198,8 @@ No additional Momentum-derived tracks or hidden bonuses are introduced.
 
 Event Resolution does not shift Momentum again unless a later, separately approved engine design explicitly introduces such a rule. Quiet Travel and Opportunity do not currently do so.
 
+**Playtest tuning note (November 3, 2026):** current Event modifiers remain `−2 / −1 / 0 / +1 / +2`. If live play shows the endpoint states are too conservative against the four five-point Event bands, the first deterministic tuning candidate is `−3 / −1 / 0 / +1 / +3`. A random Momentum die is not part of the current design because the Event d20 already supplies the random component. This note does not change dev.99 mechanics.
+
 ---
 
 # 8. Event Chart

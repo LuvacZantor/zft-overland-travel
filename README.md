@@ -1,12 +1,105 @@
 # ZFT Overland Travel
 
-Current local test package: `0.4.0-dev.97` for Foundry V13 (live validation pending). This is an experimental Expedition System 1.1 build and is not the recommended campaign-session build until live acceptance. The Foundry module ID remains `zft-overland-travel`.
+Current local test package: `0.4.0-dev.110` for Foundry V13 (live validation pending). This is an experimental Expedition System 1.1 build and is not the recommended campaign-session build until live acceptance. The Foundry module ID remains `zft-overland-travel`.
 
 Foundry VTT module implementing Zantor's hex-based overland travel and independent encounter-generation framework.
 
 ## Version
 
-Current module build: **`0.4.0-dev.97`** (development only). The original generic framework was developed as `0.3.1`; its earlier notes remain below for historical context.
+Current module build: **`0.4.0-dev.110`** (development only). The original generic framework was developed as `0.3.1`; its earlier notes remain below for historical context.
+
+
+## 0.4.0-dev.110 | Expedition Log tab cleanup
+
+- Removes the redundant **Roles** tab from the Expedition Log; role assignments and role mechanics remain available through GM **Expedition Roles** and the roster role reference.
+- Keeps all Navigation, Reconnaissance, and Expedition Support evidence in the authoritative expanded-hex history under **Travel**.
+- Keeps **Events** for future event-side systems while removing duplicate per-hex Travel Quality/Momentum/Event/Resolution cards already shown in Travel history.
+- Preserves the existing Persistent Threat architecture and its GM/player controls unchanged.
+- No travel, role, Event, Threat, Forced March/Exhaustion, clock, persistence, theme, pack/asset, migration, or protected Mount Ironrot mechanics change.
+
+## 0.4.0-dev.109 | Exhaustion severity and tighter role columns
+
+Dev.109 refines the accepted dev.108 roster language without changing card geometry or role identity. The Navigation / Reconnaissance / Expedition Support phase edge remains authoritative for assignment, while characters with Exhaustion receive a red card wash whose intensity increases from level 1 through level 6. The upper-right Exhaustion level uses the same severity tone. Exhaustion 0 remains visually unmarked.
+
+The Exhaustion hover/focus surface is now a compact red-tinted status card sized only for the level and current penalties. Its border/background intensity increases with the same Exhaustion severity class, while 2024-rules worlds continue to show **D20 Tests** and **Speed** penalties and legacy-rule worlds retain their rule-specific effect text. Native D&D5e Exhaustion remains authoritative.
+
+The Expedition Log now changes the actual role-row grid geometry rather than only right-aligning the previous Roll column. Roll is narrowed and moved materially closer to Result; pending **Awaiting GM Confirmation** text remains confined to Result and may wrap without displacing the d20. No travel, role, Travel Quality, Momentum, Event, Threat, Forced March, clock, persistence, theme, pack/asset, migration, or protected Mount Ironrot mechanics change.
+
+
+## 0.4.0-dev.108 | Phase-coded roster and compact Exhaustion status
+
+Dev.108 carries the Expedition phase language into the Dashboard roster without changing card dimensions. Guide/Vanguard cards receive the same restrained Navigation blue identity used by the Log, Scout/Tracker use Reconnaissance teal, and Forager/Coordinator use Expedition Support violet. The treatment is a subtle inset edge/background tint; success/failure colors remain reserved for outcomes.
+
+The old full-width roster Exhaustion footer is removed. Characters with Exhaustion now show only their current level as a compact red number fixed in the upper-right of the character card. It consumes no additional row height and is absent entirely at Exhaustion 0. Hover/focus uses the existing body-level help overlay: 2024-rules worlds show **Exhaustion N**, the cumulative **D20 Tests** penalty, and cumulative **Speed** penalty; legacy-rules worlds retain their existing rule-specific effect text. Native D&D5e Exhaustion remains authoritative and the existing Actor/effect refresh behavior is unchanged.
+
+The Expedition Log Roll column is right-aligned within its reserved column so the d20 and Result form a tighter right-side pair while preserving the dev.107 protection against long **Awaiting GM Confirmation** text. No travel, role, Travel Quality, Momentum, Event, Threat, Forced March, clock, persistence, theme, pack/asset, migration, or protected Mount Ironrot mechanics change.
+
+
+## 0.4.0-dev.107 | Paused-travel decision clarity and quiet routine notifications
+
+Dev.107 clarifies the state after the GM chooses **Pause / Exit** at the Forced March boundary. The Dashboard **CURRENT STEP** becomes **Travel Decision**, identifies the unfinished hours still carried by the active hex, and states the two valid paths: **Continue Travel** resumes Forced March on the current day, while **New Travel Day** carries the unfinished hours forward with a fresh daily travel allowance. No travel hour is invented or committed by the day/rest transition.
+
+Routine Foundry informational notifications from the modern Hex Travel workflow no longer create purple pop-up toasts. The same messages remain available as `[ZFT]` console diagnostics where useful. Warnings, errors, required dialogs, and the dedicated Hex Complete notification remain unchanged.
+
+Expedition-role Log rows receive a final alignment cleanup from owner live review: Navigation, Reconnaissance, and Expedition Support totals are centered **inside** their d20 icons, matching the established die-face treatment used for travel dice. The Roll column now has a stable reserved width and the Result column wraps long pending text, so **Awaiting GM Confirmation** cannot push a die out of alignment. This is presentation only; the displayed number remains the saved modified check total. Travel accounting, clock checkpoints, New Travel Day behavior, Forced March saves/Exhaustion, expedition records, themes, packs/assets, migration, and the protected Mount Ironrot source are unchanged.
+
+## 0.4.0-dev.106 | Consolidated Travel Log role presentation
+
+Dev.106 removes the duplicated upper Navigation roll block from each expanded Travel Log hex. **Travel Time** remains in place with the saved total duration, base dice, pace, original roll detail, and any Guide/Vanguard delay dice that actually changed planned travel time. The authoritative lower **Navigation** phase remains alongside Reconnaissance and Expedition Support and now carries the saved Navigation DC in its header, so Guide/Vanguard rolls, result grade, Travel Quality points, and DC are shown once instead of twice. Unique legacy pre-Vanguard Secondary evidence remains preserved inside Travel Time for historical cards.
+
+This is presentation-only cleanup. Navigation rolls/adjudication, travel-duration math, shared expedition records, Travel Quality, Momentum, Event workflow, travel commitment, Forced March/Exhaustion, themes, packs/assets, migration, and the protected Mount Ironrot source are unchanged.
+
+## 0.4.0-dev.105 | Completed hexes stay collapsed
+
+Dev.105 makes completed travel history visually definitive. When Commit/Continue Travel actually completes the active hex, that hex collapses in the Travel Log while the current Day group may remain open for additional travel. Completed hexes also remain collapsed by default after Dashboard refresh/reload; active or otherwise unfinished hex work can still open automatically, and any historical hex may still be reopened deliberately for inspection.
+
+This is presentation/state-of-view behavior only. Travel-hour accounting, completion criteria, ledger/world-time mutation, role results, Travel Quality, Momentum, Event resolution, Threats, Forced March/Exhaustion, themes, packs/assets, migration, and protected Mount Ironrot source are unchanged.
+
+## 0.4.0-dev.104 | Phase-matched primary GM action
+
+Dev.104 is the final cosmetic stabilization pass before specialized engine work. The primary GM travel/workflow button now uses the same restrained phase identity as the Dashboard **CURRENT STEP** panel: Start/Navigation blue, Reconnaissance teal, Expedition Support violet, Event orange, normal Commit/Continue Travel blue, and Forced March red. Hover/focus strengthens the same phase color. Secondary GM controls, including New Travel Day, remain visually separate so the required next action stays obvious.
+
+No workflow ordering, role resolution, Travel Quality, Momentum, Event, travel/clock, Threat, Forced March/Exhaustion, persistence, theme behavior, packs/assets, migration, or protected Mount Ironrot source changes are included.
+
+## 0.4.0-dev.103 | Workflow-first Dashboard and semantic Log color
+
+Dev.103 promotes the Dashboard workflow instruction into a first-class **CURRENT STEP** panel directly beneath Current Expedition, before the stat/result tiles. The panel changes with the saved phase and uses restrained phase identity: Navigation blue, Reconnaissance teal, Expedition Support violet, Event orange, travel blue, and Forced March red. The old buried NEXT block is removed. No workflow mechanics or phase ordering change.
+
+The Expedition Log now distinguishes role grades semantically instead of treating every completed phase as green: **Strong** is green, **Partial** amber, **Failed** red, and pending GM confirmation amber. Navigation, Reconnaissance, and Expedition Support also receive subtle matching phase accents. Expedition Outcome/Event tiles reuse the Dashboard semantic language for positive, neutral, warning, negative, completed, and pending states.
+
+The Start New Travel Day dialog wording is clarified: it reports hours traveled on the prior day, states that the next day begins with a fresh daily travel allowance, and separately states that an unfinished active hex carries forward. It no longer displays the confusing `0h on Day N` line. Saved travel, role results, Event state, Momentum, Threats, Forced March/Exhaustion, clock behavior, themes, packs/assets, migration, and protected Mount Ironrot source are unchanged.
+
+## 0.4.0-dev.102 | Active-Event Dashboard render repair
+
+Owner live testing of dev.101 exposed a runtime Dashboard/Log render failure when the saved current hex already contained an Event. The new Dashboard Event-state renderer referenced `EXPEDITION_EVENT_TYPES` without importing that export into `HexTravelConsole.js`. Dev.102 adds the missing import and a regression guard that requires every Event-type symbol used by the Dashboard renderer to be imported from the Expedition outcome module. No saved expedition state, Event result, Travel Quality, Momentum, travel-hour accounting, Forced March/Exhaustion, Threat state, or Dashboard design is changed.
+
+## 0.4.0-dev.101 | Current Event joins the Dashboard at-a-glance state
+
+Dev.101 adds the current hex **Event** to the Dashboard Expedition State so the Dashboard remains an at-a-glance summary while the Travel Log retains the detailed audit trail. Before the explicit Event stage it shows **Awaiting Event Roll**. After the GM uses **Roll Event**, the Dashboard shows the saved Event result plus a compact `d20 + Momentum = final` / resolution summary. Major Complication, Complication, Quiet Travel, Opportunity, and pending Event states use the same subtle semantic-color approach as Travel Quality and Momentum.
+
+The permanent `EVENT d20 · 1–5 / 6–10 / 11–15 / 16–20` rules legend is removed from Dashboard chrome. Those four bands now live in the body-level Event help overlay, together with the current raw d20, Momentum modifier, final result, and resolution state when available. Event probabilities, Momentum values, the explicit Roll Event boundary introduced in dev.100, travel commitment, Threats, Forced March/Exhaustion, and all other mechanics are unchanged.
+
+## 0.4.0-dev.100 | Explicit Event stage, tooltip repair, and semantic Expedition State color
+
+Owner live dev.99 review identified three workflow/presentation issues before specialized engine development: roster role help still used a legacy inline popup that overflowed the Dashboard, pending Momentum Change text was visually over-weighted, and the Event d20 rolled automatically after Expedition Support. Dev.100 fixes those together and adds the approved semantic color pass.
+
+After Expedition Support saves, Travel Quality and the single Momentum shift are calculated and persisted automatically, but **the Event is not rolled**. The primary GM action becomes **Roll Event**. Clicking it rolls the native d20, applies the already-saved persistent Momentum modifier, saves the Event result, and then either unlocks travel for Quiet Travel or advances to the existing explicit Event Resolution action. Reload/recovery preserves this boundary: a prepared hex remains prepared with an unrolled Event until the GM deliberately rolls it. No travel hours or world time are committed by preparation or the Event roll.
+
+Roster role help now uses the same body-level, viewport-clamped overlay as the other transparency surfaces; the legacy nested role popup is removed. Pending Momentum Change is displayed as **Pending** with subordinate **Awaiting Travel Quality** text rather than a large multi-line result. Travel Quality and Momentum Change receive subtle semantic state tinting, and the five Momentum boxes use a red/orange/amber/olive/green progression from Deteriorating to Favored while retaining labels and numeric modifiers so color is never the only signal. The current Momentum box remains more strongly highlighted. Typography sizes and core Dashboard geometry are otherwise preserved.
+
+Momentum mechanics remain `−2 / −1 / 0 / +1 / +2`; the future deterministic `−3 / −1 / 0 / +1 / +3` candidate remains only a playtest note.
+
+## 0.4.0-dev.99 | Remaining transparency rollout and header compact control
+
+Dev.99 continues the dev.98 body-level help pattern without changing the dev.97/dev.94 Dashboard typography baseline. Structured hover/focus help now covers Hex Travel Remaining, Safe Travel Hours, saved Event results, and Forced March, while roster role help identifies the owning phase and fixed primary check. Event help exposes the saved raw d20, Momentum modifier, final result, chart band, and resolution state. Forced March help distinguishes in-progress uncommitted adjudication from completed committed history. The Coordinator player-facing description is aligned with the approved Expedition Support design: expedition readiness and coordination, not a separate morale mechanic.
+
+The dedicated top-right minimize control is removed. The existing gold mountain/triangle at the far left of the Dashboard header is now the compact-state control: double-click collapses the Dashboard to its floating icon, while keyboard Enter/Space provides the same action. The icon keeps its existing visual size and does not alter header geometry. No travel, Momentum, Event, Threat, Forced March, clock, persistence, or role-resolution mechanics change.
+
+Momentum tuning remains unchanged at `−2 / −1 / 0 / +1 / +2`. A future playtest candidate is `−3 / −1 / 0 / +1 / +3` if the endpoints prove too weak; random Momentum dice are not planned.
+
+## 0.4.0-dev.98 | Isolated Dashboard transparency pass
+
+Dev.98 starts from the owner-checkpointed dev.97 visual reset and reintroduces only the first transparency layer. The dev.97/dev.94 Dashboard typography and card geometry remain the visual baseline. Travel Quality now presents Success Points and Failure Points as separate compact rows; Expedition Momentum separates Event Roll Modifier and Persistence into distinct rows. Travel Quality, Momentum Change, and Expedition Momentum expose structured hover/focus help. Unlike the rejected dev.95/dev.96 implementation, the help panel is appended to `document.body` as a fixed overlay and never participates in Dashboard layout, wrapping, or font inheritance. No generic tooltip wrapper is added to summary tiles. Broader help for Safe Travel Hours, Hex Travel Remaining, Event, and Forced March remains deferred until this pattern is live accepted. No rules, scoring, Momentum, Event, travel, clock, Threat, Forced March, or persistence behavior changes.
 
 ## 0.4.0-dev.97 | Dashboard visual rollback to dev.94 baseline
 

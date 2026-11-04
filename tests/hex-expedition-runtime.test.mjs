@@ -2,7 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { startHexRecord, saveHexRolePhase } from "../src/engines/hex-travel/HexTravelRecords.js";
 import {
-  resolveHexExpeditionOutcome, resolveHexEventManually,
+  resolveHexExpeditionOutcome, resolveHexExpeditionPreparation, rollHexExpeditionEvent, resolveHexEventManually,
   createHexThreat, advanceHexThreat, setHexThreatVisibility, resolveHexThreat
 } from "../src/engines/hex-travel/HexExpeditionRuntime.js";
 
@@ -40,6 +40,21 @@ function fixture({isGM=true}={}) {
   return {get:()=>clone(ledger),writes};
 }
 
+
+test("runtime preparation writes Momentum without rolling an Event until GM asks",async()=>{
+  const f=fixture();
+  const preparation=await resolveHexExpeditionPreparation("hex-a",{now:350});
+  let after=f.get();
+  assert.equal(preparation.momentum.after,"prepared");
+  assert.equal(after.hexRecords.records[0].phases.event,"pending");
+  assert.equal(after.hexRecords.records[0].event,undefined);
+  assert.equal(after.pending,4);
+  const rolled=await rollHexExpeditionEvent("hex-a",{eventRoll:12,now:400});
+  after=f.get();
+  assert.equal(rolled.event.type,"quietTravel");
+  assert.equal(after.hexRecords.records[0].phases.event,"completed");
+  assert.equal(after.hexRecords.records[0].eventResolution.status,"resolved");
+});
 test("runtime outcome writes shared record without changing travel ledger counters",async()=>{
   const f=fixture();
   const result=await resolveHexExpeditionOutcome("hex-a",{eventRoll:12,now:400}); // guide success -> prepared, final 13 Quiet

@@ -1345,9 +1345,6 @@
 /* Expedition roster: role help and inline exhaustion penalties. */
 #zft-hex-travel-console .zft-hex-role-tooltip {position:relative;display:inline-block;width:max-content;max-width:100%;cursor:help;outline-offset:2px;}
 #zft-hex-travel-console .zft-hex-role-tooltip i {font-size:9px;opacity:.65;}
-#zft-hex-travel-console .zft-hex-role-tooltip-pop {display:none;position:absolute;left:0;bottom:calc(100% + 5px);width:245px;max-width:80vw;z-index:25;padding:9px 11px;background:#191915;border:1px solid #bc945d;border-radius:6px;box-shadow:0 5px 18px #000b;color:#f2dfbd;font:11px/1.4 var(--font-primary,sans-serif);white-space:normal;pointer-events:none;}
-#zft-hex-travel-console .zft-hex-role-tooltip-pop em {display:block;margin-top:5px;font-style:normal;color:#c5b08c;}
-#zft-hex-travel-console .zft-hex-role-tooltip:is(:hover,:focus-visible) .zft-hex-role-tooltip-pop {display:block;}
 #zft-hex-travel-console .zft-hex-member-exhaustion {display:flex;flex-direction:column;align-items:flex-end;gap:2px;text-align:right;flex:0 0 auto;max-width:49%;}
 #zft-hex-travel-console .zft-hex-member-penalty {font-size:9px;color:#c9b19b;line-height:1.25;}
 .zft-hex-exhaustion-menu {position:fixed;z-index:999999;min-width:220px;padding:5px;background:#241c17;color:#f2dfbd;border:1px solid #b78c56;border-radius:7px;box-shadow:0 7px 25px #000b;font:12px var(--font-primary,sans-serif);}
@@ -1392,7 +1389,6 @@
 #zft-hex-travel-console .zft-hex-member-penalty {display:grid;gap:2px;font-size:12px;text-align:left;line-height:1.3;margin-top:2px;}
 #zft-hex-travel-console .zft-hex-member-penalty span {display:block;}
 #zft-hex-travel-console .zft-hex-role-tooltip {font-size:12px;}
-#zft-hex-travel-console .zft-hex-role-tooltip-pop {font-size:12px;}
 
 /* dev.35: remove vertical whitespace in roster; align status with name. */
 #zft-hex-travel-console .zft-hex-party-member { align-items:center; min-height:0; }
@@ -2332,9 +2328,30 @@
   background:var(--zft-theme-panel,var(--zft-hex-panel));
   color:var(--zft-theme-text,var(--zft-hex-text));
 }
-#zft-hex-travel-workflow-window .zft-hex-gm > .zft-hex-actions button:is([data-hex-action="travel"],[data-hex-action="day"]) {
+/* v0.4.0-dev.104: primary GM action mirrors the Dashboard Current Step phase color. */
+#zft-hex-travel-workflow-window .zft-hex-gm > .zft-hex-actions button[data-hex-action="day"] {
   background:color-mix(in srgb,var(--zft-theme-accent,var(--zft-hex-amber)) 18%,var(--zft-theme-panel,var(--zft-hex-panel)));
   border-color:var(--zft-theme-accent,var(--zft-hex-amber));
+  color:var(--zft-theme-heading,var(--zft-hex-parchment));
+}
+#zft-hex-travel-workflow-window .zft-hex-gm > .zft-hex-actions button[data-hex-action="travel"] {
+  --zft-primary-phase-color:var(--zft-theme-navigationEdge,#6d96a6);
+  background:color-mix(in srgb,var(--zft-primary-phase-color) 18%,var(--zft-theme-panel,var(--zft-hex-panel)));
+  border-color:color-mix(in srgb,var(--zft-primary-phase-color) 82%,var(--zft-theme-border,var(--zft-hex-border)));
+  color:color-mix(in srgb,var(--zft-primary-phase-color) 44%,var(--zft-theme-heading,var(--zft-hex-parchment)));
+  box-shadow:inset 3px 0 0 color-mix(in srgb,var(--zft-primary-phase-color) 86%,transparent);
+  font-weight:700;
+}
+#zft-hex-travel-workflow-window .zft-hex-gm > .zft-hex-actions button[data-hex-action="travel"][data-hex-phase="navigation"] {--zft-primary-phase-color:var(--zft-theme-navigationEdge,#6d96a6);}
+#zft-hex-travel-workflow-window .zft-hex-gm > .zft-hex-actions button[data-hex-action="travel"][data-hex-phase="reconnaissance"] {--zft-primary-phase-color:#5f9f96;}
+#zft-hex-travel-workflow-window .zft-hex-gm > .zft-hex-actions button[data-hex-action="travel"][data-hex-phase="support"] {--zft-primary-phase-color:#927bb0;}
+#zft-hex-travel-workflow-window .zft-hex-gm > .zft-hex-actions button[data-hex-action="travel"][data-hex-phase="state"] {--zft-primary-phase-color:#6fa68a;}
+#zft-hex-travel-workflow-window .zft-hex-gm > .zft-hex-actions button[data-hex-action="travel"][data-hex-phase="event"] {--zft-primary-phase-color:#d18450;}
+#zft-hex-travel-workflow-window .zft-hex-gm > .zft-hex-actions button[data-hex-action="travel"][data-hex-phase="travel"] {--zft-primary-phase-color:#6e9fbd;}
+#zft-hex-travel-workflow-window .zft-hex-gm > .zft-hex-actions button[data-hex-action="travel"][data-hex-phase="forced"] {--zft-primary-phase-color:var(--zft-theme-failure,#c96662);}
+#zft-hex-travel-workflow-window .zft-hex-gm > .zft-hex-actions button[data-hex-action="travel"]:is(:hover,:focus-visible) {
+  background:color-mix(in srgb,var(--zft-primary-phase-color) 28%,var(--zft-theme-panel,var(--zft-hex-panel)));
+  border-color:var(--zft-primary-phase-color);
   color:var(--zft-theme-heading,var(--zft-hex-parchment));
 }
 #zft-hex-travel-workflow-window .zft-hex-gm > .zft-hex-actions button.zft-hex-danger {
@@ -3199,7 +3216,7 @@
 
 /* v0.4.0-dev.80: Expedition Log tab chrome. Travel card styles are untouched. */
 #zft-hex-travel-log .zft-hex-log-tabs {
-  display: grid; grid-template-columns: repeat(3, minmax(0, 1fr));
+  display: grid; grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 4px; padding: 7px 9px 6px; flex: none;
   background: #292018; border-bottom: 1px solid var(--zft-hex-border, #765839);
 }
@@ -3427,6 +3444,8 @@
 #zft-hex-travel-log .zft-hex-role-log-phase {display:grid;gap:5px;border:1px solid var(--zft-theme-border,#796040);border-radius:5px;padding:7px;background:color-mix(in srgb,var(--zft-theme-card,#2B231C) 88%,var(--zft-theme-navigation,#2b363d));}
 #zft-hex-travel-log .zft-hex-role-log-phase > header {display:flex;justify-content:space-between;align-items:center;gap:8px;font-size:11px;}
 #zft-hex-travel-log .zft-hex-role-log-phase > header strong {color:var(--zft-theme-heading,#f2d4a0);font-size:12px;}
+#zft-hex-travel-log .zft-hex-role-log-phase-title {display:flex;align-items:baseline;gap:7px;min-width:0;}
+#zft-hex-travel-log .zft-hex-role-log-phase-title > small {font-size:9px;line-height:1;color:var(--zft-theme-muted,#c3ae93)!important;white-space:nowrap;font-weight:650;}
 #zft-hex-travel-log .zft-hex-role-log-phase > header span {color:var(--zft-theme-muted,#c3ae93);}
 #zft-hex-travel-log .zft-hex-role-log-phase.is-complete > header span {color:var(--zft-theme-success,#98caaa);}
 #zft-hex-travel-log .zft-hex-role-log-rows {display:grid;gap:4px;}
@@ -3696,12 +3715,19 @@
 #zft-hex-travel-console .zft-hex-momentum-track b {
   grid-area:mod;font-size:8px;line-height:1;color:var(--zft-theme-heading,#f0d9b7);
 }
-#zft-hex-travel-console .zft-hex-event-chart {
-  display:flex;align-items:center;justify-content:center;gap:5px;flex-wrap:wrap;
-  padding-top:3px;border-top:1px solid color-mix(in srgb,var(--zft-theme-border,#715942) 45%,transparent);
-  font-size:7.5px;line-height:1.1;color:var(--zft-theme-muted,#c4b7a7);
+#zft-hex-travel-console .zft-hex-expedition-event {
+  display:grid;gap:1px;min-width:0;padding:5px 7px;border-radius:4px;
+  background:color-mix(in srgb,var(--zft-theme-background,#241b16) 76%,transparent);
 }
-#zft-hex-travel-console .zft-hex-event-chart b {color:var(--zft-theme-accent,#d4ab6d);letter-spacing:.04em;}
+#zft-hex-travel-console .zft-hex-expedition-event small {
+  font-size:8px;letter-spacing:.045em;color:var(--zft-theme-muted,#c4b7a7);
+}
+#zft-hex-travel-console .zft-hex-expedition-event strong {
+  font-size:13px;line-height:1.2;color:var(--zft-theme-heading,#f0d9b7);
+}
+#zft-hex-travel-console .zft-hex-expedition-event em {
+  font-size:9px;line-height:1.25;font-style:normal;color:var(--zft-theme-muted,#c4b7a7);overflow-wrap:anywhere;
+}
 
 #zft-hex-travel-log .zft-hex-role-grade-tooltip-pop {
   display:none;grid-template-columns:1fr;gap:4px;
@@ -3723,4 +3749,487 @@
   #zft-hex-travel-console .zft-hex-momentum-heading {display:grid;gap:2px;}
   #zft-hex-travel-console .zft-hex-momentum-heading > em {max-width:none;text-align:left;}
   #zft-hex-travel-console .zft-hex-momentum-track small {font-size:6.5px;}
+}
+
+/* v0.4.0-dev.98: narrowly scoped dashboard transparency pass.
+   These selectors do not alter the dev.97/dev.94 dashboard typography. */
+#zft-hex-travel-console .zft-hex-dashboard-help-target {
+  position:relative;
+  cursor:help;
+  outline-offset:2px;
+}
+#zft-hex-travel-console .zft-hex-dashboard-help-target:focus-visible {
+  outline:1px solid var(--zft-theme-accent,#d4ab6d);
+}
+#zft-hex-travel-console .zft-hex-quality-points {
+  display:grid;
+  grid-template-columns:minmax(0,1fr) auto;
+  gap:1px 8px;
+  margin-top:1px;
+  font-size:9px;
+  line-height:1.25;
+  color:var(--zft-theme-muted,#c4b7a7);
+}
+#zft-hex-travel-console .zft-hex-quality-points em {
+  font:inherit;
+  font-style:normal;
+  color:inherit;
+}
+#zft-hex-travel-console .zft-hex-quality-points b {
+  font:inherit;
+  font-weight:700;
+  color:var(--zft-theme-heading,#f0d9b7);
+  text-align:right;
+}
+#zft-hex-travel-console .zft-hex-momentum-facts {
+  display:grid;
+  gap:2px;
+}
+#zft-hex-travel-console .zft-hex-momentum-facts > span {
+  display:grid;
+  grid-template-columns:minmax(0,1fr) auto;
+  gap:8px;
+  align-items:baseline;
+  min-width:0;
+}
+#zft-hex-travel-console .zft-hex-momentum-facts em {
+  font-size:9px;
+  line-height:1.25;
+  font-style:normal;
+  color:var(--zft-theme-muted,#c4b7a7);
+}
+#zft-hex-travel-console .zft-hex-momentum-facts strong {
+  font-size:9px;
+  line-height:1.25;
+  color:var(--zft-theme-heading,#f0d9b7);
+  text-align:right;
+  white-space:normal;
+}
+.zft-hex-dashboard-help-tooltip {
+  position:fixed;
+  width:min(300px,calc(100vw - 16px));
+  max-height:min(420px,calc(100vh - 16px));
+  overflow:auto;
+  display:grid;
+  gap:6px;
+  padding:9px 10px;
+  margin:0;
+  border:1px solid var(--zft-theme-accent,#bc945d);
+  border-radius:6px;
+  background:var(--zft-theme-background,#191915);
+  box-shadow:0 6px 20px rgba(0,0,0,.7);
+  color:var(--zft-theme-text,#f2dfbd);
+  font:11px/1.35 var(--font-primary,sans-serif);
+  text-align:left;
+  white-space:normal;
+  pointer-events:none;
+}
+.zft-hex-dashboard-help-tooltip > strong {
+  font-size:12px;
+  line-height:1.2;
+  color:var(--zft-theme-heading,#f0d9b7);
+}
+.zft-hex-dashboard-help-tooltip p,
+.zft-hex-dashboard-help-tooltip dl,
+.zft-hex-dashboard-help-tooltip small {
+  margin:0;
+}
+.zft-hex-dashboard-help-tooltip p,
+.zft-hex-dashboard-help-tooltip small {
+  color:var(--zft-theme-muted,#c4b7a7);
+}
+.zft-hex-dashboard-help-tooltip dl {
+  display:grid;
+  gap:3px;
+}
+.zft-hex-dashboard-help-tooltip dl > div {
+  display:grid;
+  grid-template-columns:minmax(92px,auto) minmax(0,1fr);
+  gap:8px;
+  padding-top:3px;
+  border-top:1px solid color-mix(in srgb,var(--zft-theme-border,#715942) 45%,transparent);
+}
+.zft-hex-dashboard-help-tooltip dt {
+  font-weight:700;
+  color:var(--zft-theme-heading,#f0d9b7);
+}
+.zft-hex-dashboard-help-tooltip dd {
+  margin:0;
+  text-align:right;
+}
+
+/* v0.4.0-dev.99: remaining transparency surfaces and header compact control.
+   Interaction-only selectors: no Dashboard font-size or layout overrides. */
+#zft-hex-travel-console .zft-hex-head > .fa-mountain[data-hex-bubble-target] {
+  cursor: pointer;
+  border-radius: 3px;
+  outline-offset: 3px;
+}
+#zft-hex-travel-console .zft-hex-head > .fa-mountain[data-hex-bubble-target]:focus-visible {
+  outline: 1px solid var(--zft-theme-accent,var(--zft-hex-amber));
+}
+#zft-hex-travel-log .zft-hex-log-help-target,
+#zft-hex-travel-log .zft-hex-inline-help-target {
+  cursor: help;
+  outline-offset: 2px;
+}
+#zft-hex-travel-log .zft-hex-log-help-target:focus-visible,
+#zft-hex-travel-log .zft-hex-inline-help-target:focus-visible {
+  outline: 1px solid var(--zft-theme-accent,#d4ab6d);
+}
+#zft-hex-travel-log .zft-hex-inline-help-target {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-left: 3px;
+  color: var(--zft-theme-muted,#c4b7a7);
+  vertical-align: baseline;
+}
+#zft-hex-travel-log .zft-hex-inline-help-target > i {
+  font-size: 9px;
+}
+
+
+/* v0.4.0-dev.100: explicit Event stage and semantic Expedition State color.
+   Color is supplementary only; labels and numeric states remain authoritative. */
+#zft-hex-travel-console .zft-hex-expedition-current > span:is(.is-quality-successful,.is-momentum-improved) {
+  --zft-expedition-state-color:#64b879;
+  box-shadow:inset 3px 0 0 color-mix(in srgb,var(--zft-expedition-state-color) 85%,transparent);
+  background:color-mix(in srgb,var(--zft-expedition-state-color) 8%,var(--zft-theme-background,#241b16));
+}
+#zft-hex-travel-console .zft-hex-expedition-current > span:is(.is-quality-neutral,.is-momentum-unchanged) {
+  --zft-expedition-state-color:#c6a35d;
+  box-shadow:inset 3px 0 0 color-mix(in srgb,var(--zft-expedition-state-color) 80%,transparent);
+  background:color-mix(in srgb,var(--zft-expedition-state-color) 7%,var(--zft-theme-background,#241b16));
+}
+#zft-hex-travel-console .zft-hex-expedition-current > span:is(.is-quality-poor,.is-momentum-worsened) {
+  --zft-expedition-state-color:#c96662;
+  box-shadow:inset 3px 0 0 color-mix(in srgb,var(--zft-expedition-state-color) 85%,transparent);
+  background:color-mix(in srgb,var(--zft-expedition-state-color) 8%,var(--zft-theme-background,#241b16));
+}
+#zft-hex-travel-console .zft-hex-expedition-current > span:is(.is-quality-pending,.is-momentum-pending) {
+  --zft-expedition-state-color:var(--zft-theme-muted,#c4b7a7);
+  box-shadow:inset 3px 0 0 color-mix(in srgb,var(--zft-expedition-state-color) 38%,transparent);
+}
+#zft-hex-travel-console .zft-hex-expedition-current > span[class*="is-quality-"] > strong,
+#zft-hex-travel-console .zft-hex-expedition-current > span[class*="is-momentum-"] > strong {
+  color:color-mix(in srgb,var(--zft-expedition-state-color) 78%,var(--zft-theme-heading,#f0d9b7));
+}
+
+#zft-hex-travel-console .zft-hex-momentum-track > span.is-state-deteriorating {--zft-momentum-state-color:#c95f5f;}
+#zft-hex-travel-console .zft-hex-momentum-track > span.is-state-risky {--zft-momentum-state-color:#d28455;}
+#zft-hex-travel-console .zft-hex-momentum-track > span.is-state-neutral {--zft-momentum-state-color:#c3a15c;}
+#zft-hex-travel-console .zft-hex-momentum-track > span.is-state-prepared {--zft-momentum-state-color:#91b667;}
+#zft-hex-travel-console .zft-hex-momentum-track > span.is-state-favored {--zft-momentum-state-color:#5fb77a;}
+#zft-hex-travel-console .zft-hex-momentum-track > span[class*="is-state-"] {
+  opacity:.78;
+  border-color:color-mix(in srgb,var(--zft-momentum-state-color) 52%,var(--zft-theme-border,#715942));
+  background:color-mix(in srgb,var(--zft-momentum-state-color) 6%,transparent);
+}
+#zft-hex-travel-console .zft-hex-momentum-track > span[class*="is-state-"] i {background:var(--zft-momentum-state-color);}
+#zft-hex-travel-console .zft-hex-momentum-track > span[class*="is-state-"] b {
+  color:color-mix(in srgb,var(--zft-momentum-state-color) 68%,var(--zft-theme-heading,#f0d9b7));
+}
+#zft-hex-travel-console .zft-hex-momentum-track > span[class*="is-state-"].is-current {
+  opacity:1;
+  border-color:var(--zft-momentum-state-color);
+  background:color-mix(in srgb,var(--zft-momentum-state-color) 17%,transparent);
+  box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--zft-momentum-state-color) 36%,transparent);
+}
+#zft-hex-travel-console .zft-hex-momentum-state.is-momentum-deteriorating {--zft-current-momentum-color:#c95f5f;}
+#zft-hex-travel-console .zft-hex-momentum-state.is-momentum-risky {--zft-current-momentum-color:#d28455;}
+#zft-hex-travel-console .zft-hex-momentum-state.is-momentum-neutral {--zft-current-momentum-color:#c3a15c;}
+#zft-hex-travel-console .zft-hex-momentum-state.is-momentum-prepared {--zft-current-momentum-color:#91b667;}
+#zft-hex-travel-console .zft-hex-momentum-state.is-momentum-favored {--zft-current-momentum-color:#5fb77a;}
+#zft-hex-travel-console .zft-hex-momentum-state[class*="is-momentum-"] .zft-hex-momentum-heading strong {
+  color:color-mix(in srgb,var(--zft-current-momentum-color) 76%,var(--zft-theme-heading,#f0d9b7));
+}
+
+/* Roster role help now uses the body-level, viewport-clamped tooltip only. */
+#zft-hex-travel-console .zft-hex-role-tooltip[data-zft-dashboard-help] {position:static;}
+
+/* v0.4.0-dev.101: current Event joins the Dashboard at-a-glance Expedition State.
+   Event chart bands live in the body-level help overlay instead of permanent Dashboard chrome. */
+#zft-hex-travel-console .zft-hex-expedition-event.is-event-major {--zft-event-state-color:#c95f5f;}
+#zft-hex-travel-console .zft-hex-expedition-event.is-event-complication {--zft-event-state-color:#d28455;}
+#zft-hex-travel-console .zft-hex-expedition-event.is-event-quiet {--zft-event-state-color:#c3a15c;}
+#zft-hex-travel-console .zft-hex-expedition-event.is-event-opportunity {--zft-event-state-color:#5fb77a;}
+#zft-hex-travel-console .zft-hex-expedition-event.is-event-pending {--zft-event-state-color:var(--zft-theme-muted,#c4b7a7);}
+#zft-hex-travel-console .zft-hex-expedition-event[class*="is-event-"] {
+  box-shadow:inset 3px 0 0 color-mix(in srgb,var(--zft-event-state-color) 75%,transparent);
+  background:color-mix(in srgb,var(--zft-event-state-color) 7%,var(--zft-theme-background,#241b16));
+}
+#zft-hex-travel-console .zft-hex-expedition-event.is-event-pending {
+  box-shadow:inset 3px 0 0 color-mix(in srgb,var(--zft-event-state-color) 38%,transparent);
+  background:color-mix(in srgb,var(--zft-theme-background,#241b16) 76%,transparent);
+}
+#zft-hex-travel-console .zft-hex-expedition-event[class*="is-event-"] > strong {
+  color:color-mix(in srgb,var(--zft-event-state-color) 76%,var(--zft-theme-heading,#f0d9b7));
+}
+
+/* v0.4.0-dev.103: workflow-first Dashboard hierarchy and restrained phase/result color.
+   Phase color is supplementary; text labels remain authoritative in every state. */
+#zft-hex-travel-console .zft-hex-current-step {
+  --zft-current-step-color:var(--zft-theme-navigationEdge,#6d96a6);
+  display:grid;
+  gap:3px;
+  margin:0 0 8px;
+  padding:8px 10px 9px;
+  border:1px solid color-mix(in srgb,var(--zft-current-step-color) 55%,var(--zft-theme-border,#715942));
+  border-left:4px solid var(--zft-current-step-color);
+  border-radius:6px;
+  background:color-mix(in srgb,var(--zft-current-step-color) 9%,var(--zft-theme-card,#30251e));
+}
+#zft-hex-travel-console .zft-hex-current-step.is-phase-navigation {--zft-current-step-color:var(--zft-theme-navigationEdge,#6d96a6);}
+#zft-hex-travel-console .zft-hex-current-step.is-phase-reconnaissance {--zft-current-step-color:#5f9f96;}
+#zft-hex-travel-console .zft-hex-current-step.is-phase-support {--zft-current-step-color:#927bb0;}
+#zft-hex-travel-console .zft-hex-current-step.is-phase-state {--zft-current-step-color:#6fa68a;}
+#zft-hex-travel-console .zft-hex-current-step.is-phase-event {--zft-current-step-color:#d18450;}
+#zft-hex-travel-console .zft-hex-current-step.is-phase-travel {--zft-current-step-color:#6e9fbd;}
+#zft-hex-travel-console .zft-hex-current-step.is-phase-forced {--zft-current-step-color:var(--zft-theme-failure,#c96662);}
+#zft-hex-travel-console .zft-hex-current-step-label {
+  font-size:9px;
+  line-height:1.1;
+  font-weight:800;
+  letter-spacing:.09em;
+  color:color-mix(in srgb,var(--zft-current-step-color) 72%,var(--zft-theme-muted,#c4b7a7));
+}
+#zft-hex-travel-console .zft-hex-current-step-heading {
+  display:flex;
+  align-items:center;
+  gap:7px;
+  min-width:0;
+}
+#zft-hex-travel-console .zft-hex-current-step-heading > i {
+  width:15px;
+  text-align:center;
+  color:var(--zft-current-step-color);
+}
+#zft-hex-travel-console .zft-hex-current-step-heading > strong {
+  min-width:0;
+  font-size:15px;
+  line-height:1.2;
+  color:color-mix(in srgb,var(--zft-current-step-color) 48%,var(--zft-theme-heading,#f0d9b7));
+}
+#zft-hex-travel-console .zft-hex-current-step-detail {
+  font-size:10px;
+  line-height:1.3;
+  color:var(--zft-theme-text,#eadac3);
+}
+#zft-hex-travel-console .zft-hex-current-step > small {
+  font-size:9px;
+  line-height:1.3;
+  color:var(--zft-theme-muted,#c4b7a7);
+}
+
+/* Expedition Log phase identity: blue Navigation, teal Reconnaissance, violet Support. */
+#zft-hex-travel-log .zft-hex-role-log-phase.is-phase-navigation {--zft-role-phase-color:var(--zft-theme-navigationEdge,#6d96a6);}
+#zft-hex-travel-log .zft-hex-role-log-phase.is-phase-reconnaissance {--zft-role-phase-color:#5f9f96;}
+#zft-hex-travel-log .zft-hex-role-log-phase.is-phase-support {--zft-role-phase-color:#927bb0;}
+#zft-hex-travel-log .zft-hex-role-log-phase[class*="is-phase-"] {
+  border-left:3px solid color-mix(in srgb,var(--zft-role-phase-color) 85%,transparent);
+  background:color-mix(in srgb,var(--zft-role-phase-color) 6%,var(--zft-theme-card,#2b231c));
+}
+#zft-hex-travel-log .zft-hex-role-log-phase[class*="is-phase-"] .zft-hex-role-log-phase-title > strong {
+  color:color-mix(in srgb,var(--zft-role-phase-color) 48%,var(--zft-theme-heading,#f2d4a0));
+}
+
+/* Grade semantics override the old blanket green "completed" treatment. */
+#zft-hex-travel-log .zft-hex-role-log-phase.is-grade-strong > header .zft-hex-role-log-phase-meta,
+#zft-hex-travel-log .zft-hex-role-log-phase.is-grade-strong > header .zft-hex-role-grade-tooltip,
+#zft-hex-travel-log .zft-hex-role-log-phase.is-grade-strong > header .zft-hex-role-grade-tooltip > span {
+  color:var(--zft-theme-success,#98caaa);
+}
+#zft-hex-travel-log .zft-hex-role-log-phase.is-grade-partial > header .zft-hex-role-log-phase-meta,
+#zft-hex-travel-log .zft-hex-role-log-phase.is-grade-partial > header .zft-hex-role-grade-tooltip,
+#zft-hex-travel-log .zft-hex-role-log-phase.is-grade-partial > header .zft-hex-role-grade-tooltip > span {
+  color:#c6a35d;
+}
+#zft-hex-travel-log .zft-hex-role-log-phase.is-grade-failed > header .zft-hex-role-log-phase-meta,
+#zft-hex-travel-log .zft-hex-role-log-phase.is-grade-failed > header .zft-hex-role-grade-tooltip,
+#zft-hex-travel-log .zft-hex-role-log-phase.is-grade-failed > header .zft-hex-role-grade-tooltip > span {
+  color:var(--zft-theme-failure,#e69a9b);
+}
+#zft-hex-travel-log .zft-hex-role-log-phase.is-grade-pending > header .zft-hex-role-log-phase-meta,
+#zft-hex-travel-log .zft-hex-role-log-phase.is-grade-pending > header .zft-hex-role-grade-tooltip,
+#zft-hex-travel-log .zft-hex-role-log-phase.is-grade-pending > header .zft-hex-role-grade-tooltip > span {
+  color:var(--zft-theme-accent,#d4ab6d);
+}
+
+/* Expedition Outcome and Events tab use the Dashboard's semantic state language. */
+#zft-hex-travel-log .zft-hex-event-stage-grid > div:is(.is-state-positive,.is-state-neutral,.is-state-negative,.is-state-warning,.is-state-complete,.is-state-pending) {
+  --zft-log-state-color:var(--zft-theme-muted,#c4b7a7);
+  box-shadow:inset 3px 0 0 color-mix(in srgb,var(--zft-log-state-color) 72%,transparent);
+  background:color-mix(in srgb,var(--zft-log-state-color) 6%,var(--zft-theme-card,#2b231c));
+}
+#zft-hex-travel-log .zft-hex-event-stage-grid > div.is-state-positive {--zft-log-state-color:#5fb77a;}
+#zft-hex-travel-log .zft-hex-event-stage-grid > div.is-state-neutral {--zft-log-state-color:#c3a15c;}
+#zft-hex-travel-log .zft-hex-event-stage-grid > div.is-state-negative {--zft-log-state-color:#c95f5f;}
+#zft-hex-travel-log .zft-hex-event-stage-grid > div.is-state-warning {--zft-log-state-color:#d28455;}
+#zft-hex-travel-log .zft-hex-event-stage-grid > div.is-state-complete {--zft-log-state-color:#6e9fbd;}
+#zft-hex-travel-log .zft-hex-event-stage-grid > div.is-state-pending {
+  --zft-log-state-color:var(--zft-theme-muted,#c4b7a7);
+  box-shadow:inset 3px 0 0 color-mix(in srgb,var(--zft-log-state-color) 35%,transparent);
+}
+#zft-hex-travel-log .zft-hex-event-stage-grid > div[class*="is-state-"] > strong {
+  color:color-mix(in srgb,var(--zft-log-state-color) 72%,var(--zft-theme-text,#e9dbca));
+}
+
+/* v0.4.0-dev.107: keep expedition role d20 totals centered inside the die and
+   reserve a stable Result column even for Awaiting GM Confirmation. */
+#zft-hex-travel-log .zft-hex-role-log-columns,
+#zft-hex-travel-log .zft-hex-role-log-row {
+  grid-template-columns:minmax(0,1fr) 38px 118px;
+}
+#zft-hex-travel-log .zft-hex-role-log-roll {
+  min-width:38px;width:38px;display:flex;align-items:center;justify-content:center;
+}
+#zft-hex-travel-log .zft-hex-role-log-roll .zft-hex-d20-total {
+  display:inline-grid;place-items:center;position:relative;width:30px;height:30px;min-width:30px;
+  gap:0;line-height:1;isolation:isolate;
+}
+#zft-hex-travel-log .zft-hex-role-log-roll .zft-hex-d20-total > .zft-hex-die-icon {
+  position:absolute;inset:0;width:30px!important;height:30px!important;flex-basis:30px!important;
+  opacity:.98;z-index:0;
+}
+#zft-hex-travel-log .zft-hex-role-log-roll .zft-hex-d20-total > strong {
+  position:relative;z-index:1;display:block;min-width:0;
+  color:#fff!important;font-size:12px!important;line-height:1!important;font-weight:800!important;
+  text-align:center;text-shadow:0 1px 3px #070606,0 0 2px #070606;
+}
+#zft-hex-travel-log .zft-hex-role-log-verdict {
+  min-width:0;max-width:118px;overflow-wrap:anywhere;line-height:1.15;
+}
+#zft-hex-travel-log .zft-hex-role-log-row.zft-hex-result-pending .zft-hex-role-log-verdict > strong {
+  font-size:10px;line-height:1.1;
+}
+@container (max-width:360px) {
+  #zft-hex-travel-log .zft-hex-role-log-columns,
+  #zft-hex-travel-log .zft-hex-role-log-row {
+    grid-template-columns:minmax(0,1fr) 36px 104px;
+    gap:6px;
+  }
+  #zft-hex-travel-log .zft-hex-role-log-roll {min-width:36px;width:36px;}
+  #zft-hex-travel-log .zft-hex-role-log-verdict {max-width:104px;}
+}
+
+
+/* v0.4.0-dev.108: phase-coded roster assignment, compact Exhaustion badge,
+   and right-aligned role Roll values without changing card dimensions. */
+#zft-hex-travel-console .zft-hex-card[data-hex-card="party"] .zft-hex-roster-refined {
+  position:relative;
+}
+#zft-hex-travel-console .zft-hex-card[data-hex-card="party"] .zft-hex-roster-refined.is-phase-navigation {
+  --zft-roster-phase-color:var(--zft-theme-navigationEdge,#6d96a6);
+}
+#zft-hex-travel-console .zft-hex-card[data-hex-card="party"] .zft-hex-roster-refined.is-phase-reconnaissance {
+  --zft-roster-phase-color:#5f9f96;
+}
+#zft-hex-travel-console .zft-hex-card[data-hex-card="party"] .zft-hex-roster-refined.is-phase-support {
+  --zft-roster-phase-color:#927bb0;
+}
+#zft-hex-travel-console .zft-hex-card[data-hex-card="party"] .zft-hex-roster-refined[class*="is-phase-"] {
+  border-color:color-mix(in srgb,var(--zft-roster-phase-color) 34%,var(--zft-theme-border,#624a31));
+  background:color-mix(in srgb,var(--zft-roster-phase-color) 6%,var(--zft-theme-roster,var(--zft-theme-card,#271e18)));
+  box-shadow:inset 3px 0 0 color-mix(in srgb,var(--zft-roster-phase-color) 86%,transparent);
+}
+#zft-hex-travel-console .zft-hex-card[data-hex-card="party"] .zft-hex-roster-refined.has-exhaustion .zft-hex-member-heading > strong {
+  padding-right:20px;
+}
+#zft-hex-travel-console .zft-hex-card[data-hex-card="party"] .zft-hex-member-exhaustion-level {
+  position:absolute;top:5px;right:6px;z-index:3;
+  display:inline-flex;align-items:center;justify-content:center;
+  min-width:16px;height:16px;padding:0 4px;box-sizing:border-box;
+  border:1px solid color-mix(in srgb,var(--zft-theme-failure,#e69a9b) 72%,transparent);
+  border-radius:999px;
+  background:color-mix(in srgb,var(--zft-theme-failure,#e69a9b) 12%,var(--zft-theme-card,#271e18));
+  color:var(--zft-theme-failure,#e69a9b);
+  font-size:10px;line-height:1;font-weight:850;text-align:center;cursor:help;
+  outline-offset:2px;
+}
+#zft-hex-travel-console .zft-hex-card[data-hex-card="party"] .zft-hex-member-exhaustion-level:is(:hover,:focus-visible) {
+  border-color:var(--zft-theme-failure,#e69a9b);
+  background:color-mix(in srgb,var(--zft-theme-failure,#e69a9b) 20%,var(--zft-theme-card,#271e18));
+}
+#zft-hex-travel-log .zft-hex-role-log-columns span:nth-child(2) {text-align:right;}
+#zft-hex-travel-log .zft-hex-role-log-roll {justify-content:flex-end;}
+
+/* v0.4.0-dev.109: Exhaustion severity wash + compact severity help, and a
+   genuinely tighter Roll/Result pair in expedition role history. */
+#zft-hex-travel-console .zft-hex-card[data-hex-card="party"] .zft-hex-roster-refined.is-exhaustion-1,
+.zft-hex-dashboard-help-tooltip.is-exhaustion-1 {--zft-exhaustion-tone:#d78787;--zft-exhaustion-overlay:rgba(184,54,54,.045);}
+#zft-hex-travel-console .zft-hex-card[data-hex-card="party"] .zft-hex-roster-refined.is-exhaustion-2,
+.zft-hex-dashboard-help-tooltip.is-exhaustion-2 {--zft-exhaustion-tone:#dc7373;--zft-exhaustion-overlay:rgba(196,48,48,.075);}
+#zft-hex-travel-console .zft-hex-card[data-hex-card="party"] .zft-hex-roster-refined.is-exhaustion-3,
+.zft-hex-dashboard-help-tooltip.is-exhaustion-3 {--zft-exhaustion-tone:#e15f5f;--zft-exhaustion-overlay:rgba(208,43,43,.11);}
+#zft-hex-travel-console .zft-hex-card[data-hex-card="party"] .zft-hex-roster-refined.is-exhaustion-4,
+.zft-hex-dashboard-help-tooltip.is-exhaustion-4 {--zft-exhaustion-tone:#e64c4c;--zft-exhaustion-overlay:rgba(220,38,38,.15);}
+#zft-hex-travel-console .zft-hex-card[data-hex-card="party"] .zft-hex-roster-refined.is-exhaustion-5,
+.zft-hex-dashboard-help-tooltip.is-exhaustion-5 {--zft-exhaustion-tone:#ed3838;--zft-exhaustion-overlay:rgba(232,32,32,.20);}
+#zft-hex-travel-console .zft-hex-card[data-hex-card="party"] .zft-hex-roster-refined.is-exhaustion-6,
+.zft-hex-dashboard-help-tooltip.is-exhaustion-6 {--zft-exhaustion-tone:#f32323;--zft-exhaustion-overlay:rgba(244,25,25,.27);}
+
+#zft-hex-travel-console .zft-hex-card[data-hex-card="party"] .zft-hex-roster-refined.has-exhaustion {
+  background:
+    linear-gradient(var(--zft-exhaustion-overlay,rgba(184,54,54,.045)),var(--zft-exhaustion-overlay,rgba(184,54,54,.045))),
+    color-mix(in srgb,var(--zft-roster-phase-color,var(--zft-theme-border,#624a31)) 6%,var(--zft-theme-roster,var(--zft-theme-card,#271e18)));
+  box-shadow:inset 3px 0 0 color-mix(in srgb,var(--zft-roster-phase-color,var(--zft-theme-border,#624a31)) 86%,transparent);
+}
+#zft-hex-travel-console .zft-hex-card[data-hex-card="party"] .zft-hex-member-exhaustion-level[class*="is-exhaustion-"] {
+  border-color:color-mix(in srgb,var(--zft-exhaustion-tone,#d78787) 78%,transparent);
+  background:color-mix(in srgb,var(--zft-exhaustion-tone,#d78787) 18%,var(--zft-theme-card,#271e18));
+  color:var(--zft-exhaustion-tone,#d78787);
+  box-shadow:0 0 0 1px color-mix(in srgb,var(--zft-exhaustion-tone,#d78787) 12%,transparent);
+}
+#zft-hex-travel-console .zft-hex-card[data-hex-card="party"] .zft-hex-member-exhaustion-level[class*="is-exhaustion-"]:is(:hover,:focus-visible) {
+  border-color:var(--zft-exhaustion-tone,#d78787);
+  background:color-mix(in srgb,var(--zft-exhaustion-tone,#d78787) 28%,var(--zft-theme-card,#271e18));
+}
+
+.zft-hex-dashboard-help-tooltip.is-exhaustion-help {
+  width:min(218px,calc(100vw - 16px));
+  max-height:none;
+  gap:3px;
+  padding:7px 9px;
+  border-color:color-mix(in srgb,var(--zft-exhaustion-tone,#d78787) 78%,var(--zft-theme-border,#715942));
+  background:
+    linear-gradient(var(--zft-exhaustion-overlay,rgba(184,54,54,.045)),var(--zft-exhaustion-overlay,rgba(184,54,54,.045))),
+    var(--zft-theme-background,#191915);
+  box-shadow:0 6px 18px rgba(0,0,0,.72),0 0 0 1px color-mix(in srgb,var(--zft-exhaustion-tone,#d78787) 10%,transparent);
+}
+.zft-hex-dashboard-help-tooltip.is-exhaustion-help > strong {
+  color:var(--zft-exhaustion-tone,#d78787);
+  font-size:11px;
+  line-height:1.15;
+  letter-spacing:.02em;
+}
+.zft-hex-dashboard-help-tooltip.is-exhaustion-help dl {gap:0;}
+.zft-hex-dashboard-help-tooltip.is-exhaustion-help dl > div {
+  grid-template-columns:minmax(78px,1fr) auto;
+  gap:8px;
+  padding:4px 0 0;
+  border-top-color:color-mix(in srgb,var(--zft-exhaustion-tone,#d78787) 22%,transparent);
+}
+.zft-hex-dashboard-help-tooltip.is-exhaustion-help dt {color:var(--zft-theme-text,#f2dfbd);}
+.zft-hex-dashboard-help-tooltip.is-exhaustion-help dd {font-weight:800;color:var(--zft-exhaustion-tone,#d78787);}
+
+#zft-hex-travel-log .zft-hex-role-log-columns,
+#zft-hex-travel-log .zft-hex-role-log-row {
+  grid-template-columns:minmax(0,1fr) 32px 96px;
+  gap:5px;
+}
+#zft-hex-travel-log .zft-hex-role-log-roll {
+  min-width:32px;
+  width:32px;
+  justify-content:flex-end;
+}
+#zft-hex-travel-log .zft-hex-role-log-verdict {max-width:96px;}
+@container (max-width:360px) {
+  #zft-hex-travel-log .zft-hex-role-log-columns,
+  #zft-hex-travel-log .zft-hex-role-log-row {
+    grid-template-columns:minmax(0,1fr) 30px 90px;
+    gap:4px;
+  }
+  #zft-hex-travel-log .zft-hex-role-log-roll {min-width:30px;width:30px;}
+  #zft-hex-travel-log .zft-hex-role-log-verdict {max-width:90px;}
 }

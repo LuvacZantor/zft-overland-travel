@@ -1,0 +1,25 @@
+import assert from "node:assert/strict";
+import fs from "node:fs";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
+const here = path.dirname(fileURLToPath(import.meta.url));
+const root = path.resolve(here, "..");
+const js = fs.readFileSync(path.join(root, "src/engines/hex-travel/HexTravelConsole.js"), "utf8");
+const css = fs.readFileSync(path.join(root, "src/styles/zft-overland-travel.css"), "utf8");
+
+assert(js.includes("function dashboardHelpAttrs"));
+assert(js.includes('document.body.append(tooltip)'));
+assert(js.includes('tooltip.className = "zft-hex-dashboard-help-tooltip"'));
+assert(js.includes('data-zft-dashboard-help'));
+assert(js.includes('zft-hex-quality-points'));
+assert(js.includes('zft-hex-momentum-facts'));
+assert(js.includes('title: "Travel Quality"'));
+assert(js.includes('title: "Momentum Change"'));
+assert(js.includes('title: "Expedition Momentum"'));
+assert(!js.includes('data-zft-help-pop'));
+assert(css.includes('.zft-hex-dashboard-help-tooltip {'));
+assert(css.includes('position:fixed;'));
+assert(css.includes('pointer-events:none;'));
+assert(css.includes('v0.4.0-dev.98: narrowly scoped dashboard transparency pass.'));
+assert(!css.includes('zft-hex-dashboard-help-target .zft-hex-dashboard-help-tooltip'));
+console.log("PASS dev.98 dashboard help uses a body-level fixed overlay and preserves card layout");

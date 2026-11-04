@@ -147,38 +147,77 @@ export function saveHexRolePhase(records, id, phase, resolution) {
   return store;
 }
 
-/** Save the deterministic Travel Quality -> Momentum -> Event pipeline.
- * The store-level Momentum value is the only persistent Momentum owner for the
- * staged Hex Travel workflow. Downstream event engines may remain pending.
+/** Save the deterministic Travel Quality -> Momentum preparation stage.
+ * This deliberately stops before the Event d20. The store-level Momentum
+ * value remains the only persistent Momentum owner for staged Hex Travel.
  */
-export function saveHexExpeditionOutcome(records, id, outcome) {
+export function saveHexExpeditionPreparation(records, id, preparation) {
   const store = cloneHexRecordStore(records);
-  if (!validId(id)) fail("expedition outcome requires a saved sequence ID.");
-  if (!isObject(outcome) || outcome.schema !== 1 || outcome.recordId !== id ||
-      !isCount(outcome.resolvedAt) || !isObject(outcome.travelQuality) ||
-      !isObject(outcome.momentum) || !isObject(outcome.event) || !isObject(outcome.eventResolution))
-    fail("invalid Expedition outcome.");
+  if (!validId(id)) fail("expedition preparation requires a saved sequence ID.");
+  if (!isObject(preparation) || preparation.schema !== 1 || preparation.recordId !== id ||
+      !isCount(preparation.resolvedAt) || !isObject(preparation.travelQuality) || !isObject(preparation.momentum))
+    fail("invalid Expedition preparation.");
   const record = store.records.find(entry => entry.id === id);
   if (!record) fail(`sequence ${id} does not exist.`);
   if (record.status === "interrupted") fail(`sequence ${id} was interrupted by a ledger correction.`);
   if (record.phases?.reconnaissance !== "completed" || record.phases?.support !== "completed")
     fail(`sequence ${id} must finish Reconnaissance and Expedition Support first.`);
+  if (record.phases?.travelQuality === "completed" || record.phases?.momentum === "completed" || record.travelQuality || record.momentum)
+    fail(`Travel Quality and Momentum are already completed for sequence ${id}.`);
   if (record.phases?.event === "completed" || record.event) fail(`Event is already completed for sequence ${id}.`);
   const currentMomentum = expeditionMomentumFromStore(store);
-  if (outcome.momentum.before !== currentMomentum)
+  if (preparation.momentum.before !== currentMomentum)
+    fail(`Momentum changed before sequence ${id} could save its Travel Quality result.`);
+  record.travelQuality = copy(preparation.travelQuality);
+  record.momentum = copy(preparation.momentum);
+  record.expeditionPreparedAt = preparation.resolvedAt;
+  record.phases = { ...record.phases, travelQuality: "completed", momentum: "completed" };
+  store.momentum = preparation.momentum.after;
+  return store;
+}
+
+/** Save the explicit GM Event-roll stage after Travel Quality and Momentum. */
+export function saveHexExpeditionEvent(records, id, eventOutcome) {
+  const store = cloneHexRecordStore(records);
+  if (!validId(id)) fail("Event roll requires a saved sequence ID.");
+  if (!isObject(eventOutcome) || eventOutcome.schema !== 1 || eventOutcome.recordId !== id ||
+      !isCount(eventOutcome.resolvedAt) || !isObject(eventOutcome.event) || !isObject(eventOutcome.eventResolution))
+    fail("invalid Expedition Event result.");
+  const record = store.records.find(entry => entry.id === id);
+  if (!record) fail(`sequence ${id} does not exist.`);
+  if (record.status === "interrupted") fail(`sequence ${id} was interrupted by a ledger correction.`);
+  if (record.phases?.travelQuality !== "completed" || record.phases?.momentum !== "completed" ||
+      !isObject(record.travelQuality) || !isObject(record.momentum))
+    fail(`sequence ${id} must finish Travel Quality and Momentum first.`);
+  if (record.phases?.event === "completed" || record.event) fail(`Event is already completed for sequence ${id}.`);
+  const currentMomentum = expeditionMomentumFromStore(store);
+  if (record.momentum.after !== currentMomentum || eventOutcome.event.momentum !== record.momentum.after)
     fail(`Momentum changed before sequence ${id} could save its Event result.`);
-  if (!["pending", "resolved"].includes(outcome.eventResolution.status))
+  if (!["pending", "resolved"].includes(eventOutcome.eventResolution.status))
     fail(`invalid Event Resolution status for sequence ${id}.`);
-  record.travelQuality = copy(outcome.travelQuality);
-  record.momentum = copy(outcome.momentum);
-  record.event = copy(outcome.event);
-  record.eventResolution = copy(outcome.eventResolution);
-  record.expeditionResolvedAt = outcome.resolvedAt;
-  record.phases = {
-    ...record.phases, travelQuality: "completed", momentum: "completed", event: "completed",
-    eventResolution: outcome.eventResolution.status
-  };
-  store.momentum = outcome.momentum.after;
+  record.event = copy(eventOutcome.event);
+  record.eventResolution = copy(eventOutcome.eventResolution);
+  record.eventRolledAt = eventOutcome.resolvedAt;
+  record.expeditionResolvedAt = eventOutcome.resolvedAt;
+  record.phases = { ...record.phases, event: "completed", eventResolution: eventOutcome.eventResolution.status };
+  return store;
+}
+
+/** Compatibility helper for older tests/callers that supply a combined outcome.
+ * Normal dev.100 workflow uses the two explicit saves above.
+ */
+export function saveHexExpeditionOutcome(records, id, outcome) {
+  if (!isObject(outcome) || outcome.schema !== 1 || outcome.recordId !== id ||
+      !isCount(outcome.resolvedAt) || !isObject(outcome.travelQuality) || !isObject(outcome.momentum) ||
+      !isObject(outcome.event) || !isObject(outcome.eventResolution)) fail("invalid Expedition outcome.");
+  let store = saveHexExpeditionPreparation(records, id, {
+    schema: 1, recordId: id, resolvedAt: outcome.resolvedAt,
+    travelQuality: outcome.travelQuality, momentum: outcome.momentum
+  });
+  store = saveHexExpeditionEvent(store, id, {
+    schema: 1, recordId: id, resolvedAt: outcome.resolvedAt,
+    event: outcome.event, eventResolution: outcome.eventResolution
+  });
   return store;
 }
 

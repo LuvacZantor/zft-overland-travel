@@ -23,11 +23,11 @@ test("dev.92 coalesces Actor/effect updates before refreshing the roster", () =>
   assert.match(mainSource, /Hooks\.on\("updateActor", actor => \{ if \(actor\?\.type === "character"\) scheduleRosterRefresh\(\); \}\)/);
 });
 
-test("dev.92 renders Exhaustion as one compact footer line", () => {
-  assert.match(consoleSource, /zft-hex-member-exhaustion-separator/);
-  assert.doesNotMatch(consoleSource, /penaltyParts\.map/);
-  assert.match(css, /zft-hex-member-exhaustion[^\{]*\{[\s\S]*?flex-direction:row/);
-  assert.match(css, /zft-hex-member-exhaustion[^\{]*\{[\s\S]*?white-space:nowrap/);
+test("dev.92 Exhaustion refresh behavior survives the current compact status presentation", () => {
+  assert.match(consoleSource, /zft-hex-member-exhaustion-level/);
+  assert.match(consoleSource, /exhaustionDisplayLevel\(actor\)/);
+  assert.doesNotMatch(consoleSource, /const status = exhaustion \? `<span class="zft-hex-member-exhaustion">/);
+  assert.match(css, /zft-hex-member-exhaustion-level[^\{]*\{[\s\S]*?position:absolute/);
 });
 
 test("dev.92 gives point totals their own clean line without a POINTS label", () => {

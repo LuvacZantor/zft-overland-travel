@@ -27,9 +27,9 @@ test("dev.94 dashboard distinguishes current-hex quality from persistent Momentu
   assert.match(consoleSource,/THIS HEX · MOMENTUM CHANGE/);
   assert.match(consoleSource,/EXPEDITION MOMENTUM/);
   assert.match(consoleSource,/Carries into the next hex/);
-  assert.match(consoleSource,/EVENT d20/);
-  assert.match(consoleSource,/1–5 Major/);
-  assert.match(consoleSource,/16–20 Opportunity/);
+  assert.match(consoleSource,/Event d20/i);
+  assert.match(consoleSource,/label: "1–5"/);
+  assert.match(consoleSource,/label: "16–20"/);
   assert.match(css,/zft-hex-momentum-track/);
   assert.match(css,/\.is-current/);
 });

@@ -1,3 +1,290 @@
+# ZFT Overland Travel | Current dev.110 Development Handoff
+
+**Current local build:** `0.4.0-dev.110`, November 3, 2026.  
+**Implementation baseline:** owner-supplied current live `0.4.0-dev.109` manual-install ZIP (`c2c3bc4499e1ffb4a77a8822968437bf0985f4f6ef4d6acb3141f5334024edbe`).  
+**Remote baseline:** `LuvacZantor/zft-overland-travel` branch `feature/expedition-system-1.1` remains at owner checkpoint `5597f595a6dbda24732e68076f7445129dd0e859` (dev.97).  
+**Live target:** Foundry V13.351 / D&D5e 5.2.5.  
+**GitHub status:** local build only; no dev.110 remote write, merge, tag, release, deployment, or branch creation.
+
+## Dev.110 scope
+
+- Remove the redundant **Roles** tab/panel from the Expedition Log. Role assignment/editing through GM **Expedition Roles**, the roster role reference, saved role records, adjudication/rerolls, and role mechanics remain unchanged.
+- Preserve Navigation, Reconnaissance, and Expedition Support as authoritative per-hex history inside the **Travel** tab. No role evidence is deleted from saved data.
+- Keep the **Events** tab for future event-side systems, but remove its duplicate per-hex Travel Quality/Momentum/Event/Resolution cards because those outcomes are already recorded in the Travel log.
+- Preserve the existing **Persistent Threats** architecture and GM/player visibility/action controls in Events unchanged for now.
+- Expedition Log chrome now contains the two authoritative surfaces: **Travel** and **Events**.
+- No travel math, ledger/world-clock checkpoints, role/Event/Threat state schema, Forced March/Exhaustion behavior, themes, packs/assets, migration, or protected Mount Ironrot source changes.
+
+## Validation state
+
+- Current active Node regression set: **131/131 passed**. Historical dev.95/dev.96 cosmetic tests remain intentionally excluded because dev.97 explicitly rolled those UI experiments back; this matches the dev.109 validation convention.
+- JavaScript/MJS syntax, relative imports, JSON, CSS structure, protected assets/packs/source, complete archive layout, and fresh-extraction tests are required before delivery.
+- Evidence level: **locally validated** until owner testing in Foundry V13.351 / D&D5e 5.2.5.
+
+---
+
+# ZFT Overland Travel | Current dev.109 Development Handoff
+
+**Current local build:** `0.4.0-dev.109`, November 3, 2026.  
+**Implementation baseline:** complete local dev.108 manual-install ZIP.  
+**Remote baseline:** `LuvacZantor/zft-overland-travel` branch `feature/expedition-system-1.1` remains at owner checkpoint `5597f595a6dbda24732e68076f7445129dd0e859` (dev.97).  
+**Live target:** Foundry V13.351 / D&D5e 5.2.5.  
+**GitHub status:** local build only; no dev.109 remote write, merge, tag, release, deployment, or engine branch creation.
+
+## Dev.109 scope
+
+- Preserve blue/teal/violet roster phase identity while adding a separate Exhaustion severity wash across exhausted character cards.
+- Exhaustion severity is level-based from 1 through 6; higher levels use progressively stronger red tint. Exhaustion 0 remains unmarked.
+- The fixed upper-right Exhaustion number and the compact body-level Exhaustion tooltip use the same severity identity.
+- The Exhaustion tooltip is reduced to a compact status surface; 2024 rules retain D20 Tests/Speed rows and legacy rules retain their existing effect text.
+- Expedition Log Roll/Result geometry is tightened by narrowing the actual fixed columns/gap; pending GM-confirmation text stays contained in Result and cannot move the die.
+- Preserve all dev.108/dev.107 workflow behavior, travel/clock accounting, role/Event/Threat mechanics, Forced March/Exhaustion ownership, themes, packs/assets, migration, and exact protected Mount Ironrot source.
+
+---
+
+# ZFT Overland Travel | Current dev.108 Development Handoff
+
+**Current local build:** `0.4.0-dev.108`, November 3, 2026.  
+**Implementation baseline:** complete local dev.107 manual-install ZIP.  
+**Remote baseline:** `LuvacZantor/zft-overland-travel` branch `feature/expedition-system-1.1` remains at owner checkpoint `5597f595a6dbda24732e68076f7445129dd0e859` (dev.97).  
+**Live target:** Foundry V13.351 / D&D5e 5.2.5.  
+**GitHub status:** local build only; no dev.108 remote write, merge, tag, release, deployment, or engine branch creation.
+
+## Dev.108 scope
+
+- Expedition Roster cards mirror the role-phase palette: Navigation blue, Reconnaissance teal, Expedition Support violet. The treatment is presentation-only and does not encode success/failure.
+- Exhaustion no longer adds a footer row or changes character-card height. Exhausted characters show a compact red level number in the card upper-right; Exhaustion 0 shows no marker.
+- Exhaustion hover/focus uses the existing body-level help system and shows the current level plus D20 Tests/Speed penalties for 2024 rules, while preserving legacy-rule effect text.
+- D&D5e Actor/native Exhaustion state and the existing effect/Actor refresh hooks remain authoritative.
+- Expedition Log Roll values are right-aligned inside their fixed Roll column, keeping the die visually adjacent to Result while retaining dev.107 pending-result wrapping.
+- Preserve dev.107 Travel Decision/toast cleanup, dev.106 role deduplication, dev.105 completed-hex collapse, all travel/clock/Forced March mechanics, themes, packs/assets, migration, and the exact Mount Ironrot source.
+
+---
+
+# ZFT Overland Travel | Current dev.107 Development Handoff
+
+**Current local build:** `0.4.0-dev.107`, November 3, 2026.  
+**Implementation baseline:** complete local dev.106 manual-install ZIP.  
+**Remote baseline:** `LuvacZantor/zft-overland-travel` branch `feature/expedition-system-1.1` remains at owner checkpoint `5597f595a6dbda24732e68076f7445129dd0e859` (dev.97).  
+**Live target:** Foundry V13.351 / D&D5e 5.2.5.  
+**GitHub status:** local build only; no dev.107 remote write, merge, tag, release, deployment, or engine branch creation.
+
+## Dev.107 scope
+
+- Pause / Exit at a Forced March boundary now leaves the Dashboard at **Travel Decision** rather than presenting Forced March as though it were the only next path.
+- Current Step states that Continue Travel resumes Forced March and New Travel Day carries the remaining hex hours forward with a fresh daily allowance.
+- No extra travel hour is committed when choosing New Travel Day; travel and idle/rest clock movement remain separate.
+- Routine informational Foundry toasts are suppressed for the modern Hex Travel workflow; warnings, errors, required dialogs, and Hex Complete remain.
+- Navigation / Reconnaissance / Expedition Support Log totals are visually centered inside the d20 icon.
+- The role Roll column has a fixed presentation width and long pending Result text wraps inside its own column, so **Awaiting GM Confirmation** does not displace the die.
+- No travel math, ledger/world-clock checkpoints, role/Event/Threat mechanics, Forced March/Exhaustion rules, themes, packs/assets, migration, or protected Mount Ironrot source changes.
+
+---
+
+# ZFT Overland Travel | Current dev.106 Development Handoff
+
+**Current local build:** `0.4.0-dev.106`, November 3, 2026.  
+**Implementation baseline:** complete dev.105 manual-install ZIP.  
+**Remote checkpoint:** `feature/expedition-system-1.1` remains at dev.97 commit `5597f595a6dbda24732e68076f7445129dd0e859`.  
+**Live target:** Foundry V13.351 / D&D5e 5.2.5.  
+**GitHub status:** local presentation cleanup only; no remote write, merge, tag, release, deployment, or engine branch creation.
+
+## Dev.106 scope
+
+- Expanded Travel Log hexes show Navigation role results once, in the authoritative lower Navigation phase beside Reconnaissance and Expedition Support.
+- The upper reconstructed Guide/Vanguard Navigation block is removed.
+- Travel Time remains unchanged in purpose and preserves base dice, pace, saved delay dice, total duration, and original roll detail.
+- The lower Navigation header shows the saved Navigation DC.
+- Unique legacy pre-Vanguard Secondary evidence remains available rather than being discarded.
+- Preserve dev.105 completed-hex collapse behavior and the complete dev.104/dev.103 workflow/color presentation.
+- No mechanics or persisted-state changes. After owner live acceptance, dev.106 is the intended checkpoint candidate before specialized engine work begins on a new branch.
+
+---
+
+# ZFT Overland Travel | Current dev.105 Development Handoff
+
+**Current local build:** `0.4.0-dev.105`, November 3, 2026.  
+**Implementation baseline:** complete dev.104 manual-install ZIP.  
+**Remote checkpoint:** `feature/expedition-system-1.1` remains at dev.97 commit `5597f595a6dbda24732e68076f7445129dd0e859`.  
+**Live target:** Foundry V13.351 / D&D5e 5.2.5.  
+**GitHub status:** local final-cleanup build only; no remote write, merge, tag, release, deployment, or engine branch creation.
+
+## Dev.105 scope
+
+- Completed hexes collapse after the completion transition and remain collapsed by default after refresh/reload.
+- The current Day group remains open when appropriate so additional same-day travel is visible.
+- Active/incomplete hex work may still auto-open; deliberately reopened history remains inspectable.
+- Preserve the complete dev.104 workflow/color behavior and all Expedition mechanics/persistence.
+- After owner live acceptance, dev.105 is the intended checkpoint candidate before creating a new branch for specialized engine development.
+
+---
+
+# ZFT Overland Travel | Current dev.104 Development Handoff
+
+**Current local build:** `0.4.0-dev.104`, November 3, 2026.  
+**Implementation baseline:** complete dev.103 manual-install ZIP.  
+**Remote checkpoint:** `feature/expedition-system-1.1` remains at dev.97 commit `5597f595a6dbda24732e68076f7445129dd0e859`.  
+**Live target:** Foundry V13.351 / D&D5e 5.2.5.  
+**GitHub status:** local cosmetic stabilization build only; no remote write, merge, tag, release, deployment, or engine branch creation.
+
+## Dev.104 scope
+
+- Primary GM travel/workflow button now mirrors the Dashboard Current Step phase color: Navigation blue, Reconnaissance teal, Support violet, Event orange, travel blue, Forced March red.
+- Phase color is supplementary; the button label remains authoritative. Hover/focus strengthens the same phase identity.
+- Secondary controls remain visually separate.
+- Preserve all dev.103 workflow hierarchy/color changes and all dev.102/dev.100 runtime/workflow fixes.
+- No mechanics or persisted-state changes.
+- After owner live acceptance, this build is the intended checkpoint before starting specialized engine development on a new branch; those GitHub operations still require fresh explicit authorization.
+
+---
+
+# ZFT Overland Travel | Current dev.103 Development Handoff
+
+**Current local build:** `0.4.0-dev.103`, November 3, 2026.  
+**Implementation baseline:** complete dev.102 manual-install ZIP.  
+**Remote checkpoint:** `feature/expedition-system-1.1` remains at dev.97 commit `5597f595a6dbda24732e68076f7445129dd0e859`.  
+**Live target:** Foundry V13.351 / D&D5e 5.2.5.  
+**GitHub status:** local presentation build only; no remote write, merge, tag, release, or deployment.
+
+## Dev.103 scope
+
+- Dashboard **CURRENT STEP** is now the first workflow surface under Current Expedition; the old lower NEXT blurb is removed.
+- Current Step changes by authoritative saved phase and uses restrained phase color accents without changing workflow mechanics.
+- Log role-grade semantics: Strong green, Partial amber, Failed red, pending confirmation amber.
+- Log Navigation/Reconnaissance/Support sections receive subtle phase identity; Expedition Outcome/Event tiles reuse semantic Dashboard state color.
+- Start New Travel Day wording separates the new day's fresh allowance from an unfinished hex that carries forward; no `0h on Day N` display.
+- Preserve dev.102 active-Event render repair, explicit Roll Event stage, Dashboard Event state, body-level help overlays, Momentum `−2/−1/0/+1/+2`, Threats, Forced March/Exhaustion, themes, packs/assets, migration, and exact protected Mount Ironrot source.
+- No GitHub write is implied.
+
+---
+
+# ZFT Overland Travel | Current dev.102 Development Handoff
+
+**Current local build:** `0.4.0-dev.102`, November 3, 2026.  
+**Implementation baseline:** complete dev.101 manual-install ZIP.  
+**Remote checkpoint:** `feature/expedition-system-1.1` remains at dev.97 commit `5597f595a6dbda24732e68076f7445129dd0e859`.  
+**Live target:** Foundry V13.351 / D&D5e 5.2.5.  
+**GitHub status:** local repair build only; no remote write, merge, tag, release, or deployment.
+
+## Dev.102 scope
+
+- Repairs dev.101 workspace rendering when a saved/current Event exists by importing `EXPEDITION_EVENT_TYPES` where the Dashboard Event-state renderer uses it.
+- Adds a regression guard for the required import.
+- Preserves the dev.101 Dashboard Event at-a-glance presentation and all dev.100 workflow behavior.
+- Does not mutate saved expedition state or any travel/Event mechanics.
+
+---
+
+# ZFT Overland Travel | Current dev.101 Development Handoff
+
+**Current local build:** `0.4.0-dev.101`, November 3, 2026.  
+**Implementation baseline:** complete dev.100 manual-install ZIP.  
+**Remote checkpoint:** `LuvacZantor/zft-overland-travel` branch `feature/expedition-system-1.1` at owner checkpoint `5597f595a6dbda24732e68076f7445129dd0e859` (`0.4.0-dev.97`).  
+**Live target:** Foundry V13.351 / D&D5e 5.2.5.  
+**GitHub status:** local build only; no dev.101 remote write, merge, tag, release, or deployment.
+
+## Mandatory continuation baseline
+
+1. Continue from the complete dev.101 package when it is the latest owner-tested build.
+2. Preserve the explicit GM sequence: Navigation → Reconnaissance → Expedition Support → automatic Travel Quality/Momentum → explicit **Roll Event** → Event Resolution when required → explicit travel commit.
+3. Dashboard is current state at a glance; Travel Log is the detailed chronological/audit record.
+4. Preserve body-level help overlays, semantic state color, current `−2/−1/0/+1/+2` Momentum mechanics, Threat state, Forced March/Exhaustion, integrations, themes, packs/assets, migration, and exact protected Mount Ironrot source.
+5. Roles/Events tab role refinement and specialized Complication/Opportunity engines remain future work.
+6. No GitHub write is implied.
+
+## Dev.101 scope
+
+- Adds current Event state to Dashboard Expedition State.
+- Moves the static four-band Event chart from permanent Dashboard display into the Event help overlay.
+- Keeps detailed Event roll/resolution information in help and the Travel Log.
+- No gameplay or persistence rule changes.
+
+---
+
+# ZFT Overland Travel | Current dev.100 Development Handoff
+
+**Current local build:** `0.4.0-dev.100`, November 3, 2026.  
+**Implementation baseline:** complete owner-reviewed dev.99 manual-install ZIP.  
+**Remote baseline:** `LuvacZantor/zft-overland-travel` branch `feature/expedition-system-1.1` at owner checkpoint `5597f595a6dbda24732e68076f7445129dd0e859` (dev.97).  
+**Live target:** Foundry V13.351 / D&D5e 5.2.5.  
+**GitHub status:** dev.100 is local only; no remote write, merge, tag, release, or deployment.
+
+## Mandatory continuation baseline
+
+1. Preserve the explicit staged flow: Navigation → Resolve Reconnaissance → Resolve Expedition Support → automatic Travel Quality/Momentum preparation → **Roll Event** → Event Resolution when required → Commit/Continue Travel.
+2. Travel Quality/Momentum preparation and Event rolling are now separate persisted stages. Never auto-roll the Event on Support completion or reload.
+3. Preserve dev.97/dev.94 typography and geometry; semantic color may supplement text but must not become the only state signal.
+4. Roster role help must remain body-level/viewport-clamped; do not restore the legacy nested `.zft-hex-role-tooltip-pop`.
+5. Preserve all travel/clock/Forced March/Exhaustion, Threat state, role skills, themes, integrations, packs/assets, migration, and exact protected Mount Ironrot source.
+6. Momentum remains `−2 / −1 / 0 / +1 / +2`. Future `−3 / −1 / 0 / +1 / +3` remains a playtest candidate only.
+7. No GitHub write is implied.
+
+## Next engine direction
+
+After dev.100 live acceptance, begin the specialized **Complication / Major Complication Engine**. Opportunity, Discovery, deeper Threat handoff, and Encounter follow after that.
+
+See `docs/LOCAL_VALIDATION_DEV100.md` and the dev.100 section at the top of `INTEGRATION_TEST_NOTES.md`.
+
+---
+
+# ZFT Overland Travel | Current dev.99 Development Handoff
+
+**Current local build:** `0.4.0-dev.99`, November 3, 2026.  
+**Implementation baseline:** complete dev.98 manual-install ZIP, itself based on the owner checkpointed dev.97 source.  
+**Remote baseline:** `LuvacZantor/zft-overland-travel` branch `feature/expedition-system-1.1` at dev.97 commit `5597f595a6dbda24732e68076f7445129dd0e859`.  
+**Live target:** Foundry V13.351 / D&D5e 5.2.5.  
+**GitHub status:** dev.99 is local only; no remote write, merge, tag, release, or deployment.
+
+## Dev.99 scope
+
+- Preserve dev.97/dev.94 Dashboard typography and geometry.
+- Preserve dev.98 body-level help for Travel Quality, Momentum Change, and Expedition Momentum.
+- Add body-level help for Hex Travel Remaining, Safe Travel Hours, Event results, and Forced March.
+- Roster role help identifies Navigation / Reconnaissance / Expedition Support and the fixed primary check.
+- Coordinator player-facing wording is operational readiness/coordination, matching the approved design.
+- Move Dashboard compact-state control from the redundant top-right minimize button to double-click on the existing left mountain/triangle; keyboard Enter/Space also collapses.
+- No mechanic changes.
+
+## Momentum tuning note
+
+Current modifiers remain `Deteriorating −2 / Risky −1 / Neutral 0 / Prepared +1 / Favored +2`. If live play shows the endpoints are too conservative, first candidate is `−3 / −1 / 0 / +1 / +3`. Do not add a random Momentum die without a separate design decision.
+
+## Next engine direction after UI acceptance
+
+After dev.99 transparency/header behavior is visually accepted, proceed to the specialized Complication / Major Complication Engine before Opportunity, Discovery, deeper Threat integration, and Encounter. Roles/Events tab structural redesign remains deferred until those engines give the tabs their final operational purpose.
+
+See `docs/LOCAL_VALIDATION_DEV99.md` and the dev.99 section at the top of `INTEGRATION_TEST_NOTES.md`.
+
+---
+
+# ZFT Overland Travel | Current dev.98 Development Handoff
+
+**Current local build:** `0.4.0-dev.98`, November 3, 2026.  
+**Implementation baseline:** complete dev.97 manual-install ZIP and GitHub checkpoint `5597f595a6dbda24732e68076f7445129dd0e859`.  
+**Remote baseline:** `LuvacZantor/zft-overland-travel` branch `feature/expedition-system-1.1` at the dev.97 checkpoint above.  
+**Live target:** Foundry V13.351 / D&D5e 5.2.5.  
+**GitHub status:** dev.98 is local only; no remote write, merge, tag, release, or deployment.
+
+## Mandatory continuation baseline
+
+1. Re-read current `zft-standards` before further development.
+2. Dev.97 remains the accepted visual reset baseline. Dev.98 adds only an isolated body-level help overlay and two compact information-row layouts; do not reintroduce dev.95/dev.96 generic tooltip wrappers or typography overrides.
+3. Preserve manual role-stage progression, explicit travel commit boundary, six fixed role skills, persistent Momentum, Event bands, Threat state, Forced March/Exhaustion, optional integrations, themes, packs/assets, and exact protected Mount Ironrot source.
+4. Treat broader Dashboard help as deferred until the dev.98 overlay pattern is live accepted.
+5. No GitHub write is implied.
+
+## Dev.98 scope
+
+- Travel Quality point totals are separate Success / Failure rows without changing the dev.97 card typography.
+- Expedition Momentum shows Event Roll Modifier and Persistence on separate rows.
+- Travel Quality, Momentum Change, and Expedition Momentum use structured help rendered as a fixed `document.body` overlay, triggered by hover or keyboard focus.
+- No help wrapper or tooltip surface exists inside the Dashboard card layout.
+- Role-grade structured help in the Travel log remains unchanged from dev.94/dev.97.
+
+See `docs/LOCAL_VALIDATION_DEV98.md` and the dev.98 section at the top of `INTEGRATION_TEST_NOTES.md`.
+
+---
+
 # ZFT Overland Travel | Current dev.97 Development Handoff
 
 **Current local build:** `0.4.0-dev.97`, November 3, 2026.  

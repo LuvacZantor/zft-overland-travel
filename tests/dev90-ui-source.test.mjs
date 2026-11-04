@@ -33,7 +33,9 @@ test("Events UI no longer exposes a normal Resolve Travel Outcome button or dev 
 
 test("Recovery is state-aware and cannot launch a duplicate normal workflow",()=>{
   assert.match(consoleSource,/const workflowRunning = this\.travelActive/);
-  assert.match(consoleSource,/!workflowRunning && !!record && \(rolesPending \|\| outcomePending\)/);
+  assert.match(consoleSource,/!workflowRunning && !!record && \(rolesPending \|\| preparationPending\)/);
+  assert.match(consoleSource,/eventRollPending/);
+  assert.match(consoleSource,/Use the normal Roll Event action/);
   assert.match(consoleSource,/The normal travel workflow is still active/);
 });
 

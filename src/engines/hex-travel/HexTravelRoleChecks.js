@@ -161,7 +161,7 @@ export async function runHexTravelRoleCheck({ actors, assignments, day, epoch, p
   if (live[check.role] !== actor.uuid) throw new Error("Role assignment changed before the check.");
   const result = await requestWithRecovery({ actor, skill: check.skill, dc: check.dc,
     socket, midiVersion: midi.version, registerPending, unregisterPending, isCurrent });
-  if (!result) { ui.notifications.info("Role check canceled. No expedition history was changed."); return null; }
+  if (!result) { console.info("[ZFT][HexTravel]", "Role check canceled. No expedition history was changed."); return null; }
   if (!isCurrent() || game.settings.get(MODULE_ID, "hexTravelRolePreferences")?.assignments?.[check.role] !== actor.uuid)
     throw new Error("Role assignment or expedition changed before saving the result.");
   const entry = {
@@ -172,6 +172,6 @@ export async function runHexTravelRoleCheck({ actors, assignments, day, epoch, p
     context: String(input.context ?? "").trim().slice(0, 160)
   };
   await save(entry);
-  ui.notifications.info(`${entry.roleName}: ${entry.skillName} ${entry.total} vs DC ${entry.dc} · ${entry.passed ? "Success" : "Failure"}. Recorded in Expedition Log.`);
+  console.info("[ZFT][HexTravel]", `${entry.roleName}: ${entry.skillName} ${entry.total} vs DC ${entry.dc} · ${entry.passed ? "Success" : "Failure"}. Recorded in Expedition Log.`);
   return entry;
 }

@@ -230,7 +230,7 @@ async function resolvePhase(recordId, phase, prompt, registerPending, unregister
         socket, midiVersion: midi.version, registerPending, unregisterPending })
     })));
     if (outcomes.some(outcome => !outcome.result)) {
-      ui.notifications.info(`${plan.name} canceled. No ${plan.name} result was saved.`);
+      console.info("[ZFT][HexTravel]", `${plan.name} canceled. No ${plan.name} result was saved.`);
       return false;
     }
     for (const outcome of outcomes) rolls[outcome.role] = outcome.result;
@@ -288,7 +288,7 @@ async function resolvePhase(recordId, phase, prompt, registerPending, unregister
         publishTransient(recordId, phase, null, onTransient);
       }
       if (!answer) {
-        ui.notifications.info(`${plan.name} review canceled. No ${plan.name} result was saved.`);
+        console.info("[ZFT][HexTravel]", `${plan.name} review canceled. No ${plan.name} result was saved.`);
         return false;
       }
 
@@ -303,7 +303,7 @@ async function resolvePhase(recordId, phase, prompt, registerPending, unregister
       })));
       for (const { slot, result } of rerollResults) {
         if (!result) {
-          ui.notifications.info(`${slot.roleName} reroll canceled. The prior result remains available for GM review.`);
+          console.info("[ZFT][HexTravel]", `${slot.roleName} reroll canceled. The prior result remains available for GM review.`);
           rulings[slot.role] = "roll";
           continue;
         }
@@ -316,7 +316,7 @@ async function resolvePhase(recordId, phase, prompt, registerPending, unregister
   }
   const resolution = buildRolePhaseResolution(plan, rolls, rulings, Date.now());
   await persistPhase(recordId, phase, resolution);
-  ui.notifications.info(`Hex ${plan.recordNumber} ${plan.name}: ${resolution.grade === "strong" ? "Strong" : resolution.grade === "partial" ? "Partial" : resolution.grade === "failure" ? "Failed" : "No assigned checks"}. Saved to Expedition Roles.`);
+  console.info("[ZFT][HexTravel]", `Hex ${plan.recordNumber} ${plan.name}: ${resolution.grade === "strong" ? "Strong" : resolution.grade === "partial" ? "Partial" : resolution.grade === "failure" ? "Failed" : "No assigned checks"}. Saved to Expedition Roles.`);
   return true;
 }
 
@@ -367,7 +367,7 @@ export async function resolveHexTravelRolePhases({ prompt, registerPending, unre
   validateServices(prompt);
   const records = availableRecords(ledger());
   if (!records.length) {
-    ui.notifications.info("No saved hex is waiting for Reconnaissance or Expedition Support.");
+    console.info("[ZFT][HexTravel]", "No saved hex is waiting for Reconnaissance or Expedition Support.");
     return null;
   }
   const record = await chooseRecord(records, prompt);

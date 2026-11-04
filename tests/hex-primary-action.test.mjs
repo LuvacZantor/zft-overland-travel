@@ -1,7 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { startHexRecord, saveHexRolePhase, saveHexExpeditionOutcome, saveHexEventManualResolution } from "../src/engines/hex-travel/HexTravelRecords.js";
-import { buildHexExpeditionOutcome } from "../src/engines/hex-travel/HexExpeditionOutcome.js";
+import { startHexRecord, saveHexRolePhase, saveHexExpeditionOutcome, saveHexExpeditionPreparation, saveHexEventManualResolution } from "../src/engines/hex-travel/HexTravelRecords.js";
+import { buildHexExpeditionOutcome, buildHexExpeditionPreparation } from "../src/engines/hex-travel/HexExpeditionOutcome.js";
 import { primaryHexTravelAction } from "../src/engines/hex-travel/HexTravelPrimaryAction.js";
 
 function baseStore(){
@@ -33,6 +33,17 @@ test("primary action explicitly advances Reconnaissance before Support",()=>{
   assert.equal(action.label,"Resolve Expedition Support");
 });
 
+
+test("prepared hex stops at explicit Roll Event before travel commit",()=>{
+  let store=completedRoles(baseStore());
+  const preparation=buildHexExpeditionPreparation(store.records[0],{momentum:"neutral",now:3});
+  store=saveHexExpeditionPreparation(store,"hex-1",preparation);
+  const action=primaryHexTravelAction({pending:4,activeHexCardId:"hex-1",hexRecords:store});
+  assert.equal(action.kind,"roll-event");
+  assert.equal(action.label,"Roll Event");
+  assert.equal(action.blocked,false);
+  assert.equal(store.records[0].phases.event,"pending");
+});
 test("fully resolved first commit is explicitly Commit Travel",()=>{
   let store=completedRoles(baseStore());
   let outcome=buildHexExpeditionOutcome(store.records[0],{momentum:"neutral",eventRoll:20,now:3});

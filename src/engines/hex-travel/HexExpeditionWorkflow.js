@@ -5,7 +5,7 @@
 import { MODULE_ID } from "../../constants/module-constants.js";
 import { cloneHexRecordStore, hexRecordReadyForTravel } from "./HexTravelRecords.js";
 import { resolveNextHexTravelRolePhase } from "./HexTravelRoleResolution.js";
-import { resolveHexExpeditionOutcome } from "./HexExpeditionRuntime.js";
+import { resolveHexExpeditionPreparation } from "./HexExpeditionRuntime.js";
 
 const LEDGER_KEY = "hexTravelLedger";
 const copy = value => typeof globalThis.structuredClone === "function" ? structuredClone(value) : JSON.parse(JSON.stringify(value));
@@ -20,10 +20,12 @@ export async function resumeHexExpeditionWorkflow(recordId, services = {}) {
   const roleResult = await resolveNextHexTravelRolePhase(recordId, services);
   if (roleResult?.canceled) return { record: copy(readRecord(recordId)), stopped: "rolesCanceled", outcome: null, rolePhase: roleResult?.phase ?? null };
   record = readRecord(recordId);
-  let outcome = null;
-  if (record?.phases?.reconnaissance === "completed" && record?.phases?.support === "completed" && record?.phases?.event !== "completed") {
-    outcome = await resolveHexExpeditionOutcome(recordId);
+  let preparation = null;
+  if (record?.phases?.reconnaissance === "completed" && record?.phases?.support === "completed" &&
+      (record?.phases?.travelQuality !== "completed" || record?.phases?.momentum !== "completed")) {
+    preparation = await resolveHexExpeditionPreparation(recordId);
   }
   record = readRecord(recordId);
-  return { record: copy(record), outcome: copy(outcome), readyForTravel: hexRecordReadyForTravel(record), stopped: null, rolePhase: roleResult?.phase ?? null };
+  return { record: copy(record), preparation: copy(preparation), outcome: null, readyForTravel: hexRecordReadyForTravel(record),
+    stopped: record?.phases?.event === "completed" ? null : "eventPending", rolePhase: roleResult?.phase ?? null };
 }

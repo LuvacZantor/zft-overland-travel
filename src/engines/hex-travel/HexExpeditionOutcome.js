@@ -172,21 +172,32 @@ export function eventRouteFor(type, now = Date.now()) {
   fail(`unknown Event type ${String(type)}.`);
 }
 
-export function buildHexExpeditionOutcome(record, { momentum = "neutral", eventRoll, now = Date.now() } = {}) {
+export function buildHexExpeditionPreparation(record, { momentum = "neutral", now = Date.now() } = {}) {
   if (!isObject(record) || typeof record.id !== "string" || !record.id) fail("a saved hex record is required.");
   const resolvedAt = Number(now);
   if (!Number.isSafeInteger(resolvedAt) || resolvedAt < 0) fail("resolution timestamp must be a nonnegative integer.");
   const travelQuality = buildTravelQuality(record);
   const momentumResult = shiftExpeditionMomentum(momentum, travelQuality.quality);
-  const event = resolveExpeditionEvent(eventRoll, momentumResult.after);
+  return { schema: 1, recordId: record.id, resolvedAt, travelQuality, momentum: momentumResult };
+}
+
+export function buildHexExpeditionEvent(record, { eventRoll, now = Date.now() } = {}) {
+  if (!isObject(record) || typeof record.id !== "string" || !record.id) fail("a saved hex record is required.");
+  if (!isObject(record.travelQuality) || !isObject(record.momentum) ||
+      record.phases?.travelQuality !== "completed" || record.phases?.momentum !== "completed")
+    fail("Travel Quality and Momentum must be completed before the Event roll.");
+  const resolvedAt = Number(now);
+  if (!Number.isSafeInteger(resolvedAt) || resolvedAt < 0) fail("resolution timestamp must be a nonnegative integer.");
+  const event = resolveExpeditionEvent(eventRoll, record.momentum.after);
   const eventResolution = eventRouteFor(event.type, resolvedAt);
-  return {
-    schema: 1, recordId: record.id, resolvedAt,
-    travelQuality,
-    momentum: momentumResult,
-    event,
-    eventResolution
-  };
+  return { schema: 1, recordId: record.id, resolvedAt, event, eventResolution };
+}
+
+export function buildHexExpeditionOutcome(record, { momentum = "neutral", eventRoll, now = Date.now() } = {}) {
+  const preparation = buildHexExpeditionPreparation(record, { momentum, now });
+  const event = resolveExpeditionEvent(eventRoll, preparation.momentum.after);
+  const eventResolution = eventRouteFor(event.type, preparation.resolvedAt);
+  return { ...preparation, event, eventResolution };
 }
 
 export function isEventResolutionComplete(value) {

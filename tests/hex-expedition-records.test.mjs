@@ -1,10 +1,10 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import {
-  startHexRecord, saveHexRolePhase, saveHexExpeditionOutcome,
+  startHexRecord, saveHexRolePhase, saveHexExpeditionOutcome, saveHexExpeditionPreparation, saveHexExpeditionEvent,
   saveHexEventManualResolution, hexRecordReadyForTravel
 } from "../src/engines/hex-travel/HexTravelRecords.js";
-import { buildHexExpeditionOutcome } from "../src/engines/hex-travel/HexExpeditionOutcome.js";
+import { buildHexExpeditionOutcome, buildHexExpeditionPreparation, buildHexExpeditionEvent } from "../src/engines/hex-travel/HexExpeditionOutcome.js";
 
 function start() {
   let store = startHexRecord(undefined, {
@@ -50,6 +50,26 @@ test("dev.89 new records stage later Expedition phases before travel commitment"
   assert.equal(hexRecordReadyForTravel(raw),false);
 });
 
+
+test("Travel Quality and Momentum persist before an explicit Event roll", () => {
+  const store = start();
+  const preparation = buildHexExpeditionPreparation(store.records[0],{momentum:"neutral",now:350});
+  const prepared = saveHexExpeditionPreparation(store,"hex-a",preparation);
+  let record = prepared.records[0];
+  assert.equal(prepared.momentum,"prepared");
+  assert.equal(record.phases.travelQuality,"completed");
+  assert.equal(record.phases.momentum,"completed");
+  assert.equal(record.phases.event,"pending");
+  assert.equal(record.event,undefined);
+  assert.equal(hexRecordReadyForTravel(record),false);
+  const eventOutcome = buildHexExpeditionEvent(record,{eventRoll:13,now:400});
+  const rolled = saveHexExpeditionEvent(prepared,"hex-a",eventOutcome);
+  record = rolled.records[0];
+  assert.equal(record.event.type,"quietTravel");
+  assert.equal(record.phases.event,"completed");
+  assert.equal(record.eventResolution.status,"resolved");
+  assert.equal(hexRecordReadyForTravel(record),true);
+});
 test("saving outcome updates only staged Expedition state and persistent Momentum", () => {
   const store = start();
   const beforeTravel = structuredClone(store.records[0].travel);

@@ -1,3 +1,158 @@
+## 0.4.0-dev.110 | Expedition Log tab cleanup
+
+The Expedition Log now has two authoritative surfaces: **Travel** and **Events**. The redundant **Roles** tab is removed. Navigation, Reconnaissance, and Expedition Support remain fully preserved in each hex's expanded Travel history, while GM **Expedition Roles** continues to own assignments and role editing outside the log.
+
+The **Events** tab is retained for future event-side engines, but duplicate per-hex Travel Quality, Momentum, Event, and Event Resolution cards are removed because that same saved hex outcome is already presented in Travel history. **Persistent Threats** remain in Events unchanged, including multi-Threat persistence, explicit stage movement, GM controls, and player visibility.
+
+This is a presentation/surface cleanup only. It does not alter saved record schemas, role/Event/Threat mechanics, travel commitment, Forced March, Exhaustion, world time, themes, packs/assets, migration, or the protected Mount Ironrot source. Active local regression evidence: **131/131 passed**; live Foundry acceptance remains required.
+
+## 0.4.0-dev.109 | Exhaustion severity and tighter role columns
+
+**Local test build.** Baseline is complete dev.108. GitHub `feature/expedition-system-1.1` remains at owner checkpoint `5597f595a6dbda24732e68076f7445129dd0e859` (dev.97); no remote write, merge, tag, release, deployment, or engine branch creation is included.
+
+- Roster phase edge remains Navigation / Reconnaissance / Expedition Support while exhausted characters add an independent red severity wash.
+- Exhaustion levels 1–6 progressively increase red intensity on the card, level number, and compact hover/focus status card.
+- Role Log Roll and Result are a genuinely tighter right-side pair through narrower fixed columns and gap; pending text remains protected in Result.
+- No mechanics, persistence schema, Actor ownership, travel accounting, Event/Threat behavior, or protected content changes.
+
+Evidence before packaging: **128/128 automated tests passed** in the source worktree. Local/static/package evidence only; Foundry V13.351 / D&D5e 5.2.5 live acceptance remains required.
+
+---
+
+## 0.4.0-dev.108 | Phase-coded roster and compact Exhaustion status
+
+**Local test build.** Baseline is complete dev.107. GitHub `feature/expedition-system-1.1` remains at owner checkpoint `5597f595a6dbda24732e68076f7445129dd0e859` (dev.97); no remote write, merge, tag, release, deployment, or engine branch creation is included.
+
+- Roster cards use the same restrained Navigation / Reconnaissance / Expedition Support phase colors as Current Step and the Travel Log.
+- Exhaustion is displayed as a fixed upper-right red level number instead of a footer, so card dimensions remain stable.
+- Hover/focus presents the Exhaustion level and current rule penalties through the body-level help overlay.
+- The Role Log Roll column is right-aligned toward Result without changing its reserved-width protection.
+- No mechanics, persistence schema, Actor ownership, travel accounting, Event/Threat behavior, or protected content changes.
+
+Evidence: **125/125 automated tests passed** in the source worktree before packaging. Local/static/package evidence only; Foundry V13.351 / D&D5e 5.2.5 live acceptance remains required.
+
+---
+
+## 0.4.0-dev.107 | Paused-travel decision clarity and quiet info notifications
+
+**Local test build.** Baseline is complete dev.106. GitHub `feature/expedition-system-1.1` remains at owner checkpoint `5597f595a6dbda24732e68076f7445129dd0e859` (dev.97); no remote write, merge, tag, release, deployment, or engine branch creation is included.
+
+- A Forced March **Pause / Exit** publishes a persistent paused snapshot. While unfinished hours remain, Dashboard Current Step shows **Travel Decision**.
+- The decision copy distinguishes **Continue Travel = Forced March** from **New Travel Day = carry unfinished hours forward with a fresh daily allowance**.
+- The day/rest transition does not fabricate a travel-hour commit; only later Continue Travel commits that carried hour on the new day.
+- Modern Hex Travel informational success/cancel/status messages are logged to console rather than displayed as purple Foundry info toasts. Warnings/errors and Hex Complete remain visible.
+- Expedition role totals are centered inside their d20 icon, and the Roll/Result grid reserves stable space so long pending GM-confirmation text cannot displace the die.
+- No mechanics or persistence-schema changes.
+
+Evidence: **122/122 automated tests passed** in the source worktree before packaging. Local/static/package evidence only; Foundry V13.351 / D&D5e 5.2.5 live acceptance remains required.
+
+---
+
+# Development Status — dev.106
+
+- Build: `0.4.0-dev.106`
+- Baseline: complete dev.105 package.
+- Scope: Travel Log presentation cleanup only. Duplicate upper Navigation role rendering removed; Travel Time retained; authoritative lower Navigation phase now carries DC context.
+- Mechanics/persistence: unchanged.
+- Intended use: final owner live-check candidate before checkpointing the Expedition workflow and branching for specialized engine development.
+- GitHub: no write performed. Remote feature branch remains at dev.97 until separately authorized.
+
+---
+
+## 0.4.0-dev.105 | Completed-hex collapse stabilization
+
+**Local test build.** Baseline is complete dev.104. GitHub `feature/expedition-system-1.1` remains at owner checkpoint `5597f595a6dbda24732e68076f7445129dd0e859` (dev.97); no dev.105 remote write, merge, tag, release, deployment, or new engine branch is authorized or performed.
+
+- A completed hex is closed immediately when the active travel sequence transitions to completed.
+- The newest completed hex is no longer auto-opened merely because it is the latest record; it remains collapsed after refresh/reload.
+- Current Day expansion is independent and may remain open.
+- Active/incomplete work still opens as needed, and historical hexes can be manually reopened.
+- No mechanics, persistence schema, travel accounting, Event, Threat, Forced March/Exhaustion, integration, theme, pack/asset, migration, or protected source changes.
+
+---
+
+## 0.4.0-dev.104 | Phase-matched primary GM action
+
+**Local test build.** Baseline is complete dev.103. GitHub `feature/expedition-system-1.1` remains at owner checkpoint `5597f595a6dbda24732e68076f7445129dd0e859` (dev.97); no dev.104 remote write, merge, tag, release, deployment, or new branch is authorized or performed.
+
+- Primary GM travel/workflow action receives the same phase identity as Dashboard Current Step.
+- Start/Navigation = blue; Reconnaissance = teal; Expedition Support = violet; Event = orange; Commit/Continue = blue; Forced March = red.
+- New Travel Day and secondary GM controls remain visually distinct.
+- No expedition mechanics, persistence, travel accounting, Event/Threat behavior, or integration changes.
+
+Evidence: **113/113 automated tests passed** before packaging. Local/static/package evidence only; Foundry V13.351 / D&D5e 5.2.5 live acceptance remains required.
+
+---
+
+## 0.4.0-dev.103 | Workflow-first Dashboard and semantic Log color
+
+**Local test build.** Baseline is complete dev.102. GitHub `feature/expedition-system-1.1` remains at owner checkpoint `5597f595a6dbda24732e68076f7445129dd0e859` (dev.97); no dev.103 remote write, merge, tag, release, or deployment is authorized or performed.
+
+- Moves the Dashboard workflow prompt from the lower NEXT blurb to a prominent **CURRENT STEP** panel immediately below Current Expedition.
+- Current Step is phase-aware: Navigation blue, Reconnaissance teal, Expedition Support violet, Event orange, travel blue, Forced March red; labels remain authoritative and color is supplementary.
+- Expedition Log role phase grades are now Strong green / Partial amber / Failed red / pending amber instead of all completed grades inheriting green.
+- Navigation, Reconnaissance and Expedition Support Log sections receive restrained phase accents.
+- Expedition Outcome and Events-tab state tiles reuse Dashboard semantic result colors.
+- Start New Travel Day no longer says `0h on Day N`; the dialog separates the fresh daily allowance from the unfinished hex that carries forward.
+- No travel math, role checks, Travel Quality scoring, Momentum/Event rules, persistence, Threat, Forced March/Exhaustion, or clock mechanics change.
+
+Evidence: **110/110 automated tests passed** before packaging. Local/static/package evidence only; Foundry V13.351 / D&D5e 5.2.5 live acceptance remains required.
+
+---
+
+## 0.4.0-dev.102 | Active-Event render repair
+
+**Local repair build.** Baseline is complete dev.101. Live dev.101 testing exposed an `Uncaught (in promise)` in `HexTravelConsole.js` when the Dashboard attempted to classify an already-saved Event for semantic color. The renderer used `EXPEDITION_EVENT_TYPES` without importing it. Dev.102 adds the missing import and a regression guard. No mechanics, persistence, Dashboard design, or Event results are changed.
+
+---
+
+## 0.4.0-dev.101 | Dashboard Event at-a-glance state
+
+**Local build only.** Baseline is the complete dev.100 manual-install package. GitHub `feature/expedition-system-1.1` remains at the owner checkpoint `5597f595a6dbda24732e68076f7445129dd0e859` (dev.97); no dev.101 remote write, merge, tag, release, or deployment is authorized or performed.
+
+- Adds a full-width **THIS HEX · EVENT** state to the Dashboard Expedition State section.
+- Before the explicit Event roll, the state reads **Awaiting Event Roll** once Travel Quality/Momentum are ready.
+- After Roll Event, the Dashboard shows the saved Event result with compact roll/resolution context.
+- Major Complication / Complication / Quiet Travel / Opportunity use subtle semantic state color; pending remains muted.
+- Removes the permanent Event-band legend from Dashboard chrome. The four d20 bands move into the existing body-level Event help overlay, which also exposes current raw d20, Momentum modifier, final result and resolution when available.
+- No change to Event probabilities, Momentum modifiers, explicit Event-stage timing, Travel Quality scoring, travel commitment, Threat state, Forced March/Exhaustion, integrations, themes, packs/assets, migration, or protected Mount Ironrot source.
+
+Evidence: **105/105 automated tests passed** before packaging. Local/static/package evidence only; live V13.351 / D&D5e 5.2.5 visual acceptance remains required.
+
+---
+
+## 0.4.0-dev.100 | Explicit Event stage, roster-help repair, and semantic state color
+
+- Baseline: complete local dev.99 package; remote `feature/expedition-system-1.1` remains at owner-approved dev.97 checkpoint `5597f595a6dbda24732e68076f7445129dd0e859`.
+- Expedition Support completion now persists Travel Quality and one Momentum shift, then stops. The Event d20 is a separate explicit **Roll Event** primary GM action.
+- Quiet Travel unlocks travel only after the GM rolls the Event; Complication / Major Complication / Opportunity continue to the existing explicit Event Resolution gate.
+- Recovery may resume interrupted role/preparation state but does not roll a prepared Event automatically.
+- Roster role help is moved from the legacy nested popup to the body-level viewport-clamped overlay.
+- Pending Momentum Change reads `Pending` / `Awaiting Travel Quality` instead of using result-sized prose.
+- Travel Quality and Momentum Change use subtle semantic accents; Momentum boxes progress from red (Deteriorating) to green (Favored) while text/modifiers remain authoritative.
+- No change to Momentum values, Event bands, travel math, ledger/world time, Forced March/Exhaustion, Threat rules, integrations, themes, packs/assets, migration, or protected source.
+- Live Foundry V13.351 / D&D5e 5.2.5 acceptance pending. No GitHub write.
+
+---
+
+## 0.4.0-dev.99 | Remaining transparency rollout and header compact control
+
+- Baseline: complete local dev.98 package; remote `feature/expedition-system-1.1` remains at owner-approved dev.97 checkpoint `5597f595a6dbda24732e68076f7445129dd0e859`.
+- Adds body-level help for Hex Travel Remaining, Safe Travel Hours, Event results, and Forced March. Existing Travel Quality / Momentum help remains body-level.
+- Roster role help now identifies the role phase and fixed primary check; Coordinator wording is aligned to operational readiness rather than morale.
+- The dedicated header minimize button is removed. Double-clicking the existing left mountain/triangle collapses to the floating icon; Enter/Space on that icon does the same.
+- No gameplay/state changes. Momentum remains `−2 / −1 / 0 / +1 / +2`; `−3 / −1 / 0 / +1 / +3` is only a future playtest candidate if the endpoints feel too weak.
+- Live Foundry V13.351 / D&D5e 5.2.5 acceptance pending. No GitHub write.
+
+## 0.4.0-dev.98 | Isolated Dashboard transparency pass
+
+- Baseline: complete dev.97 visual-reset package and GitHub checkpoint `5597f595a6dbda24732e68076f7445129dd0e859`.
+- Travel Quality separates Success Points and Failure Points into compact rows.
+- Expedition Momentum separates Event Roll Modifier and Persistence into distinct rows.
+- Travel Quality, Momentum Change, and Expedition Momentum use structured body-level fixed help overlays on hover/focus. The overlay is outside the Dashboard DOM layout and cannot resize its cards.
+- Broader help remains deferred pending live acceptance of this pattern.
+- No gameplay/state changes. Live Foundry V13.351 / D&D5e 5.2.5 acceptance pending. No GitHub write.
+
 ## 0.4.0-dev.97 | Dashboard visual rollback to dev.94 baseline
 
 **Local build only.** Baseline is the complete dev.94 manual-install package, selected intentionally after owner live testing found dev.95/dev.96 Dashboard tooltip/cosmetic regressions. GitHub `feature/expedition-system-1.1` remains unchanged at frozen dev.88 commit `fca67c46e7c1ca5921a031645c9d9fa99063b469`; no dev.97 remote write, merge, tag, release, or deployment is authorized or performed.

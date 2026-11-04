@@ -312,7 +312,7 @@ return (async () => {
         hourResolved: [], hourRolls: {}, hourDecisions: {}, hourOutcomes: {}, hourRerolls: {}, marchHistory: [] };
       await saveState(corrected);
       await publishStatus(loadState(), "Ledger corrected", "GM manually updated the travel ledger.");
-      ui.notifications.info("Overland Travel ledger corrected. Run macro again to continue.");
+      console.info("[ZFT][HexTravel]", "Overland Travel ledger corrected. Run macro again to continue.");
       return;
     }
     const confirmation = await promptWait({
@@ -328,7 +328,7 @@ return (async () => {
     if (confirmation !== "RESET") return warn("Full travel reset canceled. No data changed.");
     await saveState({ day: 1, hours: 0, pending: 0, hexes: 0, hexRecords: cloneHexRecordStore(), hourResolved: [], hourRolls: {}, hourDecisions: {}, hourOutcomes: {}, hourRerolls: {}, marchHistory: [] });
     await publishStatus(loadState(), "Travel reset", "Expedition travel statistics were reset by the GM.");
-    ui.notifications.info("Overland Travel statistics fully reset to Day 1.");
+    console.info("[ZFT][HexTravel]", "Overland Travel statistics fully reset to Day 1.");
   }
   // The GM Console exposes these top-level actions. Keep the familiar daily
   // ledger dialog available for legacy/script callers using action="menu".
@@ -430,8 +430,8 @@ return (async () => {
           `<div class="zft-hex-day-stat next"><small>NEXT DAY</small><strong>${travelState.day+1}</strong></div>` +
         `</div>` +
         `<div class="zft-hex-day-summary">` +
-          `<div class="zft-hex-day-hours-reset"><small>DAILY TRAVEL HOURS RESET</small><strong><span>${travelState.hours}h used on Day ${travelState.day}</span><i class="fa-solid fa-arrow-right" aria-hidden="true"></i><span class="zft-hex-day-hours-new">0h on Day ${travelState.day+1}</span></strong><small>Only today's travel counter resets. Past hours remain recorded.</small></div>` +
-          `<div class="zft-hex-day-hex-carry"><small>UNFINISHED HEX</small><strong>${travelState.pending > 0 ? `${travelState.pending}h remaining` : "None"}</strong><small>${travelState.pending > 0 ? "This hex continues on the next travel day." : "No unfinished hex to carry forward."}</small></div>` +
+          `<div class="zft-hex-day-hours-reset"><small>DAILY TRAVEL HOURS</small><strong><span>${travelState.hours}h traveled on Day ${travelState.day}</span></strong><small>Day ${travelState.day+1} begins with a fresh daily travel allowance. Previous travel remains recorded.</small></div>` +
+          `<div class="zft-hex-day-hex-carry"><small>UNFINISHED HEX</small><strong>${travelState.pending > 0 ? `${travelState.pending}h remaining` : "None"}</strong><small>${travelState.pending > 0 ? `The active hex carries forward to Day ${travelState.day+1}.` : "No unfinished hex to carry forward."}</small></div>` +
         `</div>` +
         `<div class="zft-hex-day-time">` +
           `<label for="zft-hex-bedtime-target"><i class="fa-solid fa-clock" aria-hidden="true"></i> Advance world time before resting</label>` +
@@ -493,14 +493,14 @@ return (async () => {
     if (newDayConfirmed.openRest) {
       try {
         await openPartyRestRecovery();
-        ui.notifications.info(`Overland Travel: Day ${travelState.day} started. Complete the Long Rest in Rest Recovery.`);
+        console.info("[ZFT][HexTravel]", `Overland Travel: Day ${travelState.day} started. Complete the Long Rest in Rest Recovery.`);
       } catch (error) {
         console.error("[ZFT][HexTravel] Rest Recovery could not open; travel day preserved.", error);
         ui.notifications.error(`Day ${travelState.day} started, but Rest Recovery could not open: ${error.message}`);
       }
       return; // Do not open a new Guide-roll form over Rest Recovery.
     }
-    ui.notifications.info(`Overland Travel: Day ${travelState.day} started. Continue traveling in this session.`);
+    console.info("[ZFT][HexTravel]", `Overland Travel: Day ${travelState.day} started. Continue traveling in this session.`);
     travelMenu = "travel";
   }
   const resuming = travelState.pending > 0;
@@ -845,7 +845,7 @@ return (async () => {
       await saveState(state);
       await publishStatus(state, "Expedition stages pending",
         "Navigation is saved. Resolve Reconnaissance when ready; Expedition Support follows only when the GM advances it. Travel Quality, Momentum, and the Event resolve after Support.");
-      ui.notifications.info(`Hex ${state.hexes + 1} staged. Resolve Reconnaissance when ready; travel hours remain uncommitted.`);
+      console.info("[ZFT][HexTravel]", `Hex ${state.hexes + 1} staged. Resolve Reconnaissance when ready; travel hours remain uncommitted.`);
       return true;
     }
     if (!state.pending) return true;
@@ -900,12 +900,12 @@ return (async () => {
       });
       if (choice === "cancel" || !choice) {
         await publishStatus(state, "Travel paused", `GM paused on Day ${state.day}; ${state.pending} unfinished hour(s) preserved.`);
-        ui.notifications.info(`Overland Travel: Travel paused. Ledger preserved on Day ${state.day}; ${state.pending} hour(s) remain in this hex.`);
+        console.info("[ZFT][HexTravel]", `Overland Travel: Travel paused. Ledger preserved on Day ${state.day}; ${state.pending} hour(s) remain in this hex.`);
         return false;
       }
       if (choice === "store") {
         await publishStatus(state, "Travel stopped", `Party stops on Day ${state.day}; ${state.pending} hour(s) deferred.`);
-        ui.notifications.info(`Overland Travel: ${state.pending} unfinished hour(s) saved. Start next day when ready.`);
+        console.info("[ZFT][HexTravel]", `Overland Travel: ${state.pending} unfinished hour(s) saved. Start next day when ready.`);
         return true;
       }
       await publishStatus(state, "Forced march", `Party chose to continue hour ${nextHour}.`);
@@ -1411,7 +1411,7 @@ return (async () => {
       reviewSelections.guide = rerollGuide ? "roll" : reviewSelections.guide;
       if (secondary) reviewSelections.vanguard = rerollVanguard ? "roll" : reviewSelections.vanguard;
       if ((rerollGuide && !newGuide) || (rerollVanguard && !newVanguard))
-        ui.notifications.info("A requested Navigation reroll was canceled. The prior result remains available for GM review.");
+        console.info("[ZFT][HexTravel]", "A requested Navigation reroll was canceled. The prior result remains available for GM review.");
     }
     const success = review.guide === "roll" ? autoGuide : review.guide === "success";
     const vanguardSuccess = secondary ? (review.vanguard === "roll" ? autoVanguard : review.vanguard === "success") : null;

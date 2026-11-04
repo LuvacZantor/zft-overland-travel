@@ -33,21 +33,27 @@ export function primaryHexTravelAction(ledger = {}) {
       kind: "resolve-role", phase: "support", label: "Resolve Expedition Support", blocked: false,
       recordId: record.id, recordNumber: record.number, reason: `Resolve Expedition Support for Hex ${record.number}.`
     };
-    const eventPending = record.phases?.event !== "completed";
-    const resolutionPending = record.eventResolution?.status === "pending";
-    if (resolutionPending && !eventPending) {
+    const preparationPending = record.phases?.travelQuality !== "completed" || record.phases?.momentum !== "completed";
+    if (preparationPending) return {
+      kind: "blocked", label: "Resolve Expedition", blocked: true,
+      recordId: record.id, recordNumber: record.number,
+      reason: `Hex ${record.number} still needs its automatic Travel Quality and Momentum calculation.`
+    };
+    if (record.phases?.event !== "completed") return {
+      kind: "roll-event", label: "Roll Event", blocked: false,
+      recordId: record.id, recordNumber: record.number,
+      reason: `Roll the Event for Hex ${record.number}. Travel remains staged until the Event is resolved.`
+    };
+    if (record.eventResolution?.status === "pending") {
       const eventLabel = EXPEDITION_EVENT_LABELS[record.event?.type] ?? record.event?.label ?? "Event";
       return {
         kind: "resolve-event", label: `Resolve ${eventLabel}`, blocked: false,
         recordId: record.id, recordNumber: record.number, reason: `Resolve the ${eventLabel} before travel can be committed.`
       };
     }
-    const reason = eventPending
-      ? `Hex ${record.number} still needs Travel Quality, Momentum, and its Event resolved.`
-      : `Hex ${record.number} is not yet ready to commit travel.`;
     return {
       kind: "blocked", label: "Resolve Expedition", blocked: true,
-      recordId: record.id, recordNumber: record.number, reason
+      recordId: record.id, recordNumber: record.number, reason: `Hex ${record.number} is not yet ready to commit travel.`
     };
   }
 

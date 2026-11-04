@@ -2,6 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { startHexRecord } from "../src/engines/hex-travel/HexTravelRecords.js";
 import { resumeHexExpeditionWorkflow } from "../src/engines/hex-travel/HexExpeditionWorkflow.js";
+import { rollHexExpeditionEvent } from "../src/engines/hex-travel/HexExpeditionRuntime.js";
 
 const MODULE="zft-overland-travel";
 const LEDGER="hexTravelLedger";
@@ -35,7 +36,7 @@ function fixture() {
   return {get:()=>clone(ledger)};
 }
 
-test("manual staged workflow resolves one role group per invocation and calculates outcome after Support", async()=>{
+test("manual staged workflow resolves one role group per invocation, prepares outcome after Support, and waits for explicit Event roll", async()=>{
   const f=fixture();
   const first=await resumeHexExpeditionWorkflow("hex-1",{
     prompt:async options=>{
@@ -65,14 +66,22 @@ test("manual staged workflow resolves one role group per invocation and calculat
   assert.equal(record.phases.support,"completed");
   assert.equal(record.phases.travelQuality,"completed");
   assert.equal(record.phases.momentum,"completed");
-  assert.equal(record.phases.event,"completed");
-  assert.equal(record.event.type,"quietTravel");
-  assert.equal(record.eventResolution.status,"resolved");
-  assert.equal(second.readyForTravel,true);
+  assert.equal(record.phases.event,"pending");
+  assert.equal(record.event,undefined);
+  assert.equal(second.stopped,"eventPending");
+  assert.equal(second.readyForTravel,false);
+  assert.ok(second.preparation?.travelQuality);
   assert.equal(after.hours,0);
   assert.equal(after.pending,6);
   assert.equal(after.hexes,0);
   assert.equal(after.activeHexCardId,"hex-1");
+
+  const rolled=await rollHexExpeditionEvent("hex-1",{eventRoll:13,now:500});
+  assert.equal(rolled.event.type,"quietTravel");
+  after=f.get();
+  record=after.hexRecords.records[0];
+  assert.equal(record.phases.event,"completed");
+  assert.equal(record.eventResolution.status,"resolved");
 });
 
 test("manual staged workflow stops safely when role adjudication is canceled", async()=>{
