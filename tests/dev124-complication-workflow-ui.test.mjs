@@ -14,12 +14,14 @@ test("dev.124 Dashboard Current Step mirrors the active Complication identity an
 });
 
 test("dev.124+ Details uses compact hierarchy instead of one long vertical stack", () => {
+  // Dev.126 condensed the older layout while preserving the GM controls.
   assert.match(source, /zft-complication-guidance-list/);
-  assert.match(source, /Recovery Objective/);
-  assert.match(source, /zft-complication-allowed-row/);
+  assert.match(source, /zft-complication-guidance-row/);
   assert.match(source, /zft-complication-consequence-chips/);
   assert.match(css, /zft-complication-detail-meta \{[\s\S]*?grid-template-columns:repeat\(2,minmax\(0,1fr\)\)/);
-  assert.match(css, /zft-complication-outcome-reference \{[\s\S]*?grid-template-columns:repeat\(2,minmax\(0,1fr\)\)/);
+  assert.match(css, /zft-resolution-outcome-list/);
+  const finalCss = css.slice(css.lastIndexOf("/* dev.130:"));
+  assert.match(finalCss, /grid-template-columns:minmax\(0,1fr\)/);
   assert.match(css, /max-height:min\(82vh,820px\)/);
 });
 

@@ -1,49 +1,51 @@
-# ZFT Overland Travel | Active Development Handoff · dev.126
+# ZFT Overland Travel | Active Development Handoff — 0.4.0-dev.130
 
-**Verified development source:** `0.4.0-dev.126`, committed on `feature/expedition-engines` on 2026-11-04.
-**Last source-changing checkpoint:** [`55bd7d9e90027366e2bec516ace30e5d0d0a14d7`](https://github.com/LuvacZantor/zft-overland-travel/commit/55bd7d9e90027366e2bec516ace30e5d0d0a14d7); the subsequent documentation-only commit changes no runtime files.
-**Branch to inspect:** `feature/expedition-engines`; use the exact current branch HEAD from [the canonical project status](https://github.com/LuvacZantor/zft-overland-travel/blob/main/PROJECT_STATUS.md).
-**Live target:** Foundry V13.351 / D&D5e 5.2.5.  
-**GitHub status:** dev.126 source is committed. The documentation reorganization does not merge, release, deploy, or certify live Foundry acceptance.
+**Local complete manual ZIP:** `zft-overland-travel-v0.4.0-dev.130.zip`. **Target:** Foundry V13.351 / D&D5e 5.2.5. **Evidence:** locally validated only; live GM/player acceptance pending. This is a development test build, not a stable release.
 
-## Dev.126 scope
+**Authoritative GitHub source:** `feature/expedition-engines` contains the full dev.130 source checkpoint (runtime, tests, manifest, current documentation, and validation records). Use [main/PROJECT_STATUS.md](https://github.com/LuvacZantor/zft-overland-travel/blob/main/PROJECT_STATUS.md) for the **exact new development commit SHA** and distinction from the previous dev.126 source. Do not infer that the GitHub default `main` module is current.
 
-- Refine pending Complication Details as a decision aid rather than a collection of equal-weight cards.
-- Preserve Situation as the focal content.
-- Reduce metadata to **Reconnaissance** and **Mitigation**. Mitigation reports actual Operational Readiness availability from the source hex and identifies the optional `-1 Consequence Severity` effect when available.
-- Remove pre-resolution **Threat Handoff** metadata. Threat remains selectable later as an allowed consequence and still records the deferred Threat Engine handoff.
-- Stack **Recovery Objective** and **Suggested Response** in one compact full-width guidance list.
-- Make **Allowed Consequences** a compact inline row.
-- Keep **Outcome Guidance** on Details but compress it into a denser two-column reference.
-- Preserve dev.125 one-screen Primary + Detail generation, GM reroll/choose controls and additive generation history; preserve dev.124 GM-adjudication-only resolution and deterministic Navigation consequence application.
+## Dev.130 current change: early Event resolution summary and unified presentation
 
-## Mandatory preservation
+**Base:** Complete locally validated dev.129 ZIP (preserved for rollback). **Delivery:** Complete dev.130 manual-install ZIP with SHA-256 `c5e129e73f31e92001e4345b95385e7705e952537b0fc83469cb01357f5c6871`; 197 file entries, ZIP CRC valid. **Remote:** the dev.130 source is checkpointed on `feature/expedition-engines`, not merged to `main`. Five historical documents originally updated by the dev.126 documentation cleanup remain preserved from the existing feature branch rather than being overwritten with stale copies in the earlier local ZIP.
 
-Preserve travel/world-clock checkpoints, role/recon/support outcomes, Momentum/Event state, Forced March/Exhaustion, roster/attendance, saved history, themes, packs/assets, migration, optional integrations, prior Complication records, and exact `src/expeditions/mount-ironrot/MountIronrotV413.source.js`.
+- **Dashboard:** Reuse the saved final-result component immediately after the Event/Complication is actually resolved, *before* the first travel hour is committed. Show **Resolution Recorded · Hex N / Travel Pending** while the hex is in progress, including a current remaining-hours label. Once all hours commit, transition to **Final Result · Hex N / Completed**. Clicking **Start Travel** dismisses the old Dashboard result without deleting history.
+- **Travel Log:** The owning saved hex shows the same public-safe summary as soon as its Event resolution is saved. It remains tied to the hex, including when it spans travel days, and transitions to a completed summary with the final committed hours.
+- **One outcome-row style:** Both Standard and Major Complication Details and selectable GM adjudication use one shared four-row geometry. Keep the actual outcome meanings, color semantics, consequence-selection rules, and GM actions unchanged. No placeholder support is added for unfinished Opportunity/Threat engines.
+- **Compact final result:** Remove the narrow fact grid in favor of full-width labeled details and a compact outcome heading. Redact GM-only notes/hidden Complication information on player clients; preserve all original saved words and data. Success, failure and neutral ruling labels use their appropriate theme colors.
+- **Safety:** This is presentation-only. No new setting, saved schema, time commit, dice, role calculation, consequence processing, Event routing, Momentum, sound cue, log clearing, compendium, asset, migration or original Mount Ironrot source change. All prior dev.129 dice evidence, GM color updates, Forced March DC and dev.128 export stay intact.
 
-## Live checks
+### Required Foundry acceptance
 
-1. Open a pending Navigation Complication at 1920×1080 and confirm Situation remains visually dominant.
-2. Verify metadata contains only Reconnaissance and Mitigation; Threat metadata is absent.
-3. Verify Mitigation says Operational Readiness is available only when the source hex actually earned it, otherwise `Unavailable this hex`.
-4. Verify Recovery Objective and Suggested Response read naturally as stacked list sections, not side-by-side cards.
-5. Verify Allowed Consequences is compact and still includes Threat where valid.
-6. Verify Outcome Guidance remains visible and readable with substantially less vertical space.
-7. Recheck dev.125 GM Result Control and dev.124 Resolve Complication behavior afterward.
+Test one Quiet Travel, Opportunity, Standard Complication and Major Complication; verify the pending summary after GM resolution, after a partial travel commit and Forced March, then after completion and Start Travel. Verify GM/player notes, clearance/reload, all saved outcomes and consequences. Open Complication Details and Resolve Complication at narrow and ordinary widths, check the same four compact outcome rows without broken words, controls and keyboard/radio selection. Compare travel ledger and world clock before and after viewing summaries. See `../INTEGRATION_TEST_NOTES.md`.
 
----
+## Preserved dev.129 change: read-only roll evidence, GM color consistency and focused UI fixes
 
-## Next queued change (not implemented)
+- `HexRoleDiceEvidence.js` extracts actual evaluated d20 faces from matched native Midi return values or matching public ChatMessages without making any new roll or relying on pre-dialog request defaults. Two faces include used/dropped selection; mode is Advantage, Disadvantage, Normal, or Unknown only when supported by actual roll metadata. No fabricated data.
+- Guide/Vanguard and Scout/Tracker/Forager/Coordinator carry this evidence during GM review and in the permanent saved record. The Log renders its compact evidence underneath the role/check identity. Saved data export includes the same fields automatically. Older records remain valid.
+- All six GM ruling selects show theme-relative Success/Failure/Re-roll colors with text previews. The Complication Details GM Result Control now stacks and wraps within the panel. The Forced March Current Step marks Constitution Save DC with a compact amber chip.
+- No change to gameplay probabilities, formulas, DC computation, Event/Complication generation, role outcome adjudication, world time, or UI settings. Original source, packs/assets, themes and older saved records remain protected.
 
-- In the Expedition Log, show actual completed player d20 rolls immediately for all three paired categories: Navigation, Reconnaissance, and Expedition Support, while the corresponding GM decisions remain **Pending GM**. Retain the original rolled totals after GM acceptance, reroll, or override. This feedback is pending a separately requested module build; this documentation-only commit changes no code.
+## Dev.128 change: GM-only built-in exporter
 
-## Source routing and preserved history
+- The Expedition Log header has one **Export Data** control on GM clients only. It initiates a local JSON file download. Player clients do not receive the control; the handler checks GM permission a second time.
+- Source: `src/engines/hex-travel/HexExpeditionDataExport.js` and one small control/action in `HexTravelConsole.js`. No edits to travel math, role adjudication, Event routing, Complication consequences, time/clock handling, or save paths.
+- Export format: `zft-expedition-data-v1`. It contains environment/version, stable per-hex IDs, a compact analytical view, the full saved travel ledger/hex records (including roles, travel quality, Momentum, Events, Complications, pending state, forced-march history) and saved presentation/log cards and dates. This is a point-in-time read, not a new telemetry database.
+- **Known data gaps:** Historical Event roll-control mode and earlier replaced reroll attempts are not reliably saved. They are marked unknown; do not use them as proven naturally random samples. Saved visual cards retain only the most recent 15 entries, but the structured hex records may retain older crossings. Later exports can overlap; deduplicate by world ID and stable hex ID.
+- Export never calls `game.settings.set`, never modifies world time, and never deletes or clears any data. The JSON may contain private GM notes and identities; it is not player-safe or intended for public sharing.
 
-- [Canonical current project status](https://github.com/LuvacZantor/zft-overland-travel/blob/main/PROJECT_STATUS.md) identifies the active development branch and verified source HEAD.
-- [Current live acceptance checks](../INTEGRATION_TEST_NOTES.md), [dev.126 local evidence](LOCAL_VALIDATION_DEV126.md), and [validation index](validation/INDEX.md) distinguish locally validated code from live-tested behavior.
-- [Expedition System 1.1 design](EXPEDITION_SYSTEM_DESIGN_1.1_DRAFT.md) remains a detailed design/roadmap with historical sections; the latest implementation and tests take precedence for present-tense claims.
-- [Superseded development handoffs](history/DEVELOPMENT_HANDOFF_ARCHIVE.md) preserve all prior handoff text exactly as recorded, not as current instruction.
-- [Historical status notes](history/DEVELOPMENT_STATUS_ARCHIVE.md) and [historical README/changelog](../CHANGELOG.md) preserve prior version records.
-- Preserve existing travel ledger, world-clock checkpoints, roles and GM rulings, Forced March/Exhaustion, records and logs, themes, packs/assets, optional integrations, original Mount Ironrot v4.13 source, and public APIs. No migration or source rewrite is part of this cleanup.
+## Preserve and verify dev.127
 
-**Before new development:** verify live GitHub branch HEAD, `module.json`, and the latest handoff; do not infer newer source from a version number on an older branch. GitHub writes always need fresh, scoped approval.
+- Navigation: actual Guide/Vanguard rolled totals displayed **Pending GM** before travel dice, keeping the working Reconnaissance/Support system unchanged.
+- Completed-hex Final Result appears on Dashboard only after full travel completion and retracts on Start Travel; the same adjudicated result is present in permanent per-hex Log history, subject to existing visibility/retention policy.
+- World ledger, chronology, clock checkpoints, GM rulings, Forced March/Exhaustion, saved history, themes, packs/assets, migration and all optional integrations unchanged.
+- Protected original source: `src/expeditions/mount-ironrot/MountIronrotV413.source.js` must remain byte-for-byte identical to the verified dev.127 ZIP and Git baseline.
+
+## Validation / next action
+
+- [dev.130 local validation](LOCAL_VALIDATION_DEV130.md) and [dev.128 history](LOCAL_VALIDATION_DEV128.md)
+- [Live acceptance checklist](../INTEGRATION_TEST_NOTES.md)
+- [Validation index](validation/INDEX.md)
+
+Install in a copied world first; verify export button on GM and absence on player, downloaded JSON fields, no world-setting writes, preserved results after reload, and no changes to travel/gameplay. Retest outstanding dev.127 live checks separately.
+
+**Stopping-point status (2026-11-06):** The owner expressly approved one complete dev.130 source checkpoint on `feature/expedition-engines` and one documentation-only update of `main/PROJECT_STATUS.md`. Those are the only authorized GitHub operations. No code merge into `main`, stable release, tag, deployment, packaging optimization or new feature work occurred. **Live acceptance remains pending**; preserve dev.129 and dev.130 test ZIPs and take a world/data backup before any installation. The local dev.130 validation report is an immutable record of its pre-commit state, so older statements about GitHub remote status in that report are historical. Future GitHub writes require fresh, scoped approval.

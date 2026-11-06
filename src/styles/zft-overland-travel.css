@@ -4624,7 +4624,7 @@
 }
 
 #zft-hex-travel-workflow-window .zft-complication-generation-control {
-  display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:8px;padding:6px 8px;
+  display:grid;grid-template-columns:minmax(0,1fr);align-items:stretch;gap:8px;padding:8px;
   border:1px solid color-mix(in srgb,var(--zft-theme-border,#80603c) 55%,transparent);border-radius:7px;
   background:color-mix(in srgb,var(--zft-theme-window,#211a15) 90%,transparent);
 }
@@ -4632,9 +4632,9 @@
 #zft-hex-travel-workflow-window .zft-complication-generation-control > div:first-child > small {
   font-size:10px;line-height:1.3;color:var(--zft-theme-muted,#c4b7a7);
 }
-#zft-hex-travel-workflow-window .zft-complication-generation-actions {display:flex;flex-wrap:wrap;justify-content:flex-end;gap:5px;}
+#zft-hex-travel-workflow-window .zft-complication-generation-actions {display:flex;flex-wrap:wrap;justify-content:flex-start;gap:5px;min-width:0;}
 #zft-hex-travel-workflow-window .zft-complication-generation-actions button {
-  width:auto;min-height:26px;margin:0;padding:3px 7px;font-size:10px;line-height:1.15;white-space:nowrap;
+  width:auto;min-width:0;max-width:100%;min-height:26px;margin:0;padding:4px 7px;font-size:10px;line-height:1.2;white-space:normal;overflow-wrap:anywhere;
 }
 /* Inline GM generation controls drive hidden prompt actions so they do not duplicate in the footer. */
 #zft-hex-travel-workflow-window .zft-hex-prompt-actions > button[data-hex-prompt-action="rerollBoth"],
@@ -4651,3 +4651,179 @@
 
 /* dev.126: Complication Details decision-aid hierarchy. Threat remains selectable as a consequence, not metadata. */
 #zft-hex-travel-workflow-window .zft-complication-detail-meta > div:nth-child(2) dd {color:var(--zft-theme-heading,#f2e4d0);}
+
+/* dev.127: transient completed-hex summary; saved records remain authoritative. */
+#zft-hex-travel-console .zft-hex-final-result,
+#zft-hex-travel-log .zft-hex-final-result {
+  display:grid;gap:0;min-width:0;border:1px solid color-mix(in srgb,var(--zft-theme-success,#98caaa) 66%,var(--zft-theme-border,#80603c));
+  border-left:3px solid var(--zft-theme-success,#98caaa);border-radius:7px;
+  background:color-mix(in srgb,var(--zft-theme-panel,#2b231d) 92%,transparent);color:var(--zft-theme-text,#eadac3);
+}
+#zft-hex-travel-console .zft-hex-final-result > header,
+#zft-hex-travel-log .zft-hex-final-result > header {
+  display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;padding:8px 11px;
+  border-bottom:1px solid color-mix(in srgb,var(--zft-theme-border,#80603c) 48%,transparent);
+}
+#zft-hex-travel-console .zft-hex-final-result > header > strong,
+#zft-hex-travel-log .zft-hex-final-result > header > strong {
+  font-size:10px;letter-spacing:.07em;color:var(--zft-theme-success,#98caaa);
+}
+#zft-hex-travel-console .zft-hex-final-result > header > span,
+#zft-hex-travel-log .zft-hex-final-result > header > span {
+  font-size:9px;font-weight:800;text-transform:uppercase;color:var(--zft-theme-muted,#c4b7a7);
+}
+#zft-hex-travel-console .zft-hex-final-result-body,
+#zft-hex-travel-log .zft-hex-final-result-body {display:grid;gap:7px;padding:10px 11px;min-width:0;}
+#zft-hex-travel-console .zft-hex-final-title,
+#zft-hex-travel-log .zft-hex-final-title {font-size:15px;line-height:1.3;color:var(--zft-theme-heading,#f2e4d0);overflow-wrap:anywhere;}
+#zft-hex-travel-console .zft-hex-final-facts,
+#zft-hex-travel-log .zft-hex-final-facts {display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;}
+#zft-hex-travel-console .zft-hex-final-facts > span,
+#zft-hex-travel-log .zft-hex-final-facts > span {display:grid;gap:3px;min-width:0;}
+#zft-hex-travel-console .zft-hex-final-facts small,
+#zft-hex-travel-log .zft-hex-final-facts small {font-size:9px;letter-spacing:.04em;font-weight:850;color:var(--zft-theme-muted,#c4b7a7);}
+#zft-hex-travel-console .zft-hex-final-facts strong,
+#zft-hex-travel-log .zft-hex-final-facts strong {font-size:12.5px;line-height:1.3;color:var(--zft-theme-heading,#f2e4d0);overflow-wrap:anywhere;}
+#zft-hex-travel-console .zft-hex-final-detail,
+#zft-hex-travel-log .zft-hex-final-detail,
+#zft-hex-travel-console .zft-hex-final-impact,
+#zft-hex-travel-log .zft-hex-final-impact,
+#zft-hex-travel-console .zft-hex-final-gm-note,
+#zft-hex-travel-log .zft-hex-final-gm-note {margin:0;font-size:12px;line-height:1.45;overflow-wrap:anywhere;}
+#zft-hex-travel-console .zft-hex-final-detail,
+#zft-hex-travel-log .zft-hex-final-detail {color:var(--zft-theme-muted,#c4b7a7);}
+#zft-hex-travel-console .zft-hex-final-impact,
+#zft-hex-travel-log .zft-hex-final-impact {font-weight:700;color:var(--zft-theme-warning,#e0b46f);}
+#zft-hex-travel-console .zft-hex-final-duration,
+#zft-hex-travel-log .zft-hex-final-duration {font-size:10px;color:var(--zft-theme-muted,#c4b7a7);}
+#zft-hex-travel-log .zft-hex-final-result.is-log {margin-top:10px;}
+@media (max-width:640px) {
+  #zft-hex-travel-console .zft-hex-final-facts,
+  #zft-hex-travel-log .zft-hex-final-facts {grid-template-columns:minmax(0,1fr);}
+}
+
+/* dev.129: data-only role roll evidence, theme-safe GM ruling controls and
+   a visible Forced March DC. No changes to roll or travel calculations. */
+#zft-hex-travel-log .zft-hex-role-roll-evidence {
+  display:flex;align-items:center;gap:3px 5px;flex-wrap:wrap;min-width:0;margin-top:3px;
+  font-size:9px;line-height:1.3;color:var(--zft-theme-muted,#c4b7a7);
+}
+#zft-hex-travel-log .zft-hex-role-roll-evidence > b {
+  font-size:9px;font-weight:800;color:var(--zft-theme-heading,#f2d4a0);
+}
+#zft-hex-travel-log .zft-hex-role-roll-evidence > span.is-used {
+  padding:1px 4px;border:1px solid var(--zft-theme-success,#98caaa);border-radius:3px;
+  color:var(--zft-theme-success,#98caaa);font-weight:800;
+}
+#zft-hex-travel-log .zft-hex-role-roll-evidence > span.is-dropped {
+  padding:1px 4px;border:1px solid color-mix(in srgb,var(--zft-theme-muted,#c4b7a7) 35%,transparent);border-radius:3px;
+  color:var(--zft-theme-muted,#c4b7a7);text-decoration:line-through;
+}
+#zft-hex-travel-log .zft-hex-role-roll-evidence > .zft-hex-role-die-modifier {
+  font-size:9px;color:var(--zft-theme-text,#eadac3);
+}
+#zft-hex-travel-workflow-window .zft-hex-role-ruling-choice {display:grid;gap:3px;min-width:0;}
+#zft-hex-travel-workflow-window .zft-hex-role-ruling-choice > select {
+  min-width:0;width:100%;box-sizing:border-box;font-weight:800;
+}
+#zft-hex-travel-workflow-window .zft-hex-role-ruling-choice > select.is-success,
+#zft-hex-travel-workflow-window .zft-hex-navigation-ruling select.is-success {
+  color:var(--zft-theme-success,#98caaa)!important;border-color:var(--zft-theme-success,#98caaa)!important;
+}
+#zft-hex-travel-workflow-window .zft-hex-role-ruling-choice > select.is-failure,
+#zft-hex-travel-workflow-window .zft-hex-navigation-ruling select.is-failure {
+  color:var(--zft-theme-failure,#e69a9b)!important;border-color:var(--zft-theme-failure,#e69a9b)!important;
+}
+#zft-hex-travel-workflow-window .zft-hex-role-ruling-choice > select.is-reroll,
+#zft-hex-travel-workflow-window .zft-hex-navigation-ruling select.is-reroll {
+  color:var(--zft-theme-warning,#e0b46f)!important;border-color:var(--zft-theme-warning,#e0b46f)!important;
+}
+#zft-hex-travel-workflow-window .zft-hex-role-ruling-preview {
+  display:block;font-size:10px;line-height:1.25;font-weight:750;color:var(--zft-theme-muted,#c4b7a7);
+}
+#zft-hex-travel-workflow-window .zft-hex-role-ruling-preview.is-success {color:var(--zft-theme-success,#98caaa);}
+#zft-hex-travel-workflow-window .zft-hex-role-ruling-preview.is-failure {color:var(--zft-theme-failure,#e69a9b);}
+#zft-hex-travel-workflow-window .zft-hex-role-ruling-preview.is-reroll {color:var(--zft-theme-warning,#e0b46f);}
+#zft-hex-travel-console .zft-hex-current-step-save-dc {
+  display:inline-flex;align-items:center;flex-wrap:wrap;gap:5px;width:max-content;max-width:100%;
+  padding:3px 7px;margin-top:2px;border-radius:5px;
+  border:1px solid var(--zft-theme-warning,#e0b46f);
+  background:color-mix(in srgb,var(--zft-theme-warning,#e0b46f) 11%,var(--zft-theme-card,#30251e));
+  font-size:10px;font-weight:750;line-height:1.25;letter-spacing:.025em;
+  color:var(--zft-theme-heading,#f2d4a0);
+}
+#zft-hex-travel-console .zft-hex-current-step-save-dc > strong {
+  color:var(--zft-theme-warning,#e0b46f);font-size:10px;font-weight:900;
+}
+
+
+/* dev.130: consistent, compact resolution presentation.
+   Both Details guidance and GM adjudication share the same row geometry. */
+#zft-hex-travel-workflow-window .zft-resolution-outcome-list,
+#zft-hex-travel-workflow-window .zft-complication-adjudication .zft-resolution-outcome-list {
+  display:grid;grid-template-columns:minmax(0,1fr);gap:5px;min-width:0;
+}
+#zft-hex-travel-workflow-window .zft-resolution-outcome-list > div,
+#zft-hex-travel-workflow-window .zft-complication-adjudication .zft-resolution-outcome-list > label > span {
+  display:flex;flex-wrap:wrap;align-items:baseline;gap:5px 10px;min-width:0;padding:7px 10px;
+}
+#zft-hex-travel-workflow-window .zft-resolution-outcome-list > div > strong,
+#zft-hex-travel-workflow-window .zft-complication-adjudication .zft-resolution-outcome-list > label > span > strong {
+  flex:0 1 115px;min-width:100px;font-size:12px;line-height:1.35;overflow-wrap:normal;word-break:normal;
+}
+#zft-hex-travel-workflow-window .zft-resolution-outcome-list > div > span,
+#zft-hex-travel-workflow-window .zft-complication-adjudication .zft-resolution-outcome-list > label > span > small {
+  flex:1 1 180px;min-width:0;font-size:12px;line-height:1.38;overflow-wrap:normal;word-break:normal;
+}
+/* Selected failure remains failure-red rather than adopting the generic success accent. */
+#zft-hex-travel-workflow-window .zft-resolution-outcome-list > .is-failure input:checked + span,
+#zft-hex-travel-workflow-window .zft-resolution-outcome-list > .is-majorFailure input:checked + span {
+  border-color:var(--zft-theme-failure,#e69a9b);
+  background:color-mix(in srgb,var(--zft-theme-panel,#2b231d) 84%,var(--zft-theme-failure,#e69a9b));
+  box-shadow:inset 4px 0 0 var(--zft-theme-failure,#e69a9b),0 0 0 1px color-mix(in srgb,var(--zft-theme-failure,#e69a9b) 35%,transparent);
+}
+/* Shared resolved / travel-pending summary geometry for Dashboard and Log. */
+#zft-hex-travel-console .zft-hex-final-result.is-travel-pending,
+#zft-hex-travel-log .zft-hex-final-result.is-travel-pending {
+  border-color:color-mix(in srgb,var(--zft-theme-warning,#e0b46f) 65%,var(--zft-theme-border,#80603c));
+  border-left-color:var(--zft-theme-warning,#e0b46f);
+}
+#zft-hex-travel-console .zft-hex-final-result.is-travel-pending > header > strong,
+#zft-hex-travel-log .zft-hex-final-result.is-travel-pending > header > strong {
+  color:var(--zft-theme-warning,#e0b46f);
+}
+#zft-hex-travel-console .zft-hex-final-result-body,
+#zft-hex-travel-log .zft-hex-final-result-body {gap:5px;padding:8px 10px;}
+#zft-hex-travel-console .zft-hex-final-headline,
+#zft-hex-travel-log .zft-hex-final-headline {
+  display:flex;align-items:baseline;justify-content:space-between;flex-wrap:wrap;gap:3px 10px;min-width:0;
+}
+#zft-hex-travel-console .zft-hex-final-title,
+#zft-hex-travel-log .zft-hex-final-title {font-size:14px;line-height:1.26;flex:1 1 160px;}
+#zft-hex-travel-console .zft-hex-final-outcome,
+#zft-hex-travel-log .zft-hex-final-outcome {
+  font-size:11px;font-weight:750;line-height:1.35;color:var(--zft-theme-success,#98caaa);overflow-wrap:normal;
+}
+#zft-hex-travel-console .zft-hex-final-facts,
+#zft-hex-travel-log .zft-hex-final-facts {display:grid;grid-template-columns:minmax(0,1fr);gap:3px;}
+#zft-hex-travel-console .zft-hex-final-facts > span,
+#zft-hex-travel-log .zft-hex-final-facts > span {
+  display:flex;align-items:baseline;flex-wrap:wrap;gap:3px 8px;min-width:0;
+}
+#zft-hex-travel-console .zft-hex-final-facts small,
+#zft-hex-travel-log .zft-hex-final-facts small {text-transform:uppercase;min-width:78px;}
+#zft-hex-travel-console .zft-hex-final-facts strong,
+#zft-hex-travel-log .zft-hex-final-facts strong {font-size:11.5px;line-height:1.35;overflow-wrap:normal;word-break:normal;}
+#zft-hex-travel-console .zft-hex-final-detail,
+#zft-hex-travel-log .zft-hex-final-detail,
+#zft-hex-travel-console .zft-hex-final-gm-note,
+#zft-hex-travel-log .zft-hex-final-gm-note,
+#zft-hex-travel-console .zft-hex-final-impact,
+#zft-hex-travel-log .zft-hex-final-impact {font-size:11px;line-height:1.35;}
+#zft-hex-travel-console .zft-hex-final-duration,
+#zft-hex-travel-log .zft-hex-final-duration {font-size:10px;line-height:1.25;}
+
+#zft-hex-travel-console .zft-hex-final-outcome.is-negative,
+#zft-hex-travel-log .zft-hex-final-outcome.is-negative {color:var(--zft-theme-failure,#e69a9b);}
+#zft-hex-travel-console .zft-hex-final-outcome.is-neutral,
+#zft-hex-travel-log .zft-hex-final-outcome.is-neutral {color:var(--zft-theme-heading,#f2e4d0);}

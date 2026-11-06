@@ -34,6 +34,8 @@ test("dev.126 Allowed Consequences is compact and Threat remains selectable ther
 
 test("dev.126 Outcome Guidance remains present but uses a denser decision-reference layout", () => {
   assert.match(source, /Outcome Guidance/);
-  assert.match(css, /zft-complication-outcome-reference > div \{[\s\S]*?grid-template-columns:92px minmax\(0,1fr\)/);
+  const finalCss=css.slice(css.lastIndexOf("/* dev.130:"));
+  assert.match(finalCss, /zft-resolution-outcome-list/);
+  assert.match(finalCss, /display:flex;flex-wrap:wrap/);
   assert.match(css, /max-height:min\(82vh,820px\)/);
 });

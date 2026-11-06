@@ -4,6 +4,7 @@
  * Threat, supplies, or Events.
  */
 import { MODULE_ID } from "../../constants/module-constants.js";
+import { captureNativeD20Evidence, nativeRollMessageId } from "./HexRoleDiceEvidence.js";
 import { EXPEDITION_ROLES } from "./HexTravelRoles.js";
 import { buildRolePhasePlan, buildRolePhaseResolution, EXPEDITION_ROLE_PHASES } from "./HexExpeditionRoleResolution.js";
 import { cloneHexRecordStore, saveHexRolePhase } from "./HexTravelRecords.js";
@@ -154,7 +155,12 @@ async function requestRoleRoll({ recordId, phase, slot, actor, dc, socket, midiV
     const total = totalFromRemote(outcome?.value);
     if (total === null) throw new Error(`${actor.name}'s ${slot.roleName} check did not return a usable total.`);
     await waitForNativeRollPresentation(outcome.value, observedMessageId);
-    return { total, rollerId: roller.id };
+    const messageId = nativeRollMessageId(outcome.value, observedMessageId);
+    const rollEvidence = captureNativeD20Evidence({
+      remote: outcome.value, message: messageId ? game.messages?.get?.(messageId) ?? null : null,
+      total, actorId: actor.id, rollerId: roller.id
+    });
+    return { total, rollerId: roller.id, rollEvidence };
   }
 }
 
@@ -195,14 +201,21 @@ function reviewRows(plan, rolls, rulings = {}) {
     const selected = rulings[slot.role] ?? "roll";
     const selectedAttr = value => selected === value ? " selected" : "";
     const rerolls = Math.max(0, Number(roll?.rerolls) || 0);
+    const pendingReroll = selected === "reroll";
+    const effective = selected === "roll" ? passed : selected === "success";
+    const tone = pendingReroll ? "reroll" : effective ? "success" : "failure";
+    const preview = pendingReroll ? "Re-roll requested" : `${effective ? "Success" : "Failure"}${selected === "roll" ? " · matches roll" : " · GM override"}`;
     return `<div class="zft-hex-role-ruling-row" data-hex-role-ruling-row="${esc(slot.role)}">
       <div class="zft-hex-role-ruling-identity"><strong>${esc(slot.actorName)} · ${esc(slot.roleName)}</strong><span>${esc(skillLabel(slot.skill))} ${Number(roll.total)} vs DC ${plan.dc} · Rolled ${passed ? "Success" : "Failure"}${rerolls ? ` · Rerolled ×${rerolls}` : ""}</span></div>
-      <select name="ruling-${esc(slot.role)}" aria-label="GM ruling for ${esc(slot.roleName)}">
-        <option value="roll"${selectedAttr("roll")}>Use Roll (${passed ? "Success" : "Failure"})</option>
-        <option value="success"${selectedAttr("success")}>Count as Success</option>
-        <option value="failure"${selectedAttr("failure")}>Count as Failure</option>
-        <option value="reroll"${selectedAttr("reroll")}>Re-roll Check</option>
-      </select></div>`;
+      <div class="zft-hex-role-ruling-choice">
+        <select class="is-${tone}" name="ruling-${esc(slot.role)}" aria-label="GM ruling for ${esc(slot.roleName)}" data-roll-passed="${passed}">
+          <option value="roll"${selectedAttr("roll")}>Use Roll (${passed ? "Success" : "Failure"})</option>
+          <option value="success"${selectedAttr("success")}>Count as Success</option>
+          <option value="failure"${selectedAttr("failure")}>Count as Failure</option>
+          <option value="reroll"${selectedAttr("reroll")}>Re-roll Check</option>
+        </select>
+        <small class="zft-hex-role-ruling-preview is-${tone}" data-hex-role-ruling-preview="${esc(slot.role)}">${esc(preview)}</small>
+      </div></div>`;
   }).join("");
 }
 
@@ -253,6 +266,7 @@ async function resolvePhase(recordId, phase, prompt, registerPending, unregister
           return [slot.role, { role: slot.role, roleName: slot.roleName, actorName: slot.actorName,
             actorUuid: slot.actorUuid, skill: slot.skill, ability: slot.ability, total: Number(roll.total),
             rollerId: roll.rollerId, rerolls: Math.max(0, Number(roll.rerolls) || 0), rolledSuccess,
+            rollEvidence: roll.rollEvidence ?? null,
             ruling, success: ruling === "success" ? true : ruling === "failure" ? false : rolledSuccess }];
         }))
       };
@@ -273,6 +287,16 @@ async function resolvePhase(recordId, phase, prompt, registerPending, unregister
               const row = current?.rolls?.[role];
               if (!row) return;
               const ruling = select.value;
+              const reroll = ruling === "reroll";
+              const effective = ruling === "roll" ? row.rolledSuccess : ruling === "success";
+              const tone = reroll ? "reroll" : effective ? "success" : "failure";
+              select.classList.remove("is-success", "is-failure", "is-reroll");
+              select.classList.add(`is-${tone}`);
+              const preview = select.closest(".zft-hex-role-ruling-choice")?.querySelector("[data-hex-role-ruling-preview]");
+              if (preview) {
+                preview.className = `zft-hex-role-ruling-preview is-${tone}`;
+                preview.textContent = reroll ? "Re-roll requested" : `${effective ? "Success" : "Failure"}${ruling === "roll" ? " · matches roll" : " · GM override"}`;
+              }
               row.ruling = ruling;
               row.success = ruling === "success" ? true : ruling === "failure" ? false : row.rolledSuccess;
               publishTransient(recordId, phase, current, onTransient);

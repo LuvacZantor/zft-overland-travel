@@ -18,7 +18,8 @@ test("dev.117 separates Complication hierarchy and metadata instead of concatena
   assert.match(source, /zft-complication-section-label/);
   assert.match(source, /<dl class="zft-complication-detail-meta">/);
   assert.match(source, /<dt>Reconnaissance<\/dt><dd>/);
-  assert.match(source, /<dt>Mitigation<\/dt><dd>/);
+  // Dev.126 narrowed metadata to Reconnaissance and calculated Mitigation.
+  assert.match(source, /<dt>Mitigation<\/dt><dd>\$\{esc\(mitigation\)\}<\/dd>/);
   assert.doesNotMatch(source, /<dt>Threat Handoff<\/dt><dd>/);
 });
 

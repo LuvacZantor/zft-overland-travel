@@ -12,6 +12,7 @@ import { DEFAULT_HEX_DIFFICULTY_PREFERENCES } from "./HexDifficulty.js";
 import { DEFAULT_NEW_DAY_PREFERENCES } from "./NewTravelDayPreferences.js";
 import { hexHoursForId } from "./HexTravelHourHistory.js";
 import { cloneHexRecordStore, markHexRecordLedgerCorrection, hexRecordReadyForTravel, resetCurrentHexRecord } from "./HexTravelRecords.js";
+import { latestDisplayableHexResult } from "./HexFinalResult.js";
 import { EXPEDITION_EVENT_LABELS, EXPEDITION_EVENT_TYPES, EXPEDITION_MOMENTUM_TRACK, EXPEDITION_MOMENTUM_EVENT_MODIFIER } from "./HexExpeditionOutcome.js";
 import { rollHexExpeditionEvent, resolveHexEventManually, ensureHexComplication, reviseHexComplicationGeneration, resolveHexComplicationOutcome } from "./HexExpeditionRuntime.js";
 import { getHexRoleResolutionTransient, clearHexRoleResolutionTransient } from "./HexTravelRoleResolution.js";
@@ -27,6 +28,7 @@ import {
   NAVIGATION_CONSEQUENCE_TYPES, RESOURCE_LOSS_ITEMS, navigationSeverityPlan, navigationConsequenceEvidence
 } from "../complication/ExpeditionComplication.js";
 import { rollControlledDice } from "../rolls/GmRollControl.js";
+import { exportExpeditionDataFromFoundry } from "./HexExpeditionDataExport.js";
 
 const STATE_KEY = "hexTravelLedger";
 const SNAPSHOT_KEY = "hexTravelSnapshot";
@@ -715,7 +717,7 @@ function expeditionRolesReferenceHtml() {
   }).join("")}</section>`).join("");
 }
 
-function makeCards(snapshot) {
+function makeCards(snapshot, { dismissedFinalResultId = null } = {}) {
   const s = snapshot.state ?? DEFAULT_LEDGER;
   const hours = num(s.hours);
   const pending = num(s.pending);
@@ -739,6 +741,13 @@ function makeCards(snapshot) {
       ? liveRecordStore.records.find(record => record.id === live.activeHexCardId) ?? null
       : null;
   } catch (error) { console.warn("[ZFT][HexTravel] Could not read staged Expedition record for NEXT status", error); }
+  const savedTravelCards = game.settings.get(MODULE_ID, CARDS_KEY)?.cards ?? [];
+  const lastCompletedHex = latestDisplayableHexResult(liveRecordStore.records, savedTravelCards, {
+    pending, activeHexCardId: s.activeHexCardId, dismissedId: dismissedFinalResultId
+  });
+  const completedComplication = lastCompletedHex && Array.isArray(liveRecordStore.complications)
+    ? liveRecordStore.complications.find(entry => entry.sourceHexRecordId === lastCompletedHex.id) ?? null : null;
+  const dashboardFinalResult = lastCompletedHex ? completedHexFinalResultHtml(lastCompletedHex, completedComplication, "dashboard") : "";
   const staged = !!activeRecord && !hexRecordReadyForTravel(activeRecord);
   let activeComplication = null;
   try {
@@ -784,7 +793,9 @@ function makeCards(snapshot) {
     } else if (safeRemaining) {
       currentStep = { phase: "travel", icon: "fa-route", title: "Continue Travel", detail: `${safeAvailable} ${safeAvailable === 1 ? "safe travel hour" : "safe travel hours"} available${pending > safeRemaining ? " before Forced March begins" : " to finish the current hex"}`, after: "The active hex remains in progress until its remaining hours are committed." };
     } else {
-      currentStep = { phase: "forced", icon: "fa-person-hiking", title: "Continue Forced March", detail: `Travel hour ${nextHour} · Constitution save DC ${10 + nextHour - 8}`, after: "Each additional travel hour requires its Forced March adjudication." };
+      currentStep = { phase: "forced", icon: "fa-person-hiking", title: "Continue Forced March",
+        detail: `Travel hour ${nextHour}`, saveDC: 10 + nextHour - 8,
+        after: "Each additional travel hour requires its Forced March adjudication." };
     }
   } else {
     currentStep = { phase: "navigation", icon: "fa-compass", title: "Start Travel", detail: "Begin a new hex or start a New Travel Day.", after: "Next hex: Navigation → Reconnaissance → Expedition Support" };
@@ -902,9 +913,11 @@ function makeCards(snapshot) {
       <div class="zft-hex-current-step-topline"><span class="zft-hex-current-step-label">CURRENT STEP</span>${currentStep.status ? `<span class="zft-hex-current-step-status">${esc(currentStep.status)}</span>` : ""}</div>
       <div class="zft-hex-current-step-heading"><i class="fa-solid ${esc(currentStep.icon)}" aria-hidden="true"></i><strong>${esc(currentStep.title)}</strong></div>
       <span class="zft-hex-current-step-detail">${esc(currentStep.detail)}</span>
+      ${currentStep.saveDC != null ? `<span class="zft-hex-current-step-save-dc">CONSTITUTION SAVE <strong>DC ${esc(currentStep.saveDC)}</strong></span>` : ""}
       ${currentStep.context ? `<strong class="zft-hex-current-step-context">${esc(currentStep.context)}</strong>` : ""}
       <small>${esc(currentStep.after)}</small>
     </section>
+    ${dashboardFinalResult}
     <div class="zft-hex-stats zft-hex-stats-overview" aria-label="Current expedition travel summary">
       ${spanStat("DAY", Math.max(1, num(s.day)))}
       ${spanStat("TRAVEL HOURS TODAY", `${hours}h`, hoursStatus, forced > 0 ? "forced" : safeRemaining === 0 ? "limit" : "safe")}
@@ -941,7 +954,7 @@ function makeCards(snapshot) {
   // Existing records remain unchanged. Historical saves with no hexId stay in
   // a clearly identified day-level legacy section; timestamps are NOT proof of
   // which hex was traveled when the save was rolled.
-  const travelCards = game.settings.get(MODULE_ID, CARDS_KEY)?.cards ?? [];
+  const travelCards = savedTravelCards;
   const visibility = game.settings.get(MODULE_ID, LOG_KEY) ?? {};
   const hiddenHistory = new Set(visibility.hiddenHistoryKeys ?? []);
   const hexRecords = travelCards.filter(record => record?.id && record?.html).map(record => {
@@ -1125,6 +1138,13 @@ function makeCards(snapshot) {
     const displayRecord = hexItem.shared ?? (isCurrent ? activeExpeditionPreviewRecord(record, id, number) : null);
     const sharedHistory = !continued && displayRecord ? expeditionHexHistoryHtml(displayRecord) :
       continued && displayRecord ? `<div class="zft-hex-expedition-continuation"><small>Expedition roles and Event were resolved when ${esc(hexLabel)} began on Day ${esc(startingDay)}.</small></div>` : "";
+    // For a hex spanning several travel days, place its permanent final
+    // result in the day where the last travel hour was committed, not the
+    // earlier day that only contained its opening Navigation roll.
+    const finalDay = segmentDay === lastTravelDay;
+    const savedComplication = finalDay && displayRecord && Array.isArray(liveRecordStore.complications)
+      ? liveRecordStore.complications.find(entry => entry.sourceHexRecordId === displayRecord.id) ?? null : null;
+    const finalHistory = finalDay && displayRecord ? completedHexFinalResultHtml(displayRecord, savedComplication, "log") : "";
     const marchHtml = [...marches].sort((a,b) => b.entry.hour - a.entry.hour).map(renderMarch).join("");
     const hasLiveMarch = isCurrent && hours >= 8 && ["Forced march decision", "Forced march", "Saving throws", "Rerolling", "GM review"].includes(String(snapshot.phase ?? ""));
     const marchHeading = marches.length || hasLiveMarch
@@ -1142,7 +1162,7 @@ function makeCards(snapshot) {
       ? Math.max(0, rolledHours - priorTracked) : null;
     const carryNote = carriedHours > 0 ? `<div class="zft-hex-hex-day-breakdown is-carried"><small>${esc(carriedHours)}h of unfinished travel carried into Day ${esc(today)}. ${esc(pending)}h still remaining.</small></div>` : "";
     return stateCard(`hex:${id}:day:${segmentDay ?? "undated"}`,
-      `<details class="zft-hex-log-history zft-hex-hex-section ${isCurrent ? "zft-hex-hex-active" : ""} ${hexItem.complete ? "zft-hex-hex-complete" : ""}" data-hex-history data-hex-hex-revision="${esc(revision)}" data-hex-hex-latest="${isLatest ? "true" : "false"}" ${defaultOpen ? "open" : ""}><summary><span class="zft-hex-hex-head-main"><span class="zft-hex-history-label"><i class="fa-solid ${isCurrent ? "fa-hourglass-half" : "fa-map-location-dot"}" aria-hidden="true"></i> ${esc(header)}</span><span class="zft-hex-hex-header-meta">${hourHeadingHtml}${childCount}</span></span>${liveStatus}</summary><div class="zft-hex-hex-contents">${split}${carryNote}${legacyTotalNote}<div class="zft-hex-hex-roll-container">${rolls}</div>${sharedHistory}<div class="zft-hex-hex-events" data-hex-hex-events="${esc(id)}">${marchHeading}${marchHtml}</div></div></details>`,
+      `<details class="zft-hex-log-history zft-hex-hex-section ${isCurrent ? "zft-hex-hex-active" : ""} ${hexItem.complete ? "zft-hex-hex-complete" : ""}" data-hex-history data-hex-hex-revision="${esc(revision)}" data-hex-hex-latest="${isLatest ? "true" : "false"}" ${defaultOpen ? "open" : ""}><summary><span class="zft-hex-hex-head-main"><span class="zft-hex-history-label"><i class="fa-solid ${isCurrent ? "fa-hourglass-half" : "fa-map-location-dot"}" aria-hidden="true"></i> ${esc(header)}</span><span class="zft-hex-hex-header-meta">${hourHeadingHtml}${childCount}</span></span>${liveStatus}</summary><div class="zft-hex-hex-contents">${split}${carryNote}${legacyTotalNote}<div class="zft-hex-hex-roll-container">${rolls}</div>${sharedHistory}${finalHistory}<div class="zft-hex-hex-events" data-hex-hex-events="${esc(id)}">${marchHeading}${marchHtml}</div></div></details>`,
       "zft-hex-hex-card zft-hex-hex-parent-card").html;
   };
 
@@ -1298,7 +1318,7 @@ function roleOutcomeText(result) {
   if (result.awaitingConfirmation) {
     const rolled = result.rolledSuccess ? "Success" : "Failure";
     const provisional = result.ruling && result.ruling !== "roll" ? ` · GM provisional ${result.success ? "Success" : "Failure"}` : "";
-    return { label: "Awaiting GM Confirmation", tone: "pending", detail: `${Number(result.total)} vs DC ${Number(result.dc ?? 0) || "?"} · Rolled ${rolled}${provisional}` };
+    return { label: result.pendingGmLabel ?? "Awaiting GM Confirmation", tone: "pending", detail: `${Number(result.total)} vs DC ${Number(result.dc ?? 0) || "?"} · Rolled ${rolled}${provisional}` };
   }
   const override = result.ruling && result.ruling !== "roll" ? " · GM override" : "";
   return {
@@ -1334,7 +1354,7 @@ function roleGradeToneClass(status) {
   return status === "Strong" ? "is-grade-strong"
     : status === "Partial" ? "is-grade-partial"
       : status === "Failed" ? "is-grade-failed"
-        : status === "Awaiting GM Confirmation" ? "is-grade-pending"
+        : ["Awaiting GM Confirmation", "Pending GM"].includes(status) ? "is-grade-pending"
           : "";
 }
 function rolePhaseHeader(title, status, points = null, context = "") {
@@ -1348,6 +1368,22 @@ function rolePhaseHeader(title, status, points = null, context = "") {
   return `<header>${titleHtml}<span class="zft-hex-role-log-phase-meta">${statusHtml}</span></header>${points ? `<div class="zft-hex-role-log-points">${esc(points.text)}</div>` : ""}`;
 }
 
+/** Only render individual dice when native Midi/Foundry evidence is saved.
+ * Older totals and private/unknown rolls remain unchanged. Never guess faces.
+ */
+function hexRoleRollEvidenceHtml(evidence) {
+  if (!evidence || !Array.isArray(evidence.faces) || ![1,2].includes(evidence.faces.length) ||
+      !evidence.faces.every(face => Number.isSafeInteger(face?.value) && face.value >= 1 && face.value <= 20) ||
+      evidence.faces.filter(face => face.used === true).length !== 1) return "";
+  const mode = ["advantage","disadvantage","normal"].includes(evidence.mode) ? evidence.mode : "unknown";
+  const label = {advantage:"Advantage",disadvantage:"Disadvantage",normal:"Normal",unknown:"Two dice · mode unverified"}[mode];
+  const dice = evidence.faces.map(face => `<span class="${face.used ? "is-used" : "is-dropped"}">${esc(face.value)}${face.used ? " used" : " dropped"}</span>`).join("");
+  const modifier = Number.isFinite(evidence.modifier)
+    ? `<span class="zft-hex-role-die-modifier">${evidence.modifier < 0 ? "−" : "+"}${esc(Math.abs(evidence.modifier))} other</span>` : "";
+  return `<span class="zft-hex-role-roll-evidence is-mode-${mode}" aria-label="${esc(label)}: ${esc(evidence.faces.map(face => `${face.value} ${face.used ? "used" : "dropped"}`).join(", "))}">
+    <b>${esc(label)}</b>${dice}${modifier}</span>`;
+}
+
 function roleRow(result, fallback) {
   const source = result ?? fallback;
   const outcome = roleOutcomeText(source);
@@ -1357,7 +1393,7 @@ function roleRow(result, fallback) {
   const verdict = source?.awaitingConfirmation
     ? `<span class="zft-hex-role-log-verdict"><strong>${esc(outcome.label)}</strong><small>Rolled ${source.rolledSuccess ? "Success" : "Failure"}${source.ruling && source.ruling !== "roll" ? ` · Provisional ${source.success ? "Success" : "Failure"}` : ""}</small></span>`
     : `<span class="zft-hex-role-log-verdict">${esc(outcome.label)}</span>`;
-  return `<div class="zft-hex-role-log-row zft-hex-result-${outcome.tone}"><span class="zft-hex-role-log-identity"><strong>${esc(source?.roleName ?? source?.role ?? "Role")}</strong><small>${esc(name)} · ${esc(check)}</small></span><span class="zft-hex-role-log-roll">${total}</span>${verdict}</div>`;
+  return `<div class="zft-hex-role-log-row zft-hex-result-${outcome.tone}"><span class="zft-hex-role-log-identity"><strong>${esc(source?.roleName ?? source?.role ?? "Role")}</strong><small>${esc(name)} · ${esc(check)}</small>${hexRoleRollEvidenceHtml(source?.rollEvidence)}</span><span class="zft-hex-role-log-roll">${total}</span>${verdict}</div>`;
 }
 function rolePhaseHtml(record, phase, title, roleIds) {
   const saved = record.roles?.[phase];
@@ -1401,7 +1437,7 @@ function activeExpeditionPreviewRecord(card, id, number) {
     ...value, actorName: value.actorName ?? byUuid.get(value.actorUuid)?.name ?? null, skill, ability,
     rolledSuccess: value.rolledSuccess ?? value.success
   } : null;
-  const navigationCompleted = Boolean(nav.guide || nav.vanguard);
+  const navigationCompleted = card?.stage === "complete" && Boolean(nav.guide || nav.vanguard);
   return {
     schema: 1, id, number,
     context: { party: roster.map(actor => ({ actorUuid: actor.uuid, name: actor.name })), assignments },
@@ -1417,19 +1453,30 @@ function expeditionHexHistoryHtml(record) {
     const value = nav[key];
     if (!value) return { role:key, roleName:name, skill, ability, status:"unassigned", actorName:null };
     return { role:key, roleName:name, skill, ability, status:"checked", actorName:value.actorName,
-      total:value.total, rolledSuccess:value.rolledSuccess, ruling:value.ruling, success:value.success, dc:nav.dc };
+      total:value.total, rolledSuccess:value.rolledSuccess, ruling:value.ruling, success:value.success,
+      rollEvidence:value.rollEvidence ?? null, dc:nav.dc };
   };
   const navigationPending = record.phases?.navigation !== "completed";
   const party = new Map((record.context?.party ?? []).map(entry => [entry.actorUuid, entry]));
   const pendingNavRole = (key, name, skill, ability) => {
     const actorUuid = record.context?.assignments?.[key] || null;
     const partyEntry = actorUuid ? party.get(actorUuid) : null;
+    const rolled = nav[key];
+    // The GM-review stage is a world-published, read-only preview. Both player
+    // and GM see the actual d20 result while no travel hours are yet recorded.
+    if (rolled && Number.isFinite(Number(rolled.total))) return {
+      role:key, roleName:name, skill, ability, actorUuid,
+      actorName:rolled.actorName ?? partyEntry?.name ?? null,
+      status:"checked", total:Number(rolled.total), dc:nav.dc,
+      rolledSuccess:rolled.rolledSuccess, awaitingConfirmation:true,
+      rollEvidence:rolled.rollEvidence ?? null, pendingGmLabel:"Pending GM"
+    };
     return { role:key, roleName:name, skill, ability, actorUuid, actorName:partyEntry?.name ?? null, status:!actorUuid ? "unassigned" : partyEntry ? "pending" : "absent" };
   };
   const navRows = (navigationPending
     ? [pendingNavRole("guide","Guide","sur","wis"), pendingNavRole("vanguard","Vanguard","ath","str")]
     : [navRole("guide","Guide","sur","wis"), navRole("vanguard","Vanguard","ath","str")]).map(result => roleRow(result, result)).join("");
-  const navGrade = navigationPending ? "Pending" : nav.grade === "strong" ? "Strong" : nav.grade === "partial" ? "Partial" : nav.grade === "failure" ? "Failed" : nav.grade === "unassisted" ? "Unassisted" : "Completed";
+  const navGrade = navigationPending ? (nav.guide?.awaitingConfirmation || nav.vanguard?.awaitingConfirmation ? "Pending GM" : "Pending") : nav.grade === "strong" ? "Strong" : nav.grade === "partial" ? "Partial" : nav.grade === "failure" ? "Failed" : nav.grade === "unassisted" ? "Unassisted" : "Completed";
   const tq = record.travelQuality;
   const momentum = record.momentum;
   const event = record.event;
@@ -1512,8 +1559,8 @@ function complicationOutcomeGuideHtml(complication, { selectable = false, select
     ["failure", "Failure", def.outcomes.failure],
     ["majorFailure", "Major Failure", def.outcomes.majorFailure]
   ];
-  if (!selectable) return `<div class="zft-complication-outcome-reference">${rows.map(([value,label,text]) => `<div class="is-${esc(value)}"><strong>${esc(label)}</strong><span>${esc(text)}</span></div>`).join("")}</div>`;
-  return `<div class="zft-complication-outcome-choices" role="radiogroup" aria-label="Complication outcome">${rows.map(([value,label,text]) => `<label class="zft-complication-outcome-card is-${esc(value)}"><input type="radio" name="outcome" value="${esc(value)}"${value === selected ? " checked" : ""}><span><strong>${esc(label)}</strong><small>${esc(text)}</small></span></label>`).join("")}</div>`;
+  if (!selectable) return `<div class="zft-resolution-outcome-list zft-complication-outcome-reference">${rows.map(([value,label,text]) => `<div class="is-${esc(value)}"><strong>${esc(label)}</strong><span>${esc(text)}</span></div>`).join("")}</div>`;
+  return `<div class="zft-resolution-outcome-list zft-complication-outcome-choices" role="radiogroup" aria-label="Complication outcome">${rows.map(([value,label,text]) => `<label class="zft-complication-outcome-card is-${esc(value)}"><input type="radio" name="outcome" value="${esc(value)}"${value === selected ? " checked" : ""}><span><strong>${esc(label)}</strong><small>${esc(text)}</small></span></label>`).join("")}</div>`;
 }
 function consequenceTypeLabel(type) {
   return NAVIGATION_CONSEQUENCE_TYPES[type]?.label ?? expeditionLabel(type || "consequence");
@@ -1627,6 +1674,57 @@ function consequenceImpactText(consequence) {
   if (consequence.type === "threat") return `Threat handoff recorded at Consequence Severity ${Number(consequence.finalSeverity) || 0}.`;
   return consequence.label ? `${consequence.label} recorded.` : "Consequence recorded.";
 }
+/** One compact, public-safe final ruling summary for Dashboard and Travel Log.
+ * The same saved hex record is the source for both surfaces. GM-only notes and
+ * undiscovered Complication details are never exposed on player clients.
+ */
+function completedHexFinalResultHtml(record, complication = null, surface = "log") {
+  if (!["inProgress", "completed"].includes(record?.status) ||
+      !["resolved", "manual"].includes(record.eventResolution?.status)) return "";
+  const completed = record.status === "completed";
+  const gm = Boolean(game.user?.isGM);
+  const eventType = record.event?.type;
+  const eventLabel = EXPEDITION_EVENT_LABELS[eventType] ?? record.event?.label ?? expeditionLabel(eventType || "Event");
+  const isComplication = [EXPEDITION_EVENT_TYPES.COMPLICATION, EXPEDITION_EVENT_TYPES.MAJOR_COMPLICATION].includes(eventType);
+  const reconState = complication?.reconnaissanceState;
+  const canName = gm || reconState === "full";
+  const detail = isComplication && complication
+    ? canName ? complication.detail?.text : reconState === "partial" ? complication.detail?.partialClue : null
+    : null;
+  const title = isComplication && complication
+    ? canName ? `${complication.category?.label ?? "Complication"} · ${complication.primaryType?.label ?? "Encounter"}`
+      : reconState === "partial" ? "Travel Complication · Warning" : "Travel Complication"
+    : eventLabel;
+  const resolution = isComplication ? complication?.resolution : null;
+  const outcome = resolution?.outcome ? complicationOutcomeLabel(resolution.outcome) : eventResolutionLabel(record);
+  const outcomeTone = ["failure", "majorFailure"].includes(resolution?.outcome) ? "is-negative"
+    : ["success", "strongSuccess"].includes(resolution?.outcome) ? "is-positive" : "is-neutral";
+  const consequence = resolution?.consequence;
+  const consequenceLabel = consequence
+    ? (consequence.label ?? consequenceTypeLabel(consequence.type) ?? "Consequence")
+    : eventType === EXPEDITION_EVENT_TYPES.QUIET_TRAVEL ? "No consequence" : "No consequence recorded";
+  const impact = consequence ? consequenceImpactText(consequence) : "";
+  const severity = consequence?.finalSeverity ?? consequence?.finalTier;
+  const severityLabel = Number.isSafeInteger(Number(severity)) ? ` · Severity ${Number(severity)}` : "";
+  const gmNotes = gm ? (resolution?.notes || record.eventResolution?.notes || "") : "";
+  const duration = Number(record.travel?.rolledHours);
+  const remaining = Number(record.travel?.remainingHours);
+  const travelLabel = completed
+    ? (Number.isSafeInteger(duration) && duration > 0 ? `${duration}h travel completed` : "Travel completed")
+    : (Number.isSafeInteger(remaining) && remaining > 0
+      ? `${remaining}h remaining to commit · Resolution saved` : "Travel commitment pending · Resolution saved");
+  return `<section class="zft-hex-final-result is-${esc(surface)} ${completed ? "is-completed" : "is-travel-pending"}" data-hex-final-result data-hex-final-id="${esc(record.id)}" aria-label="Hex ${esc(record.number)} expedition resolution">
+    <header><strong><i class="fa-solid ${completed ? "fa-flag-checkered" : "fa-clipboard-check"}" aria-hidden="true"></i> ${completed ? "FINAL RESULT" : "RESOLUTION RECORDED"} · HEX ${esc(record.number)}</strong><span>${completed ? "Completed" : "Travel Pending"}</span></header>
+    <div class="zft-hex-final-result-body">
+      <div class="zft-hex-final-headline"><strong class="zft-hex-final-title">${esc(title)}</strong><span class="zft-hex-final-outcome ${esc(outcomeTone)}">${esc(outcome)}</span></div>
+      ${detail ? `<p class="zft-hex-final-detail">${esc(detail)}</p>` : ""}
+      <div class="zft-hex-final-facts"><span><small>Consequence</small><strong>${esc(consequenceLabel)}${esc(severityLabel)}</strong></span>${impact ? `<p class="zft-hex-final-impact">${esc(impact)}</p>` : ""}</div>
+      ${gmNotes ? `<p class="zft-hex-final-gm-note"><strong>GM Notes:</strong> ${esc(gmNotes)}</p>` : ""}
+      <small class="zft-hex-final-duration">${esc(travelLabel)}</small>
+    </div>
+  </section>`;
+}
+
 function consequenceSummaryHtml(resolution, { audit = false } = {}) {
   const consequence = resolution?.consequence;
   if (!consequence) return "";
@@ -1760,6 +1858,7 @@ class ExpeditionConsole {
   logResizeActive = false;
   dayOpenOverrides = new Map();
   historyOpenOverrides = new Map();
+  dismissedFinalResultId = null;
   pendingRolls = new Map();
   lastDayState = null;
   lastActiveHexCardId = null;
@@ -2237,6 +2336,7 @@ class ExpeditionConsole {
       <header class="zft-hex-log-head" data-hex-log-drag>
         <i class="fa-solid fa-scroll"></i><span>Expedition Log</span>
         <button type="button" data-hex-log-action="latest" class="zft-hex-jump-latest" title="Jump to newest expedition result" hidden><i class="fa-solid fa-arrow-up"></i> Latest</button>
+        ${game.user.isGM ? `<button type="button" data-hex-log-action="export" title="Download expedition data as JSON for session analysis" aria-label="Export Expedition Data (JSON)"><i class="fa-solid fa-file-export" aria-hidden="true"></i> Export Data</button>` : ""}
         <button type="button" data-hex-log-action="dock" title="Dock or undock log"><i class="fa-solid fa-link"></i> <span data-hex-dock-label>Undock</span></button>
         <button type="button" data-hex-log-action="hide" title="Hide log"><i class="fa-solid fa-xmark"></i></button>
       </header>
@@ -2516,6 +2616,16 @@ class ExpeditionConsole {
     if (tab && this.logElement?.contains(tab)) return void this.selectLogTab(tab.dataset.hexLogTab);
     const button = event.target.closest("button[data-hex-log-action]");
     if (!button || !this.logElement?.contains(button)) return;
+    if (button.dataset.hexLogAction === "export") {
+      if (!game.user?.isGM) return;
+      try {
+        const result = exportExpeditionDataFromFoundry();
+        ui.notifications?.info?.(`Expedition data download requested: ${result.filename}`);
+      } catch (error) {
+        ui.notifications?.error?.(`Expedition export failed: ${error.message}`);
+      }
+      return;
+    }
     if (button.dataset.hexLogAction === "latest") {
       this.followLatest = true;
       this.scrollToLatest();
@@ -2712,7 +2822,7 @@ class ExpeditionConsole {
     const completedHexId = completedHexIdForAutoCollapse(this.lastActiveHexCardId, this.lastPendingTravelHours, liveLedger);
     this.lastActiveHexCardId = liveLedger.activeHexCardId || null;
     this.lastPendingTravelHours = Math.max(0, Number(liveLedger.pending) || 0);
-    const cards = makeCards(snapshot);
+    const cards = makeCards(snapshot, { dismissedFinalResultId: this.dismissedFinalResultId });
     const scroller = this.logElement.querySelector('[data-hex-log-panel="travel"]');
     const travelVisible = this.activeLogTab === "travel";
     const previousScroll = scroller.scrollTop;
@@ -4035,6 +4145,15 @@ class ExpeditionConsole {
           return;
         }
         return ui.notifications.warn("Another expedition travel action is already awaiting GM input.");
+      }
+      if (action === "travel") {
+        const lastResult = this.element?.querySelector?.("[data-hex-final-result][data-hex-final-id]");
+        // Commit/Continue Travel must not dismiss an already saved ruling.
+        // Only Start Travel after a truly completed hex retracts the recap.
+        if (lastResult?.classList.contains("is-completed")) {
+          this.dismissedFinalResultId = lastResult.dataset.hexFinalId;
+          this.refresh();
+        }
       }
       this.travelActive = true;
       const ticket = ++this.activeTravelTicket;

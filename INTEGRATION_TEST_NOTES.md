@@ -1,14 +1,46 @@
-# dev.126 Complication Details decision-aid acceptance
+# Live Foundry acceptance checklist — 0.4.0-dev.130
 
-Target: Foundry V13.351 / D&D5e 5.2.5. Install dev.126 over dev.125 and restart Foundry because the package version changed.
+**Environment:** Foundry V13.351, D&D5e 5.2.5, ZFT Tools required. Use a copied world with GM and connected player clients. Before installing, back up world state and mutable module packs/assets. Restart Foundry after replacing the complete module.
 
-1. Generate or reopen a pending Navigation Complication and open **View Details**.
-2. At 1920×1080, verify Situation is the dominant block and the screen requires materially less scrolling than dev.125.
-3. Verify the metadata strip contains only **Reconnaissance** and **Mitigation**. There must be no pre-resolution Threat/Threat Handoff metadata.
-4. If Coordinator/Operational Readiness succeeded for the source hex, Mitigation must read **Operational Readiness · optional -1 Severity**. If not, it must read **Unavailable this hex**.
-5. Verify **Recovery Objective** and **Suggested Response** are stacked in one full-width guidance list.
-6. Verify **Allowed Consequences** is a compact inline row with the correct consequence chips. Threat may still appear here when allowed.
-7. Verify **GM Result Control** remains usable: Reroll Primary + Detail, Reroll Detail, Choose Results.
-8. Verify **Outcome Guidance** remains on Details but consumes less vertical space and remains readable.
-9. Resolve the Complication and verify dev.124 outcome + consequence adjudication is unchanged.
-10. Recheck the dev.125 combined Primary/Detail generation screen and saved correction history.
+| Check | Action | Expected result | State |
+| --- | --- | --- | --- |
+| Standard/Major Complication guidance | Open both pending Standard and Major Complications on Details, compare all four outcome rows at regular/narrow window sizes | Strong Success, Success, Failure and Major Failure are full-width compact rows with no broken words, same color meaning, preserved text and no horizontal overflow | NOT TESTED |
+| Shared GM outcome selection | Open Resolve Complication for Standard and Major, select each outcome using mouse and keyboard | All four choices use matching row geometry, failure choices highlight red, success choices highlight green, and consequence/Severity selection works as before | NOT TESTED |
+| Compact pending resolution summary | Resolve an Event or Complication but do not commit any travel hour | Dashboard shows Resolution Recorded and Travel Pending immediately with event type, outcome, consequence/impact, correctly redacted GM notes and original saved text | NOT TESTED |
+| Compact completed summary and history | Commit all hours, open Travel Log, then click Start Travel | Dashboard summary changes to Final Result then retracts on Start Travel; saved Travel Log summary stays compact and visible inside its hex, including across days | NOT TESTED |
+| Event variants | Verify Quiet Travel, Opportunity, Complication and Major Complication each at pending/completed stages | Same summary component works for all supported Event types, without inventing missing consequences, completed time or secret information | NOT TESTED |
+| State invariant | Export GM data and inspect the ledger/world time before/after merely opening or refreshing result UI | No new time or game-state writes; only the existing GM resolution and travel commit actions mutate the ledger | NOT TESTED |
+| Complication GM Result Control layout | Reopen a pending Complication in a narrow GM Controls window and inspect its Details | GM Result Control explanation spans full width and all 3 buttons wrap, remain readable and clickable; no one-character vertical strip or horizontal overflow | NOT TESTED |
+| Advantage / Disadvantage evidence: Navigation | Use a native Guide/Vanguard check with Advantage and with Disadvantage (including a slow-pace/terrain cancellation), keep GM ruling open, then save and reload | The Log shows selected mode, both **actual** d20 faces, used vs dropped, original total and DC; Normal shows one face; no reroll or change in travel hours; after submit the correct evidence remains in the saved hex | NOT TESTED |
+| Advantage / Disadvantage evidence: paired roles | Make Scout/Tracker and Forager/Coordinator native checks with Advantage and Disadvantage and confirm, reroll one, override another | Live GM view and saved role records show the actual retained d20 dice plus unchanged total, reroll count and effective GM ruling; unretrievable dice stay total-only without invented values | NOT TESTED |
+| GM ruling colors: Navigation | During Guide/Vanguard GM ruling change each dropdown from Use Roll Success/Failure to explicit overrides and Re-roll | Green Success, red Failure and amber Re-roll; selection and outcome text update immediately; role calculations unchanged | NOT TESTED |
+| GM ruling colors: other four roles | During Scout/Tracker and Forager/Coordinator GM ruling change all four selectors through each option | Corresponding selected dropdown and provisional outcome text change to green/red/amber; GM can submit and reroll exactly as before | NOT TESTED |
+| Forced March DC emphasis | Commit travel beyond 8h and inspect Current Step for Hours 9 and 10 on GM and player clients | Visibly highlighted amber Constitution Save DC 11 then DC 12 using existing rule; readable without enlarging the box; not displayed on other steps | NOT TESTED |
+| Saved roll evidence exported | As GM click **Export Data** after a check with two native d20s; inspect downloaded JSON | Same original roll evidence attached to recorded role and retained in export; no settings writes, clear operation or loss of earlier records | NOT TESTED |
+| Legacy/ambiguous roll evidence | Open a pre-dev.129 hex and compare a native roll response with only a total | Existing total remains visible; no invented mode, d20 faces or missing provenance assertion | NOT TESTED |
+
+| GM export UI | Open Expedition Log as GM, click **Export Data** in the header | Browser downloads a JSON file named `zft-expedition-data_YYYYMMDD-HHMM.json` without using F12 or changing the displayed workflow | NOT TESTED |
+| Player export visibility | Open the same world as a non-GM | No **Export Data** control is present; no private expedition records are disclosed | NOT TESTED |
+| Export completeness | Complete two hexes with different Events, role checks and a Complication; export | JSON contains stable hex IDs, saved role/DC results, raw/modifier/final Event values, outcome and consequence, travel/march history, world and module metadata, and saved display-card evidence | NOT TESTED |
+| Export read-only | Capture ledger/world-time/settings values before and after export | No world setting changed; no clocks, dice, rerolls, GM rulings, notifications to players, log clearing, or other gameplay state mutation | NOT TESTED |
+| Repeated snapshots | Export before and after another hex, reload, export again | Older recorded hex IDs remain stable; overlapping exports can be deduplicated; unknown forced-roll mode is not mislabeled random | NOT TESTED |
+| Private export | Inspect the downloaded JSON as GM | Private notes/identities may be present, so the JSON is intended for GM analysis only | NOT TESTED |
+| Navigation pending values | Start a fresh hex, assign Guide and Vanguard, roll both checks and leave GM Navigation Ruling open | GM and player Expedition Log shows both actual totals and DC with **Pending GM**, before 2d4 travel time | NOT TESTED |
+| Navigation reroll | Choose reroll for one role, complete a new check | Its displayed total updates without erasing the other role's total or immediately committing travel hours | NOT TESTED |
+| Navigation override | Override one GM outcome; then submit both | Final saved Navigation record retains actual rolled totals and displays effective GM outcomes; travel time rolls once afterward | NOT TESTED |
+| Unassigned / missing Vanguard | Begin a hex with only Guide or an absent assigned Vanguard | Only actual roll is shown; missing/unassigned role is not assigned a fabricated d20 | NOT TESTED |
+| Navigation cancellation | Cancel before final GM ruling | No new hex ledger/world-time commitment; unresolved presentation clears | NOT TESTED |
+| Reconnaissance & Support | Resolve Scout/Tracker and Forager/Coordinator while GM rulings pending | Their existing totals/status still render correctly and persist; no behavior regression | NOT TESTED |
+| Outcome resolved before travel | Complete role and Event adjudication without committing any travel hours | **Resolution Recorded** appears beneath Current Step with **Travel Pending**, the actual outcome and consequences; no travel hours or world time change just from showing it | NOT TESTED |
+| Completed Quiet Travel | Commit all travel hours of a Quiet Travel hex | Dashboard under Current Step shows **FINAL RESULT** with Quiet Travel and no consequence | NOT TESTED |
+| Completed Complication | Resolve a Navigation Complication with an approved consequence, commit all travel hours | Dashboard Final Result shows the saved outcome and actual applied consequence; Travel Log retains same data under this hex | NOT TESTED |
+| Cross-day/Forced March | Pause a resolved hex mid-crossing, resume on a new day or continue with Forced March checks | **Resolution Recorded** remains visible with updated remaining-hours status until the last hour commits; existing exhaustion and clock checkpoints unchanged | NOT TESTED |
+| Start next hex | Between hexes, click **Start Travel** | Dashboard Final Result retracts; after next hex begins both GM/player clients hide old Dashboard summary; older hex retains Log record | NOT TESTED |
+| Cancel next start | Cancel new-hex setup after pressing Start Travel | Completed history remains intact; no ledger/time mutation; GM panel stays dismissed until a later display session | NOT TESTED |
+| Reload/reconnect | Reload both clients after one completed hex and after later travel | Between hexes the last completed result is available; completed Log result survives reload/new hex | NOT TESTED |
+| Redaction | Resolve a hidden Complication with GM notes and undisclosed situation | GM sees private detail/notes; players see only authorized outcome, public consequence and any acquired reconnaissance clue | NOT TESTED |
+| Cleared log | Use explicit **Clear Expedition Log** (test world only) | No old Final Result is resurrected from the retained ledger; existing clear-log semantics remain | NOT TESTED |
+| Presentation | Test all configured themes and 1920×1080 plus narrower/zoomed windows | Final Result readable, no overlay, keyboard/scroll unaffected | NOT TESTED |
+| dev.126 Complication Details | Reopen pending Navigation Complication and inspect Mitigation, Recovery, Allowed Consequences and Outcome Guidance | dev.126 design remains intact, with no pre-resolution Threat metadata | NOT TESTED |
+
+All checks remain NOT TESTED until observed in a named live Foundry world. Include both GM/player output and any F12 errors when reporting failures.

@@ -1,15 +1,11 @@
-# Overland Travel — Validation Evidence Index
+# ZFT Overland Travel | Local Validation Evidence Index
 
-**Current development routing:** [canonical project status](https://github.com/LuvacZantor/zft-overland-travel/blob/main/PROJECT_STATUS.md). **Current in-Foundry acceptance:** [`INTEGRATION_TEST_NOTES.md`](../../INTEGRATION_TEST_NOTES.md).
+Active local checkpoint: **0.4.0-dev.130**. For live Foundry checks see [INTEGRATION_TEST_NOTES.md](../../INTEGRATION_TEST_NOTES.md). A local test pass is not live Foundry acceptance.
 
-## Latest recorded checkpoint
-
-- [Local validation for 0.4.0-dev.126](../LOCAL_VALIDATION_DEV126.md): **196/196** active Node regression tests reported passing, 97 JavaScript/MJS syntax checks, 166 relative import checks with none missing. These are *locally-validated* results, not completed multi-client Foundry acceptance.
-- Runtime testing target in the original checkpoint: Foundry V13.351 / D&D5e 5.2.5.
-- Historical local validation records below are left at their original paths; their pass counts and behavior descriptions belong to their dated versions only.
-
-## Original validation reports, latest first
-
+- [dev.130](../LOCAL_VALIDATION_DEV130.md)
+- [dev.129](../LOCAL_VALIDATION_DEV129.md)
+- [dev.128](../LOCAL_VALIDATION_DEV128.md)
+- [dev.127](../LOCAL_VALIDATION_DEV127.md)
 - [dev.126](../LOCAL_VALIDATION_DEV126.md)
 - [dev.125](../LOCAL_VALIDATION_DEV125.md)
 - [dev.124](../LOCAL_VALIDATION_DEV124.md)
@@ -51,12 +47,4 @@
 - [dev.88](../LOCAL_VALIDATION_DEV88.md)
 - [dev.87](../LOCAL_VALIDATION_DEV87.md)
 
-## Other test and historical evidence
-
-- [Current live GM/player acceptance checklist](../../INTEGRATION_TEST_NOTES.md)
-- [Historical development status](../history/DEVELOPMENT_STATUS_ARCHIVE.md)
-- [Superseded development handoffs](../history/DEVELOPMENT_HANDOFF_ARCHIVE.md)
-- [Historical version notes](../../CHANGELOG.md)
-- Regression test sources remain unchanged in [`tests/`](../../tests/).
-
-A local test pass does not imply Foundry V14 support, GM/player live acceptance, or a stable release.
+Historical reports are retained at their original paths and are not retroactively considered current acceptance evidence.

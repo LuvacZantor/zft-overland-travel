@@ -3,6 +3,7 @@
  * This function is invoked only from the GM toolbar action.
  */
 import { hexTravelDieFace, hexTravelD20Total } from "./HexTravelDice.js";
+import { captureNativeD20Evidence, nativeRollMessageId } from "./HexRoleDiceEvidence.js";
 import { navigationDiceFormula, resolveNavigationHours } from "./HexNavigationResolution.js";
 import { HEX_TRAVEL_ACTIVITIES, HEX_TRAVEL_NAVIGATION_SKILL } from "./HexTravelRoles.js";
 import { hexNavigationDifficulty, TERRAIN_CHOICES, DANGER_CHOICES, normalizeHexDifficultyPreferences } from "./HexDifficulty.js";
@@ -1219,7 +1220,12 @@ return (async () => {
       const total = totalFromRemote(returned);
       if (total !== null) {
         await waitForNativeRollPresentation(returned, observedMessageId);
-        return { total, roller: currentRoller };
+        const messageId = nativeRollMessageId(returned, observedMessageId);
+        const rollEvidence = captureNativeD20Evidence({
+          remote: returned, message: messageId ? game.messages?.get?.(messageId) ?? null : null,
+          total, actorId: actor.id, rollerId: currentRoller.id
+        });
+        return { total, roller: currentRoller, rollEvidence };
       }
       const choice = await promptWait({
         window: { title: `${identity().name} | ${actor.name} Roll` },
@@ -1314,7 +1320,23 @@ return (async () => {
       ensureCurrent();
     }
     // The progress card remains at "Rolling…" for all clients during animation.
-    await globalThis.ZFTHexTravelConsole?.stage?.(hexCardId, renderStage(stageInfo), stageInfo.stage, launchLogEpoch, { day: travelState.day, travelHour: travelState.hours, difficulty: navigationDifficulty, navigation: options.details?.navigation });
+    // Publish Navigation results at the GM-review checkpoint, before travel
+    // time is rolled or the authoritative hex record exists. Only the
+    // expedition presentation card changes; the ledger is not committed.
+    const previewNavigation = stageInfo.stage === "navigation" && stageInfo.navResult ? {
+      dc: DC,
+      guide: { actorUuid: nav.uuid, actorName: nav.name, total: stageInfo.navResult.total,
+        rolledSuccess: stageInfo.navResult.total >= DC, awaitingConfirmation: true,
+        rollEvidence: stageInfo.navResult.rollEvidence ?? null },
+      vanguard: secondary && stageInfo.secResult ? {
+        actorUuid: secondary.uuid, actorName: secondary.name, total: stageInfo.secResult.total,
+        rolledSuccess: stageInfo.secResult.total >= DC, awaitingConfirmation: true,
+        rollEvidence: stageInfo.secResult.rollEvidence ?? null
+      } : null
+    } : null;
+    await globalThis.ZFTHexTravelConsole?.stage?.(hexCardId, renderStage(stageInfo), stageInfo.stage, launchLogEpoch,
+      { day: travelState.day, travelHour: travelState.hours, difficulty: navigationDifficulty,
+        navigation: options.details?.navigation ?? previewNavigation });
     currentCard = hexCardId;
     ensureCurrent();
   }
@@ -1366,6 +1388,7 @@ return (async () => {
                 preview.className = "zft-hex-navigation-final is-pending";
                 preview.textContent = "Re-roll requested";
                 select.classList.remove("is-success", "is-failure");
+                select.classList.add("is-reroll");
                 continue;
               }
               const rolled = select.value === "roll";
@@ -1374,6 +1397,7 @@ return (async () => {
               preview.textContent = `${finalSuccess ? "Success" : "Failure"}${rolled ? " · matches roll" : " · GM override"}`;
               select.classList.toggle("is-success", finalSuccess);
               select.classList.toggle("is-failure", !finalSuccess);
+              select.classList.remove("is-reroll");
             }
           };
           for (const select of dialog.element.querySelectorAll('select[name$="Ruling"]')) select.addEventListener("change", update);
@@ -1431,9 +1455,11 @@ return (async () => {
     const hours = dice.hours;
     const navigation = {
       dc: DC, pace: input.pace,
-      guide: { actorUuid: nav.uuid, total: navResult.total, success, ruling: review.guide, delay: dice.guideDelay },
+      guide: { actorUuid: nav.uuid, total: navResult.total, success, ruling: review.guide,
+        rollEvidence: navResult.rollEvidence ?? null, delay: dice.guideDelay },
       vanguard: secondary ? { actorUuid: secondary.uuid, total: secResult.total,
-        success: vanguardSuccess, ruling: review.vanguard, delay: dice.vanguardDelay } : null,
+        success: vanguardSuccess, ruling: review.vanguard,
+        rollEvidence: secResult.rollEvidence ?? null, delay: dice.vanguardDelay } : null,
       grade: secondary ? (success && vanguardSuccess ? "strong" : !success && !vanguardSuccess ? "failure" : "partial") : "unassisted",
       totalHours: hours
     };
@@ -1452,9 +1478,11 @@ return (async () => {
       navigation: {
         ...navigation,
         guide: { ...navigation.guide, actorName: nav.name, skill: "sur", ability: "wis",
-          rolledSuccess: autoGuide, rollerId: navResult.roller?.id ?? null },
+          rolledSuccess: autoGuide, rollerId: navResult.roller?.id ?? null,
+          rollEvidence: navResult.rollEvidence ?? null },
         vanguard: secondary ? { ...navigation.vanguard, actorName: secondary.name, skill: "ath", ability: "str",
-          rolledSuccess: autoVanguard, rollerId: secResult.roller?.id ?? null } : null
+          rolledSuccess: autoVanguard, rollerId: secResult.roller?.id ?? null,
+          rollEvidence: secResult.rollEvidence ?? null } : null
       }
     });
   } catch (error) {

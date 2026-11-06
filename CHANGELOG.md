@@ -1,30 +1,61 @@
-# ZFT Overland Travel — Historical Changelog and Archived README
+# ZFT Overland Travel — Historical Development Changelog
 
-> **Historical evidence only.** The text below is the complete prior development README, preserved verbatim at the dev.126 documentation checkpoint. It contains old headings, expired "current" statements, stale branch references, and superseded behavior descriptions. **Do not use it to choose the active branch or determine present implementation.** Start at [the canonical project status](https://github.com/LuvacZantor/zft-overland-travel/blob/main/PROJECT_STATUS.md) and [the active development handoff](docs/DEVELOPMENT_HANDOFF.md).
+Current test build: **0.4.0-dev.130**, locally validated, full Foundry GM/player acceptance pending.
 
-## Historical development README snapshot (verbatim)
+## 0.4.0-dev.130 | Resolution visibility and compact shared outcome layout
+
+- Show **Resolution Recorded / Travel Pending** as soon as a saved Event or Complication is adjudicated, before the remaining travel hours are committed. The same summary changes to **Final Result / Completed** once the hex is complete, then retracts from the Dashboard when the next hex starts.
+- Keep a public-safe final result in the owning hex's Travel Log history, including split-day hexes, using the saved Event and Complication records without a second persistence owner.
+- Use compact labeled fields and theme-derived status colors for the Dashboard and Travel Log; unify full-width four-outcome rows in Standard/Major Complication Details and selectable GM adjudication.
+- Preserve all dev.129 role dice evidence, GM ruling colors, Forced March DC emphasis, dev.128 GM-only Export Data, dev.127 Navigation preview, gameplay rules, event odds, travel/clock accounting, saved data, themes, assets and protected Mount Ironrot source.
+- The dev.130 test ZIP passed 228/228 active regression tests on a fresh extraction. **Not a stable release; full live acceptance remains pending.** The source checkpoint is on `feature/expedition-engines`; see `main/PROJECT_STATUS.md` for its exact commit.
+
+## 0.4.0-dev.129 | Native roll evidence and GM interface clarity
+
+- Adds read-only evaluated d20 evidence from native Midi-QOL/Foundry roll objects and matching public ChatMessages for Navigation, Reconnaissance and Expedition Support. Actual Advantage/Disadvantage die faces, used/dropped indicators and the original total are preserved in the Log and saved per-hex records. Unknown or unavailable evidence remains unknown; no dice reconstruction.
+- Unifies GM ruling dropdown colors and visible effective-outcome previews for all six roles. Green Success, red Failure, amber Re-roll; no change to roll/reroll logic or DCs.
+- Highlights the existing Constitution Save DC in Dashboard Current Step during Forced March with a compact warning chip, without changing rules or time accounting.
+- Repairs compressed GM Result Control layout in Complication Details by stacking its description and wrapping the original three buttons.
+- Preserves dev.128 GM-only read-only Export Data, dev.127 Navigation/Final Result, existing world-state persistence, original Mount Ironrot source, themes, assets and packs. No remote commit or stable release.
+
+## 0.4.0-dev.128 | GM Expedition Data Export (read-only)
+
+- Added **Export Data** to the GM Expedition Log header. Downloads an on-demand JSON snapshot of saved world-state expedition records and currently retained display cards, without a console command or extra diagnostic process.
+- The format includes stable hex IDs, individual role outcomes, DCs, Travel Quality point totals, Momentum and Event raw/modifier/final values, Event resolution, Complication details/consequences, completed-hour segments and Forced March history, with module/Foundry/system versions and export date.
+- Clearly labels historical unknown Event roll-selection mode rather than assuming unforced randomness. Full raw ledger is preserved alongside per-hex analysis records; duplicate session exports can be reconciled by world ID and hex ID.
+- Export is GM-only and read-only: no new setting, persistence schema, gameplay odds/timing, resets, automated logging, background task or network transmission. No changes to original dev.127 mechanics, assets, styles, packs or protected code.
+
+
+## 0.4.0-dev.127 | Navigation GM-review visibility and completed-hex Final Result
+
+- Navigation Guide/Vanguard actual totals appear in the Expedition Log before travel-time dice, under **Pending GM** while rulings are pending. The existing world-published progress card owns the preview. No travel/clock write occurs at this stage.
+- Reconnaissance and Expedition Support remain unchanged.
+- Once all hours of a hex are committed, the Dashboard shows a compact **Final Result** directly below Current Step with the saved adjudicated Event outcome and consequences.
+- The Dashboard Final Result retracts when Start Travel begins the next crossing; the completed hex retains its Final Result in the Travel tab even after later hexes, across refresh and player reconnection.
+- Resolved Complication summaries respect player reconnaissance disclosure. GM-only notes remain GM-only. No new persistent store, gameplay rule, or schema change.
+
+## 0.4.0-dev.126 | Complication Details decision-aid hierarchy
+
+- Situation remains focal; metadata reduced to Reconnaissance and actual Operational Readiness mitigation.
+- Recovery Objective and Suggested Response stacked; allowed consequences compact; outcome reference condensed.
+- Original dev.125 generation controls and history preserved.
+
+## Complete prior changelog snapshot (dev.125 and earlier)
+
+> Historical records below retain their original text, old "Current" headings, and dated decisions for audit purposes; they do not override current status.
 
 # ZFT Overland Travel
 
-Current local test package: `0.4.0-dev.126` for Foundry V13 (live validation pending). This is an experimental Expedition System 1.1 build and is not the recommended campaign-session build until live acceptance. The Foundry module ID remains `zft-overland-travel`.
+Current local test package: `0.4.0-dev.125` for Foundry V13 (live validation pending). This is an experimental Expedition System 1.1 build and is not the recommended campaign-session build until live acceptance. The Foundry module ID remains `zft-overland-travel`.
 
 Foundry VTT module implementing Zantor's hex-based overland travel and independent encounter-generation framework.
 
 ## Version
 
-Current module build: **`0.4.0-dev.126`** (development only). The original generic framework was developed as `0.3.1`; its earlier notes remain below for historical context.
+Current module build: **`0.4.0-dev.125`** (development only). The original generic framework was developed as `0.3.1`; its earlier notes remain below for historical context.
 
 
 
-
-## 0.4.0-dev.126 | Complication Details Decision-Aid Cleanup
-
-- Keeps Situation as the primary Complication focal point while reducing metadata to the two items the GM needs before adjudication: Reconnaissance and Mitigation.
-- Mitigation now reports whether Operational Readiness is actually available for the source hex and explains its optional `-1 Consequence Severity` effect when available.
-- Removes Threat Handoff from Details metadata. Threat remains an allowed selectable consequence where the Complication permits it and still records the future Threat Engine handoff when selected.
-- Replaces side-by-side Recovery/Suggested Response cards with one compact vertical guidance block.
-- Converts Allowed Consequences to a compact inline row and compresses Outcome Guidance into a denser two-column decision reference.
-- Preserves dev.125 combined Primary/Detail roll setup, GM reroll/choose-result history, dev.124 GM adjudication, and all deterministic Navigation consequence mechanics.
 
 ## 0.4.0-dev.125 | Navigation Generation Workflow + GM Result Control
 
@@ -838,3 +869,4 @@ Expedition Roles assignments return to the inline pop-down within GM Expedition 
 ## Local test build 0.4.0-dev.77 | Confirm unfinished hex travel
 
 Built on the complete local dev.76 package; GitHub `develop` remains at the historical dev.62 checkpoint. Start / Continue now asks the GM to confirm before spending saved unfinished hours, including hours carried into a new travel day. The confirmation shows remaining hex hours, today's available safe hours, and the expected outcome (or Forced March choice). Cancel, Escape or closing the prompt leaves world time, ledger, hour history and saved progress unchanged, and the prompt appears again on the next attempt. On confirmation the unchanged travel-hour and Forced March engine runs, after checking the saved ledger has not changed while the prompt was open. All archived source, migrations, packs, themes, clock accounting, audio and notifications preserved. Local tests are not live V13 or V14 acceptance. No GitHub write.
+
