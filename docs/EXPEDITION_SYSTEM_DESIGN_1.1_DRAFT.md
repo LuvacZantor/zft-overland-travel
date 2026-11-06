@@ -1,5 +1,8 @@
 # Expedition System Design 1.1 Draft
 
+> **Historical/design scope notice (2026-11-06):** The initial dev.110/dev.111 references describe the draft's starting baseline, not the current dev.126 implementation. The design includes planned and superseded stages. In particular, live Complication resolution was changed to GM-only adjudication in dev.124; dev.123 Roll / Check design text is historical. See [canonical current project status](https://github.com/LuvacZantor/zft-overland-travel/blob/main/PROJECT_STATUS.md) and [the active handoff](DEVELOPMENT_HANDOFF.md). The original text below remains intact as design/history evidence; its older “current” wording does not override the active source.
+
+
 **Status:** Active engine-design baseline. The travel/role/Travel Quality/Momentum/Event pipeline is established through dev.110. Dev.111 separates the engine workspaces without changing Travel. Complication and Opportunity are the next sibling engines to define; Threat and Discovery follow downstream; Encounter is a shared downstream engine rather than a Threat-only endpoint.
 
 **Module:** ZFT Overland Travel  

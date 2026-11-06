@@ -1,5 +1,8 @@
 # Shared Hex Travel Records
 
+> **Historical/design scope notice (2026-11-06):** Dev.87–dev.90 data/schema sections document the history of this contract. The Roles tab described in earlier sections was removed in dev.110; current paired-role evidence appears in the Travel tab. Preserve the underlying hex ledger/record semantics; verify any later fields in current code before editing. See [canonical current project status](https://github.com/LuvacZantor/zft-overland-travel/blob/main/PROJECT_STATUS.md) and [the active handoff](DEVELOPMENT_HANDOFF.md). The original text below remains intact as design/history evidence; its older “current” wording does not override the active source.
+
+
 ## Scope of 0.4.0-dev.87
 
 This build adds a persistent record for each newly committed hex travel sequence. The GM continues to select the conditions manually. The record has no map coordinates and does not discover terrain, identify a map tile, or remember a geographic location for a later visit.

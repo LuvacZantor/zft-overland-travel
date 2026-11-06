@@ -1,5 +1,8 @@
 # Navigation Complication Engine — dev.123
 
+> **Historical/design scope notice (2026-11-06):** This is the dev.123 implementation specification, not the current resolution procedure. Dev.124 removed the Roll / Check branch from live Complication resolution, leaving GM-only adjudication. Do not reintroduce the removed flow based on this historical document. See [canonical current project status](https://github.com/LuvacZantor/zft-overland-travel/blob/main/PROJECT_STATUS.md) and [the active handoff](DEVELOPMENT_HANDOFF.md). The original text below remains intact as design/history evidence; its older “current” wording does not override the active source.
+
+
 ## Runtime scope
 
 Navigation is the first fully testable Complication category. The eight narrative primary Complications remain distinct for story variety:
